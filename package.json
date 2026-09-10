@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "backend:dev": "uvicorn backend.main:app --reload --port 8000",
+    "backend:dev": "python -m uvicorn backend.main:app --reload --port 8000",
     "db:seed": "python -m backend.seed",
     "db:migrate": "alembic upgrade head",
-    "db:studio": "uvicorn backend.main:app --reload --port 8000"
+    "db:studio": "python -m uvicorn backend.main:app --reload --port 8000",
+    "studio": "python -m uvicorn backend.main:app --reload --port 8000"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

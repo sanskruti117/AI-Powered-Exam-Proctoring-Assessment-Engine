@@ -57,6 +57,8 @@ from backend.models import (
     StudentAnswer,
     QuestionTimeLog,
     ProctorEvent,
+    TestCase,
+    CodeBoilerplate,
 )
 
 
@@ -105,6 +107,22 @@ class OptionAdmin(ModelView, model=Option):
     name_plural = "Question Options"
 
 
+class TestCaseAdmin(ModelView, model=TestCase):
+    column_list = [TestCase.id, TestCase.question_id, TestCase.is_sample, TestCase.weightage_marks, TestCase.order, TestCase.created_at]
+    column_sortable_list = [TestCase.is_sample, TestCase.weightage_marks, TestCase.order, TestCase.created_at]
+    icon = "fa-solid fa-vial"
+    name = "Test Case"
+    name_plural = "Test Cases"
+
+
+class CodeBoilerplateAdmin(ModelView, model=CodeBoilerplate):
+    column_list = [CodeBoilerplate.id, CodeBoilerplate.question_id, CodeBoilerplate.language, CodeBoilerplate.created_at]
+    column_sortable_list = [CodeBoilerplate.language, CodeBoilerplate.created_at]
+    icon = "fa-solid fa-code"
+    name = "Code Boilerplate"
+    name_plural = "Code Boilerplates"
+
+
 class ExamAttemptAdmin(ModelView, model=ExamAttempt):
     column_list = [ExamAttempt.id, ExamAttempt.exam_id, ExamAttempt.student_id, ExamAttempt.status, ExamAttempt.score, ExamAttempt.percentage, ExamAttempt.is_passed, ExamAttempt.total_time_seconds, ExamAttempt.started_at]
     column_sortable_list = [ExamAttempt.score, ExamAttempt.status, ExamAttempt.started_at]
@@ -114,8 +132,8 @@ class ExamAttemptAdmin(ModelView, model=ExamAttempt):
 
 
 class StudentAnswerAdmin(ModelView, model=StudentAnswer):
-    column_list = [StudentAnswer.id, StudentAnswer.attempt_id, StudentAnswer.question_id, StudentAnswer.is_correct, StudentAnswer.marks_obtained, StudentAnswer.evaluation_status, StudentAnswer.time_spent_seconds]
-    column_sortable_list = [StudentAnswer.marks_obtained, StudentAnswer.is_correct, StudentAnswer.time_spent_seconds]
+    column_list = [StudentAnswer.id, StudentAnswer.attempt_id, StudentAnswer.question_id, StudentAnswer.code_language, StudentAnswer.test_cases_passed, StudentAnswer.total_test_cases, StudentAnswer.marks_obtained, StudentAnswer.evaluation_status]
+    column_sortable_list = [StudentAnswer.marks_obtained, StudentAnswer.evaluation_status]
     icon = "fa-solid fa-pen-to-square"
     name = "Student Answer"
     name_plural = "Student Answers"
@@ -144,18 +162,30 @@ class RefreshTokenAdmin(ModelView, model=RefreshToken):
     name_plural = "Refresh Tokens"
 
 
-# Mount SQLAdmin at /db-studio
+# Mount SQLAdmin at /db-studio and /admin
 db_admin = Admin(app, engine, title="SQLAlchemy Database Studio", base_url="/db-studio")
 db_admin.add_view(UserAdmin)
 db_admin.add_view(ExamAdmin)
 db_admin.add_view(ExamSectionAdmin)
 db_admin.add_view(QuestionBankAdmin)
 db_admin.add_view(OptionAdmin)
+db_admin.add_view(TestCaseAdmin)
+db_admin.add_view(CodeBoilerplateAdmin)
 db_admin.add_view(ExamAttemptAdmin)
 db_admin.add_view(StudentAnswerAdmin)
 db_admin.add_view(QuestionTimeLogAdmin)
 db_admin.add_view(ProctorEventAdmin)
 db_admin.add_view(RefreshTokenAdmin)
+
+
+from fastapi.responses import RedirectResponse
+
+
+@app.get("/studio", include_in_schema=False)
+@app.get("/admin-studio", include_in_schema=False)
+@app.get("/database", include_in_schema=False)
+def redirect_to_studio():
+    return RedirectResponse(url="/db-studio")
 
 
 @app.get("/api/health")
