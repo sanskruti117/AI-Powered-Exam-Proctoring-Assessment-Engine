@@ -433,7 +433,7 @@ export default function ExamEvaluationStudioPage() {
                         {/* Candidate's Text Answer */}
                         <div className="space-y-1">
                           <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                            Candidate's Submitted Answer
+                            Candidate&apos;s Submitted Answer
                           </div>
                           <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
                             {q.text_answer || (

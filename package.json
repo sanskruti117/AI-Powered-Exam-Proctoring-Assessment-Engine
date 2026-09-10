@@ -13,6 +13,7 @@
     "db:studio": "uvicorn backend.main:app --reload --port 8000"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "jose": "^5.9.6",

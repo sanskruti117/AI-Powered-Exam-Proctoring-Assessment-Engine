@@ -204,10 +204,18 @@ class QuestionBank(Base):
     question_text = Column(Text, nullable=False)
     subject = Column(String, index=True, nullable=False)
     difficulty = Column(String, nullable=False)  # EASY, MEDIUM, HARD
-    question_type = Column(String, nullable=False)  # MCQ, MULTI_SELECT, SHORT_ANSWER, LONG_ANSWER, IMAGE
+    question_type = Column(String, nullable=False)  # MCQ, MULTI_SELECT, SHORT_ANSWER, LONG_ANSWER, IMAGE, CODING
     marks = Column(Integer, default=1, nullable=False)
     expected_answer = Column(Text, nullable=True)  # For SHORT_ANSWER, LONG_ANSWER / rubric
     image_url = Column(String, nullable=True)  # For IMAGE questions
+
+    # Coding Problem Specific Fields
+    input_format = Column(Text, nullable=True)
+    output_format = Column(Text, nullable=True)
+    constraints = Column(Text, nullable=True)
+    allowed_languages = Column(Text, nullable=True)  # JSON list: ["python", "javascript", "cpp", "java"]
+    time_limit_seconds = Column(Float, default=2.0, nullable=False)
+    memory_limit_mb = Column(Integer, default=256, nullable=False)
 
     created_at = Column(
         DateTime(timezone=True),
@@ -232,6 +240,17 @@ class QuestionBank(Base):
         back_populates="question",
         cascade="all, delete-orphan",
         order_by="Option.order",
+    )
+    test_cases = relationship(
+        "TestCase",
+        back_populates="question",
+        cascade="all, delete-orphan",
+        order_by="TestCase.order",
+    )
+    boilerplates = relationship(
+        "CodeBoilerplate",
+        back_populates="question",
+        cascade="all, delete-orphan",
     )
     student_answers = relationship("StudentAnswer", back_populates="question", cascade="all, delete-orphan")
 
@@ -269,6 +288,62 @@ class Option(Base):
 
 
 Index("ix_options_question_id", Option.question_id)
+
+
+class TestCase(Base):
+    __tablename__ = "test_cases"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    question_id = Column(
+        String,
+        ForeignKey("question_bank.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    input_data = Column(Text, nullable=False)
+    expected_output = Column(Text, nullable=False)
+    is_sample = Column(Boolean, default=False, nullable=False)
+    explanation = Column(Text, nullable=True)
+    weightage_marks = Column(Float, default=1.0, nullable=False)
+    order = Column(Integer, default=0, nullable=False)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # Relationships
+    question = relationship("QuestionBank", back_populates="test_cases")
+
+
+Index("ix_test_cases_question_id", TestCase.question_id)
+
+
+class CodeBoilerplate(Base):
+    __tablename__ = "code_boilerplates"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    question_id = Column(
+        String,
+        ForeignKey("question_bank.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    language = Column(String(50), nullable=False)  # "python", "javascript", "cpp", "java"
+    starter_code = Column(Text, nullable=False)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # Relationships
+    question = relationship("QuestionBank", back_populates="boilerplates")
+
+
+Index("ix_code_boilerplates_question_id", CodeBoilerplate.question_id)
 
 
 class ExamAttempt(Base):
@@ -327,6 +402,13 @@ class StudentAnswer(Base):
     selected_option_id = Column(String, nullable=True)     # For Single Choice MCQ
     selected_option_ids = Column(Text, nullable=True)      # JSON list for MULTI_SELECT
     text_answer = Column(Text, nullable=True)              # For Short/Long Answer
+    
+    # Coding Answer Fields
+    code_language = Column(String(50), nullable=True)      # "python", "javascript", "cpp", "java"
+    code_answer = Column(Text, nullable=True)              # Submitted source code
+    test_cases_passed = Column(Integer, default=0, nullable=False)
+    total_test_cases = Column(Integer, default=0, nullable=False)
+    code_execution_logs = Column(Text, nullable=True)      # Summary JSON logs
     
     is_correct = Column(Boolean, nullable=True)
     marks_obtained = Column(Float, default=0.0, nullable=False)

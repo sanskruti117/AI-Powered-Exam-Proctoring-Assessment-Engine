@@ -32,6 +32,10 @@ interface AnswerItem {
   selected_option_id?: string;
   selected_option_ids?: string[];
   text_answer?: string;
+  code_language?: string;
+  code_answer?: string;
+  test_cases_passed?: number;
+  total_test_cases?: number;
   correct_option_ids?: string[];
   expected_answer?: string;
   options: {
@@ -346,6 +350,34 @@ export default function StudentExamResultPage() {
                       <div className="p-3.5 rounded-2xl bg-violet-950/20 border border-violet-500/30 text-xs text-violet-200">
                         <span className="font-bold text-violet-300 block mb-0.5">
                           Examiner Qualitative Feedback:
+                        </span>
+                        <span>{q.examiner_feedback}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Coding Problem Solution Review */}
+                {q.question_type === "CODING" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400 font-bold uppercase tracking-wider">
+                        Submitted Source Code ({q.code_language || "python"}):
+                      </span>
+                      {q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
+                          {q.test_cases_passed} / {q.total_test_cases} Test Cases Passed
+                        </span>
+                      )}
+                    </div>
+                    <pre className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                      {q.code_answer || "// No code submitted"}
+                    </pre>
+
+                    {q.examiner_feedback && (
+                      <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs text-indigo-200 font-mono">
+                        <span className="font-bold text-indigo-300 block mb-0.5 font-sans">
+                          Test Case Evaluation Summary:
                         </span>
                         <span>{q.examiner_feedback}</span>
                       </div>

@@ -20,6 +20,10 @@ from backend.schemas import (
     ExamLeaderboardResponse,
     ExamAnalyticsResponse,
     EvaluateAttemptRequest,
+    CodeRunRequest,
+    CodeRunResponse,
+    CodeSubmitTestRequest,
+    CodeSubmitTestResponse,
 )
 from backend.crud import (
     create_exam,
@@ -38,9 +42,12 @@ from backend.crud import (
     submit_student_attempt,
     get_student_attempt_result,
     get_exam_leaderboard,
+    get_exam_candidates,
     get_exam_analytics,
     evaluate_attempt_descriptive_answers,
     batch_ai_evaluate_exam_attempts,
+    run_code_sample_test,
+    submit_code_evaluation,
 )
 from backend.routers.auth import get_current_user_payload
 
@@ -366,6 +373,10 @@ def start_or_resume_exam(
             "selected_option_id": a.selected_option_id,
             "selected_option_ids": json.loads(a.selected_option_ids) if a.selected_option_ids else None,
             "text_answer": a.text_answer,
+            "code_language": a.code_language,
+            "code_answer": a.code_answer,
+            "test_cases_passed": a.test_cases_passed or 0,
+            "total_test_cases": a.total_test_cases or 0,
             "time_spent_seconds": a.time_spent_seconds,
         }
 
@@ -383,6 +394,41 @@ def start_or_resume_exam(
         "questions": questions_data,
         "saved_answers": saved_answers,
     }
+
+
+@router.post("/{id}/code/run", response_model=CodeRunResponse)
+def run_student_code_endpoint(
+    id: str,
+    body: CodeRunRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    require_auth(request)
+    result = run_code_sample_test(
+        db=db,
+        language=body.language,
+        code=body.code,
+        custom_input=body.custom_input,
+        question_id=body.question_id,
+    )
+    return result
+
+
+@router.post("/{id}/code/submit-test", response_model=CodeSubmitTestResponse)
+def submit_student_code_test_endpoint(
+    id: str,
+    body: CodeSubmitTestRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    require_auth(request)
+    result = submit_code_evaluation(
+        db=db,
+        question_id=body.question_id,
+        language=body.language,
+        code=body.code,
+    )
+    return result
 
 
 @router.post("/{id}/heartbeat")
@@ -513,6 +559,16 @@ def get_exam_leaderboard_endpoint(
     return leaderboard_data
 
 
+@router.get("/{id}/candidates")
+def get_exam_candidates_endpoint(id: str, request: Request, db: Session = Depends(get_db)):
+    user = require_examiner_or_admin(request)
+    examiner_scope = user.get("userId") if user.get("role") == "EXAMINER" else None
+    exam = get_exam_by_id(db, exam_id=id, examiner_id=examiner_scope)
+    if not exam:
+        raise HTTPException(status_code=404, detail="Exam not found or access denied.")
+    return {"success": True, "candidates": get_exam_candidates(db, id)}
+
+
 @router.get("/{id}/analytics", response_model=ExamAnalyticsResponse)
 def get_exam_analytics_endpoint(
     id: str,
@@ -578,4 +634,3 @@ def batch_ai_evaluate_endpoint(
         "evaluated_attempts_count": attempts_count,
         "evaluated_questions_count": questions_count,
     }
-

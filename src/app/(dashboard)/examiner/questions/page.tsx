@@ -34,6 +34,7 @@ import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal";
 
 interface AssessmentSection { id: string; title: string; }
 interface Assessment { id: string; title: string; sections: AssessmentSection[]; }
+interface ImportedQuestion { question_text: string; question_type: string; difficulty: string; marks: number; expected_answer?: string | null; options?: { option_text: string; is_correct: boolean; order: number }[]; }
 
 export default function QuestionBankPage() {
   const [questions, setQuestions] = useState<QuestionData[]>([]);
@@ -53,6 +54,9 @@ export default function QuestionBankPage() {
   const [movingQuestions, setMovingQuestions] = useState(false);
   const batchImportRef = useRef<HTMLInputElement>(null);
   const [batchImporting, setBatchImporting] = useState(false);
+  const [importedQuestions, setImportedQuestions] = useState<ImportedQuestion[]>([]);
+  const [importSubject, setImportSubject] = useState("");
+  const [committingImport, setCommittingImport] = useState(false);
 
   // Modals state
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionData | null>(null);
@@ -79,7 +83,13 @@ export default function QuestionBankPage() {
       if (searchTerm.trim()) params.append("search", searchTerm.trim());
 
       const res = await fetch(`/api/questions?${params.toString()}`);
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = { detail: rawText || `Server error (${res.status})` };
+      }
 
       if (res.ok) {
         setQuestions(data.questions || []);
@@ -106,7 +116,14 @@ export default function QuestionBankPage() {
 
   useEffect(() => {
     fetch("/api/exams")
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (!response.ok) return { exams: [] };
+        try {
+          return await response.json();
+        } catch {
+          return { exams: [] };
+        }
+      })
       .then((data) => { if (data.success) setAssessments(data.exams || []); })
       .catch(() => setAssessments([]));
   }, []);
@@ -117,9 +134,20 @@ export default function QuestionBankPage() {
     const section = assessment?.sections.find((item) => item.id === targetSectionId);
     try {
       setMovingQuestions(true);
-      const responses = await Promise.all(selectedQuestionIds.map((id) => fetch(`/api/questions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ exam_id: targetAssessmentId, section_id: targetSectionId }) })));
-      if (responses.some((response) => !response.ok)) throw new Error("Unable to update one or more questions.");
-      setNotification({ type: "success", message: `${selectedQuestionIds.length} question${selectedQuestionIds.length === 1 ? "" : "s"} added to ${assessment?.title || "assessment"} → ${section?.title || "section"}.` });
+      const response = await fetch("/api/questions/assign-to-assessment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question_ids: selectedQuestionIds, exam_id: targetAssessmentId, section_id: targetSectionId }),
+      });
+      const rawText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = { detail: rawText || `Server error (${response.status})` };
+      }
+      if (!response.ok) throw new Error(data.detail || "Unable to add the selected questions.");
+      setNotification({ type: "success", message: `${data.created} reusable question${data.created === 1 ? "" : "s"} added to ${assessment?.title || "assessment"}, section ${section?.title || "section"}.` });
       setSelectedQuestionIds([]);
       setTargetAssessmentId("");
       setTargetSectionId("");
@@ -134,29 +162,59 @@ export default function QuestionBankPage() {
   const handleBatchPdfImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const subject = window.prompt("Which question bank should these questions be added to? (Example: DBMS or DSA)");
-    if (!subject?.trim()) return;
     try {
       setBatchImporting(true);
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("subject", subject.trim());
       const response = await fetch("/api/questions/import-batch", { method: "POST", body: formData });
       const rawResponse = await response.text();
-      let data: { detail?: string; created?: number; skipped?: number } = {};
+      let data: { detail?: string; questions?: ImportedQuestion[]; skipped?: number } = {};
       try {
         data = JSON.parse(rawResponse);
       } catch {
         throw new Error(`Import service error (${response.status}). Check the backend terminal for details.`);
       }
       if (!response.ok) throw new Error(data.detail || "Could not import this question paper.");
-      setNotification({ type: "success", message: `${data.created || 0} questions were added to ${subject.trim()}${data.skipped ? `; ${data.skipped} incomplete questions were skipped.` : ""}` });
-      fetchQuestions();
+      if (!data.questions?.length) throw new Error(data.detail || "No complete questions could be extracted from this PDF.");
+      setImportedQuestions(data.questions);
+      setImportSubject("");
+      if (data.skipped) {
+        setNotification({
+          type: "success",
+          message: `Extracted ${data.questions.length} question${data.questions.length === 1 ? "" : "s"} for review (${data.skipped} incomplete question${data.skipped === 1 ? "" : "s"} excluded).`,
+        });
+      }
     } catch (error: any) {
       setNotification({ type: "error", message: error.message || "Could not import this question paper." });
     } finally {
       setBatchImporting(false);
       event.target.value = "";
+    }
+  };
+
+  const confirmBatchImport = async () => {
+    if (!importSubject.trim() || !importedQuestions.length) return;
+    try {
+      setCommittingImport(true);
+      const response = await fetch("/api/questions/import-batch/confirm", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: importSubject.trim(), questions: importedQuestions }),
+      });
+      const rawText = await response.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = { detail: rawText || `Server error (${response.status})` };
+      }
+      if (!response.ok) throw new Error(data.detail || "Could not save the reviewed questions.");
+      setNotification({ type: "success", message: `${data.created} reviewed questions added to ${importSubject.trim()}${data.skipped ? `; ${data.skipped} were skipped.` : ""}` });
+      setImportedQuestions([]);
+      fetchQuestions();
+    } catch (error: any) {
+      setNotification({ type: "error", message: error.message || "Could not save the reviewed questions." });
+    } finally {
+      setCommittingImport(false);
     }
   };
 
@@ -169,7 +227,13 @@ export default function QuestionBankPage() {
       const res = await fetch(`/api/questions/${questionToDelete.id}`, {
         method: "DELETE",
       });
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = { detail: rawText || `Server error (${res.status})` };
+      }
 
       if (!res.ok) {
         throw new Error(data.detail || "Failed to delete question.");
@@ -302,6 +366,17 @@ export default function QuestionBankPage() {
           >
             Dismiss
           </button>
+        </div>
+      )}
+
+      {importedQuestions.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
+          <div className="glass-card flex max-h-[85vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4"><div><h2 className="text-xl font-bold text-white">Review imported questions</h2><p className="mt-1 text-sm text-slate-400">Check the extracted questions before they are saved. You can remove any item.</p></div><button onClick={() => setImportedQuestions([])} className="text-sm font-bold text-slate-400 hover:text-white">Cancel</button></div>
+            <div className="mt-4 flex flex-wrap gap-3"><input value={importSubject} onChange={(event) => setImportSubject(event.target.value)} placeholder="Question bank name, e.g. DSA or DBMS" className="min-w-[250px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500" /><span className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-slate-300">{importedQuestions.length} questions</span></div>
+            <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">{importedQuestions.map((question, index) => <div key={`${question.question_text}-${index}`} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"><div className="flex justify-between gap-3"><p className="font-semibold text-white">{index + 1}. {question.question_text}</p><button onClick={() => setImportedQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="shrink-0 text-xs font-bold text-rose-400 hover:text-rose-300">Remove</button></div><p className="mt-2 text-xs font-bold text-indigo-300">{question.question_type.replace("_", " ")} · {question.difficulty} · {question.marks} mark(s)</p>{question.options?.length ? <p className="mt-2 text-xs text-slate-400">{question.options.length} options extracted</p> : null}</div>)}</div>
+            <div className="mt-5 flex justify-end gap-3 border-t border-slate-800 pt-4"><button onClick={() => setImportedQuestions([])} className="rounded-xl px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">Cancel</button><button onClick={confirmBatchImport} disabled={!importSubject.trim() || !importedQuestions.length || committingImport} className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{committingImport ? "Saving..." : "Approve & add questions"}</button></div>
+          </div>
         </div>
       )}
 

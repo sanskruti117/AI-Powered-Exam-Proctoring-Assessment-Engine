@@ -19,9 +19,14 @@ import {
   Check,
   X,
   Sparkles,
+  Code2,
+  Terminal,
+  Play,
+  Clock,
+  Cpu,
 } from "lucide-react";
 
-export type QuestionType = "MCQ" | "MULTI_SELECT" | "SHORT_ANSWER" | "LONG_ANSWER" | "IMAGE";
+export type QuestionType = "MCQ" | "MULTI_SELECT" | "SHORT_ANSWER" | "LONG_ANSWER" | "IMAGE" | "CODING";
 export type Difficulty = "EASY" | "MEDIUM" | "HARD";
 
 export interface FormOption {
@@ -29,6 +34,22 @@ export interface FormOption {
   option_text: string;
   is_correct: boolean;
   order: number;
+}
+
+export interface FormTestCase {
+  id?: string;
+  input_data: string;
+  expected_output: string;
+  is_sample: boolean;
+  explanation?: string;
+  weightage_marks: number;
+  order: number;
+}
+
+export interface FormBoilerplate {
+  id?: string;
+  language: string;
+  starter_code: string;
 }
 
 export interface QuestionFormInitialData {
@@ -41,6 +62,14 @@ export interface QuestionFormInitialData {
   expected_answer?: string | null;
   image_url?: string | null;
   options?: FormOption[];
+  input_format?: string | null;
+  output_format?: string | null;
+  constraints?: string | null;
+  allowed_languages?: string[] | null;
+  time_limit_seconds?: number | null;
+  memory_limit_mb?: number | null;
+  test_cases?: FormTestCase[];
+  boilerplates?: FormBoilerplate[];
 }
 
 interface QuestionFormProps {
@@ -63,6 +92,58 @@ const COMMON_SUBJECTS = [
   "Mathematics",
   "Physics",
 ];
+
+const DEFAULT_BOILERPLATES: Record<string, string> = {
+  python: `import sys
+
+def solve():
+    # Read inputs from standard input
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+    # TODO: Implement your solution here
+    print("result")
+
+if __name__ == "__main__":
+    solve()
+`,
+  javascript: `const fs = require('fs');
+
+function solve() {
+    const input = fs.readFileSync(0, 'utf-8').trim().split(/\\s+/);
+    if (!input || input.length === 0 || input[0] === '') return;
+    // TODO: Implement your solution here
+    console.log("result");
+}
+
+solve();
+`,
+  cpp: `#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    // TODO: Read inputs and print result
+    return 0;
+}
+`,
+  java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        // TODO: Read inputs and print result
+        
+        sc.close();
+    }
+}
+`,
+};
 
 export function QuestionForm({
   initialData,
@@ -103,6 +184,62 @@ export function QuestionForm({
     ];
   });
 
+  // Coding Specific State
+  const [inputFormat, setInputFormat] = useState(initialData?.input_format || "");
+  const [outputFormat, setOutputFormat] = useState(initialData?.output_format || "");
+  const [constraints, setConstraints] = useState(initialData?.constraints || "");
+  const [allowedLanguages, setAllowedLanguages] = useState<string[]>(
+    initialData?.allowed_languages || ["python", "javascript", "cpp", "java"]
+  );
+  const [timeLimitSeconds, setTimeLimitSeconds] = useState<number>(
+    initialData?.time_limit_seconds || 2.0
+  );
+  const [memoryLimitMb, setMemoryLimitMb] = useState<number>(
+    initialData?.memory_limit_mb || 256
+  );
+
+  // Test Cases State
+  const [testCases, setTestCases] = useState<FormTestCase[]>(() => {
+    if (initialData?.test_cases && initialData.test_cases.length > 0) {
+      return initialData.test_cases;
+    }
+    return [
+      {
+        input_data: "3 5",
+        expected_output: "8",
+        is_sample: true,
+        explanation: "3 + 5 = 8",
+        weightage_marks: 1.0,
+        order: 0,
+      },
+      {
+        input_data: "10 20",
+        expected_output: "30",
+        is_sample: false,
+        explanation: "",
+        weightage_marks: 1.0,
+        order: 1,
+      },
+    ];
+  });
+
+  // Boilerplates State
+  const [boilerplates, setBoilerplates] = useState<Record<string, string>>(() => {
+    const bps: Record<string, string> = { ...DEFAULT_BOILERPLATES };
+    if (initialData?.boilerplates) {
+      for (const bp of initialData.boilerplates) {
+        bps[bp.language] = bp.starter_code;
+      }
+    }
+    return bps;
+  });
+  const [activeCodeLangTab, setActiveCodeLangTab] = useState<string>("python");
+
+  // Live Test Solution state
+  const [testRunCustomInput, setTestRunCustomInput] = useState("");
+  const [testRunning, setTestRunning] = useState(false);
+  const [testRunResult, setTestRunResult] = useState<any>(null);
+
   // UI status
   const [uploadingImage, setUploadingImage] = useState(false);
   const [importingSource, setImportingSource] = useState(false);
@@ -122,15 +259,24 @@ export function QuestionForm({
       setQuestionText(initialData.question_text || "");
       setExpectedAnswer(initialData.expected_answer || "");
       setImageUrl(initialData.image_url || "");
+      setInputFormat(initialData.input_format || "");
+      setOutputFormat(initialData.output_format || "");
+      setConstraints(initialData.constraints || "");
+      if (initialData.allowed_languages) setAllowedLanguages(initialData.allowed_languages);
+      if (initialData.time_limit_seconds) setTimeLimitSeconds(initialData.time_limit_seconds);
+      if (initialData.memory_limit_mb) setMemoryLimitMb(initialData.memory_limit_mb);
       if (initialData.options && initialData.options.length > 0) {
         setOptions(initialData.options);
-      } else {
-        setOptions([
-          { option_text: "", is_correct: true, order: 0 },
-          { option_text: "", is_correct: false, order: 1 },
-          { option_text: "", is_correct: false, order: 2 },
-          { option_text: "", is_correct: false, order: 3 },
-        ]);
+      }
+      if (initialData.test_cases && initialData.test_cases.length > 0) {
+        setTestCases(initialData.test_cases);
+      }
+      if (initialData.boilerplates && initialData.boilerplates.length > 0) {
+        const bps: Record<string, string> = { ...DEFAULT_BOILERPLATES };
+        for (const bp of initialData.boilerplates) {
+          bps[bp.language] = bp.starter_code;
+        }
+        setBoilerplates(bps);
       }
     }
   }, [initialData]);
@@ -178,6 +324,97 @@ export function QuestionForm({
     );
   };
 
+  // Test Case Handlers
+  const handleAddTestCase = (isSample: boolean) => {
+    setTestCases((prev) => [
+      ...prev,
+      {
+        input_data: "",
+        expected_output: "",
+        is_sample: isSample,
+        explanation: "",
+        weightage_marks: 1.0,
+        order: prev.length,
+      },
+    ]);
+  };
+
+  const handleRemoveTestCase = (index: number) => {
+    if (testCases.length <= 1) {
+      setErrorMessage("At least 1 test case is required for coding questions.");
+      return;
+    }
+    setTestCases((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleTestCaseChange = (index: number, field: keyof FormTestCase, value: any) => {
+    setTestCases((prev) =>
+      prev.map((tc, i) => (i === index ? { ...tc, [field]: value } : tc))
+    );
+  };
+
+  const toggleAllowedLanguage = (lang: string) => {
+    setAllowedLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+    );
+  };
+
+  // Live Test Solution Run
+  const handleRunTestSolution = async () => {
+    const codeToRun = boilerplates[activeCodeLangTab] || "";
+    if (!codeToRun.trim()) {
+      setTestRunResult({
+        success: false,
+        language: activeCodeLangTab,
+        verdict: "EMPTY_CODE",
+        stdout: "",
+        stderr: "Please enter some code in the editor above before running.",
+        execution_time_ms: 0,
+      });
+      return;
+    }
+
+    try {
+      setTestRunning(true);
+      setTestRunResult(null);
+
+      const res = await fetch("/api/questions/test-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language: activeCodeLangTab,
+          code: codeToRun,
+          custom_input: testRunCustomInput !== undefined ? testRunCustomInput : "",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setTestRunResult({
+          success: false,
+          language: activeCodeLangTab,
+          verdict: "HTTP_ERROR",
+          stdout: "",
+          stderr: data.detail || data.message || "Failed to execute code on judge server.",
+          execution_time_ms: 0,
+        });
+        return;
+      }
+      setTestRunResult(data);
+    } catch (err: any) {
+      setTestRunResult({
+        success: false,
+        language: activeCodeLangTab,
+        verdict: "NETWORK_ERROR",
+        stdout: "",
+        stderr: err.message || "Failed to connect to execution server.",
+        execution_time_ms: 0,
+      });
+    } finally {
+      setTestRunning(false);
+    }
+  };
+
   // Image upload handler
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -206,41 +443,6 @@ export function QuestionForm({
       setErrorMessage(err.message || "Failed to upload image. Please try again.");
     } finally {
       setUploadingImage(false);
-    }
-  };
-
-  const handleTextSourceImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImportingSource(true);
-    setErrorMessage(null);
-    const formData = new FormData();
-    formData.append("file", file);
-    fetch("/api/questions/import-source", { method: "POST", body: formData })
-      .then(async (response) => {
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.detail || "Unable to import this source.");
-        setQuestionText(data.text);
-      })
-      .catch((error) => setErrorMessage(error.message || "Unable to import this source."))
-      .finally(() => setImportingSource(false));
-  };
-
-  const handleGoogleDocImport = async () => {
-    if (!googleDocUrl.trim()) return;
-    try {
-      setImportingSource(true);
-      setErrorMessage(null);
-      const formData = new FormData();
-      formData.append("google_doc_url", googleDocUrl.trim());
-      const response = await fetch("/api/questions/import-source", { method: "POST", body: formData });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || "Unable to import this Google Doc.");
-      setQuestionText(data.text);
-    } catch (error: any) {
-      setErrorMessage(error.message || "Unable to import this Google Doc.");
-    } finally {
-      setImportingSource(false);
     }
   };
 
@@ -274,6 +476,9 @@ export function QuestionForm({
       marks: Number(marks),
     };
 
+    if (examId) payload.exam_id = examId;
+    if (sectionId) payload.section_id = sectionId;
+
     if (questionType === "IMAGE") {
       if (!imageUrl) {
         setErrorMessage("Please upload an image for this Image-Based question.");
@@ -299,25 +504,17 @@ export function QuestionForm({
       questionType === "MULTI_SELECT" ||
       (questionType === "IMAGE" && options.length > 0)
     ) {
-      // Validate option contents
-      const emptyOpt = options.find((opt) => !opt.option_text.trim());
-      if (emptyOpt) {
-        setErrorMessage("All option choices must have text content.");
+      for (const opt of options) {
+        if (!opt.option_text.trim()) {
+          setErrorMessage("All option fields must have text.");
+          return;
+        }
+      }
+      const hasCorrect = options.some((opt) => opt.is_correct);
+      if (!hasCorrect) {
+        setErrorMessage("Please mark at least one option as the correct answer.");
         return;
       }
-
-      const correctCount = options.filter((opt) => opt.is_correct).length;
-
-      if (questionType === "MCQ" && correctCount !== 1) {
-        setErrorMessage("Single Choice (MCQ) must have exactly 1 correct answer selected.");
-        return;
-      }
-
-      if (questionType === "MULTI_SELECT" && correctCount < 1) {
-        setErrorMessage("Multiple Select questions must have at least 1 correct answer selected.");
-        return;
-      }
-
       payload.options = options.map((opt, idx) => ({
         option_text: opt.option_text.trim(),
         is_correct: opt.is_correct,
@@ -325,18 +522,47 @@ export function QuestionForm({
       }));
     }
 
-    if (examId) {
-      payload.exam_id = examId;
-    }
-    if (sectionId) {
-      payload.section_id = sectionId;
+    if (questionType === "CODING") {
+      if (allowedLanguages.length === 0) {
+        setErrorMessage("Please select at least one allowed programming language.");
+        return;
+      }
+      if (testCases.length === 0) {
+        setErrorMessage("Please add at least one test case for code validation.");
+        return;
+      }
+      for (const tc of testCases) {
+        if (tc.expected_output === undefined || tc.expected_output === null) {
+          setErrorMessage("Each test case must have an expected output.");
+          return;
+        }
+      }
+
+      payload.input_format = inputFormat.trim();
+      payload.output_format = outputFormat.trim();
+      payload.constraints = constraints.trim();
+      payload.allowed_languages = allowedLanguages;
+      payload.time_limit_seconds = Number(timeLimitSeconds) || 2.0;
+      payload.memory_limit_mb = Number(memoryLimitMb) || 256;
+
+      payload.test_cases = testCases.map((tc, idx) => ({
+        input_data: tc.input_data,
+        expected_output: tc.expected_output,
+        is_sample: tc.is_sample,
+        explanation: tc.explanation?.trim() || null,
+        weightage_marks: Number(tc.weightage_marks) || 1.0,
+        order: idx,
+      }));
+
+      payload.boilerplates = allowedLanguages.map((lang) => ({
+        language: lang,
+        starter_code: boilerplates[lang] || DEFAULT_BOILERPLATES[lang] || "",
+      }));
     }
 
     try {
       setSubmitting(true);
-      const url = isEditMode
-        ? `/api/questions/${initialData?.id}`
-        : "/api/questions";
+      const url = isEditMode && initialData?.id ? `/api/questions/${initialData.id}` : "/api/questions";
       const method = isEditMode ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -345,32 +571,36 @@ export function QuestionForm({
         body: JSON.stringify(payload),
       });
 
-      const resData = await res.json();
+      let data: any = {};
+      const responseText = await res.text();
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch {
+        data = { detail: responseText || `Server error (${res.status})` };
+      }
+
       if (!res.ok) {
-        throw new Error(
-          resData.detail || resData.error || "Failed to save question."
-        );
+        throw new Error(data.detail || data.error || data.message || "Failed to save question.");
       }
 
       setSuccessMessage(
-        isEditMode
-          ? "Question updated successfully!"
-          : "Question created successfully!"
+        isEditMode ? "Question updated successfully!" : "Question authored and saved to bank!"
       );
 
       if (onSuccess) {
-        setTimeout(() => {
-          onSuccess();
-        }, 800);
+        onSuccess();
       } else {
         setTimeout(() => {
-          router.push("/examiner/questions");
-          router.refresh();
-        }, 1200);
+          if (examId) {
+            router.push(`/examiner/exams/${examId}/manage`);
+          } else {
+            router.push("/examiner/questions");
+          }
+        }, 800);
       }
     } catch (err: any) {
-      console.error("Submission error:", err);
-      setErrorMessage(err.message || "Failed to save question. Please check inputs.");
+      console.error("Submit error:", err);
+      setErrorMessage(err.message || "Failed to save question. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -422,11 +652,12 @@ export function QuestionForm({
               Active: {questionType.replace("_", " ")}
             </span>
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {(
               [
                 { type: "MCQ", label: "Single Choice", sub: "1 correct answer", icon: CheckCircle },
                 { type: "MULTI_SELECT", label: "Multi Select", sub: ">=1 correct", icon: Layers },
+                { type: "CODING", label: "Coding Problem", sub: "Test suite & IDE", icon: Code2 },
                 { type: "SHORT_ANSWER", label: "Short Answer", sub: "Brief response", icon: FileText },
                 { type: "LONG_ANSWER", label: "Long Essay", sub: "Rubric based", icon: BookOpen },
                 { type: "IMAGE", label: "Image / Diagram", sub: "Visual prompt", icon: ImageIcon },
@@ -477,7 +708,7 @@ export function QuestionForm({
             <input
               type="text"
               required
-              placeholder="e.g. Computer Networks"
+              placeholder="e.g. Data Structures & Algorithms"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
@@ -525,13 +756,13 @@ export function QuestionForm({
             </div>
           </div>
 
-          {/* Marks Field */}
+          {/* Marks Allocated */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-              Allocated Marks *
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+              <span>Marks Allocated *</span>
+              <span className="text-slate-500 font-normal text-[11px]">Min: 1</span>
             </label>
             <div className="relative">
-              <Award className="h-5 w-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="number"
                 min={1}
@@ -539,56 +770,95 @@ export function QuestionForm({
                 required
                 value={marks}
                 onChange={(e) => setMarks(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
               />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">
+                PTS
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Question Statement & Visual Prompts */}
+      {/* 2. Question Statement & Content */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
         <div className="border-b border-slate-800 pb-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <FileText className="h-5 w-5 text-indigo-400" />
-            Question Prompt & Media
+            <HelpCircle className="h-5 w-5 text-indigo-400" />
+            {questionType === "CODING" ? "Problem Description & Specifications" : "Question Statement"}
           </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Write the full question statement and attach diagrams if required.
+            {questionType === "CODING"
+              ? "Detail the algorithm task, input parameters, expected returns, and mathematical constraints."
+              : "Formulate the core problem statement clearly."}
           </p>
         </div>
 
-        {/* Question Text */}
+        {/* Statement Textarea */}
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-dashed border-indigo-500/30 bg-indigo-500/5 p-3">
-            <div>
-              <p className="text-xs font-bold text-indigo-200">Import question source</p>
-              <p className="mt-0.5 text-[11px] text-slate-400">Import a PDF, text file, or public Google Doc. Review the extracted text before saving.</p>
-            </div>
-            <button type="button" onClick={() => sourceInputRef.current?.click()} className="inline-flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-3 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-500/20">
-              <Upload className="h-3.5 w-3.5" />{importingSource ? "Importing…" : "Choose source file"}
-            </button>
-            <input ref={sourceInputRef} type="file" accept=".pdf,.txt,.md,.csv,application/pdf,text/plain,text/markdown,text/csv" onChange={handleTextSourceImport} className="hidden" />
-            <div className="flex w-full gap-2">
-              <input value={googleDocUrl} onChange={(event) => setGoogleDocUrl(event.target.value)} placeholder="Paste a public Google Docs link" className="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none" />
-              <button type="button" disabled={!googleDocUrl.trim() || importingSource} onClick={handleGoogleDocImport} className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-bold text-slate-300 hover:border-indigo-500 hover:text-white disabled:opacity-50">Import link</button>
-            </div>
-          </div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-            Question Statement / Problem Description *
+            {questionType === "CODING" ? "Problem Statement / Task Overview *" : "Question Text *"}
           </label>
           <textarea
-            rows={4}
+            rows={questionType === "CODING" ? 6 : 4}
             required
-            placeholder="Type your question statement here..."
+            placeholder={
+              questionType === "CODING"
+                ? "Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`..."
+                : "Type your question statement here..."
+            }
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
             className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed font-sans"
           />
         </div>
 
+        {/* Coding Specifications: Input, Output, Constraints */}
+        {questionType === "CODING" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                Input Format
+              </label>
+              <textarea
+                rows={3}
+                placeholder="e.g. First line contains integer N, followed by N space-separated integers."
+                value={inputFormat}
+                onChange={(e) => setInputFormat(e.target.value)}
+                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                Output Format
+              </label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Print two space-separated indices."
+                value={outputFormat}
+                onChange={(e) => setOutputFormat(e.target.value)}
+                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                Constraints
+              </label>
+              <textarea
+                rows={3}
+                placeholder="e.g. 1 <= N <= 10^5, -10^9 <= nums[i] <= 10^9"
+                value={constraints}
+                onChange={(e) => setConstraints(e.target.value)}
+                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Image Upload for IMAGE question or optional diagram */}
-        {canAttachImage && (
+        {canAttachImage && questionType !== "CODING" && (
           <div className="space-y-3 pt-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
               <ImageIcon className="h-4 w-4 text-indigo-400" />
@@ -643,138 +913,466 @@ export function QuestionForm({
         )}
       </div>
 
-      {/* 3. Answer Configuration & Evaluation */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-        <div className="border-b border-slate-800 pb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Layers className="h-5 w-5 text-indigo-400" />
-            Answer Evaluation & Options
-          </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Configure candidate answer options or provide reference rubrics.
-          </p>
-        </div>
-
-        {/* MCQ & MULTI_SELECT Options */}
-        {(questionType === "MCQ" ||
-          questionType === "MULTI_SELECT" ||
-          questionType === "IMAGE") && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Options & Correct Answer Selection
-              </span>
-              <button
-                type="button"
-                onClick={handleAddOption}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors cursor-pointer"
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Add Option
-              </button>
+      {/* 3. Coding Test Cases Suite & Starter Code (Online Judge) */}
+      {questionType === "CODING" && (
+        <>
+          {/* Test Cases Manager */}
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
+            <div className="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Terminal className="h-5 w-5 text-indigo-400" />
+                  Test Case Suite ({testCases.length})
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">
+                  Provide sample test cases (visible to student) and hidden test cases (for grading & edge cases).
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleAddTestCase(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Sample Test Case
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAddTestCase(false)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Hidden Test Case
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {options.map((option, index) => {
-                const labelLetter = String.fromCharCode(65 + index);
-                const isSelected = option.is_correct;
+            <div className="space-y-4">
+              {testCases.map((tc, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-2xl border transition-all ${
+                    tc.is_sample
+                      ? "bg-slate-900/90 border-emerald-500/30"
+                      : "bg-slate-950/80 border-slate-800"
+                  }`}
+                >
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white">
+                        Test Case #{idx + 1}
+                      </span>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                          tc.is_sample
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                        }`}
+                      >
+                        {tc.is_sample ? "Sample (Visible)" : "Hidden (Grading)"}
+                      </span>
+                    </div>
 
-                return (
-                  <div
-                    key={index}
-                    className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
-                      isSelected
-                        ? "bg-indigo-950/30 border-indigo-500/50"
-                        : "bg-slate-900/90 border-slate-800"
-                    }`}
-                  >
-                    {/* Correct Selector (Radio for MCQ, Checkbox for MULTI_SELECT) */}
+                    <div className="flex items-center gap-3">
+                      <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tc.is_sample}
+                          onChange={(e) =>
+                            handleTestCaseChange(idx, "is_sample", e.target.checked)
+                          }
+                          className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <span>Is Sample</span>
+                      </label>
+
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTestCase(idx)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
+                        title="Remove Test Case"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Input (stdin)
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={tc.input_data}
+                        onChange={(e) =>
+                          handleTestCaseChange(idx, "input_data", e.target.value)
+                        }
+                        placeholder="e.g. 4\n2 7 11 15\n9"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Expected Output (stdout) *
+                      </label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={tc.expected_output}
+                        onChange={(e) =>
+                          handleTestCaseChange(idx, "expected_output", e.target.value)
+                        }
+                        placeholder="e.g. 0 1"
+                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  {tc.is_sample && (
+                    <div className="mt-3">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                        Explanation (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={tc.explanation || ""}
+                        onChange={(e) =>
+                          handleTestCaseChange(idx, "explanation", e.target.value)
+                        }
+                        placeholder="e.g. nums[0] + nums[1] == 9, so return [0, 1]"
+                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Languages & Starter Boilerplate Templates */}
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
+            <div className="border-b border-slate-800 pb-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Code2 className="h-5 w-5 text-indigo-400" />
+                Language Settings & Starter Code Templates
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Configure which programming languages candidates can choose from, and provide boilerplate starter code.
+              </p>
+            </div>
+
+            {/* Allowed Languages Checkboxes */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                Allowed Languages *
+              </label>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { id: "python", label: "Python 3" },
+                  { id: "javascript", label: "JavaScript (Node.js)" },
+                  { id: "cpp", label: "C++ (g++)" },
+                  { id: "java", label: "Java 17" },
+                ].map((lang) => {
+                  const isChecked = allowedLanguages.includes(lang.id);
+                  return (
                     <button
+                      key={lang.id}
                       type="button"
-                      onClick={() =>
-                        questionType === "MULTI_SELECT"
-                          ? handleCheckboxCorrect(index)
-                          : handleRadioCorrect(index)
-                      }
-                      title={isSelected ? "Marked as correct" : "Click to mark as correct"}
-                      className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25"
-                          : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
+                      onClick={() => toggleAllowedLanguage(lang.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
+                        isChecked
+                          ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20"
+                          : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
                       }`}
                     >
-                      {isSelected ? <Check className="h-4 w-4 stroke-[3]" /> : labelLetter}
+                      {isChecked && <Check className="h-3.5 w-3.5" />}
+                      <span>{lang.label}</span>
                     </button>
-
-                    {/* Option Text Input */}
-                    <input
-                      type="text"
-                      required
-                      placeholder={`Option ${labelLetter} text...`}
-                      value={option.option_text}
-                      onChange={(e) => handleOptionTextChange(index, e.target.value)}
-                      className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-                    />
-
-                    {/* Remove Option Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveOption(index)}
-                      className="p-2.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                      title="Remove option"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-            <p className="text-[11px] text-slate-500 italic">
-              * Click the letter badge on the left to mark an option as the correct answer.
-            </p>
-          </div>
-        )}
 
-        {/* Short Answer Field */}
-        {questionType === "SHORT_ANSWER" && (
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-              Expected Answer / Key Phrase *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. O(log n) or Depth-First Search"
-              value={expectedAnswer}
-              onChange={(e) => setExpectedAnswer(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-            />
-            <p className="text-xs text-slate-500">
-              This will be used for automated pattern matching or reference grading.
-            </p>
-          </div>
-        )}
+            {/* Execution Limits */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                  Time Limit per Test Case (Seconds)
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  max="10"
+                  value={timeLimitSeconds}
+                  onChange={(e) => setTimeLimitSeconds(parseFloat(e.target.value) || 2.0)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white font-mono"
+                />
+              </div>
 
-        {/* Long Answer / Essay Rubric */}
-        {questionType === "LONG_ANSWER" && (
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-              Scoring Rubric / Model Answer / Key Points *
-            </label>
-            <textarea
-              rows={4}
-              required
-              placeholder="Detail key conceptual points, edge cases, and grading breakdown..."
-              value={expectedAnswer}
-              onChange={(e) => setExpectedAnswer(e.target.value)}
-              className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
-            />
-            <p className="text-xs text-slate-500">
-              Used by examiners during manual assessment or for AI candidate evaluation.
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Cpu className="h-3.5 w-3.5 text-indigo-400" />
+                  Memory Limit (MB)
+                </label>
+                <input
+                  type="number"
+                  step="64"
+                  min="64"
+                  max="1024"
+                  value={memoryLimitMb}
+                  onChange={(e) => setMemoryLimitMb(parseInt(e.target.value) || 256)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white font-mono"
+                />
+              </div>
+            </div>
+
+            {/* Boilerplate Editor */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Starter Code Boilerplate
+                </label>
+                <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  {allowedLanguages.map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => setActiveCodeLangTab(lang)}
+                      className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all ${
+                        activeCodeLangTab === lang
+                          ? "bg-indigo-600 text-white shadow-sm"
+                          : "text-slate-400 hover:text-white"
+                      }`}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <textarea
+                rows={10}
+                value={boilerplates[activeCodeLangTab] || ""}
+                onChange={(e) =>
+                  setBoilerplates((prev) => ({
+                    ...prev,
+                    [activeCodeLangTab]: e.target.value,
+                  }))
+                }
+                className="w-full p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-mono focus:outline-none focus:border-indigo-500 leading-relaxed"
+              />
+            </div>
+
+            {/* Live Test Run Box */}
+            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <Play className="h-3.5 w-3.5 text-indigo-400" />
+                  Live Test Run (Verify Starter Code / Solution)
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRunTestSolution}
+                  disabled={testRunning}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 transition-colors cursor-pointer"
+                >
+                  {testRunning ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                  <span>{testRunning ? "Executing..." : `Run ${activeCodeLangTab}`}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Custom Stdin Input
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Enter input (e.g. 7 1 8 12 4 6 15 20 10)"
+                    value={testRunCustomInput}
+                    onChange={(e) => setTestRunCustomInput(e.target.value)}
+                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Execution Output & Logs
+                  </label>
+                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 min-h-[76px] flex flex-col justify-center overflow-x-auto">
+                    {testRunResult ? (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-1">
+                          <span
+                            className={`font-bold text-xs ${
+                              testRunResult.verdict === "SUCCESS" || testRunResult.verdict === "ACCEPTED"
+                                ? "text-emerald-400"
+                                : "text-rose-400"
+                            }`}
+                          >
+                            [{testRunResult.verdict}]
+                          </span>
+                          <span className="text-[10px] text-slate-500">{testRunResult.execution_time_ms}ms</span>
+                        </div>
+                        {testRunResult.stdout && (
+                          <pre className="text-emerald-300 whitespace-pre-wrap">{testRunResult.stdout}</pre>
+                        )}
+                        {testRunResult.stderr && (
+                          <pre className="text-rose-400 whitespace-pre-wrap">{testRunResult.stderr}</pre>
+                        )}
+                        {!testRunResult.stdout && !testRunResult.stderr && (
+                          <span className="text-slate-500 italic">(no stdout/stderr output)</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-slate-600 italic">Click Run to test execution output...</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 4. MCQ / Descriptive Answer Options */}
+      {questionType !== "CODING" && (
+        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
+          <div className="border-b border-slate-800 pb-4">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Layers className="h-5 w-5 text-indigo-400" />
+              Answer Evaluation & Options
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Configure candidate answer options or provide reference rubrics.
             </p>
           </div>
-        )}
-      </div>
+
+          {/* MCQ & MULTI_SELECT Options */}
+          {(questionType === "MCQ" ||
+            questionType === "MULTI_SELECT" ||
+            questionType === "IMAGE") && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  Options & Correct Answer Selection
+                </span>
+                <button
+                  type="button"
+                  onClick={handleAddOption}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Add Option
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {options.map((option, index) => {
+                  const labelLetter = String.fromCharCode(65 + index);
+                  const isSelected = option.is_correct;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
+                        isSelected
+                          ? "bg-indigo-950/30 border-indigo-500/50"
+                          : "bg-slate-900/90 border-slate-800"
+                      }`}
+                    >
+                      {/* Correct Selector (Radio for MCQ, Checkbox for MULTI_SELECT) */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          questionType === "MULTI_SELECT"
+                            ? handleCheckboxCorrect(index)
+                            : handleRadioCorrect(index)
+                        }
+                        title={isSelected ? "Marked as correct" : "Click to mark as correct"}
+                        className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25"
+                            : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
+                        }`}
+                      >
+                        {isSelected ? <Check className="h-4 w-4 stroke-[3]" /> : labelLetter}
+                      </button>
+
+                      {/* Option Text Input */}
+                      <input
+                        type="text"
+                        required
+                        placeholder={`Option ${labelLetter} text...`}
+                        value={option.option_text}
+                        onChange={(e) => handleOptionTextChange(index, e.target.value)}
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                      />
+
+                      {/* Remove Option Button */}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveOption(index)}
+                        className="p-2.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        title="Remove option"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-slate-500 italic">
+                * Click the letter badge on the left to mark an option as the correct answer.
+              </p>
+            </div>
+          )}
+
+          {/* Short Answer Field */}
+          {questionType === "SHORT_ANSWER" && (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                Expected Answer / Key Phrase *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. O(log n) or Depth-First Search"
+                value={expectedAnswer}
+                onChange={(e) => setExpectedAnswer(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+              <p className="text-xs text-slate-500">
+                This will be used for automated pattern matching or reference grading.
+              </p>
+            </div>
+          )}
+
+          {/* Long Answer / Essay Rubric */}
+          {questionType === "LONG_ANSWER" && (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                Scoring Rubric / Model Answer / Key Points *
+              </label>
+              <textarea
+                rows={4}
+                required
+                placeholder="Detail key conceptual points, edge cases, and grading breakdown..."
+                value={expectedAnswer}
+                onChange={(e) => setExpectedAnswer(e.target.value)}
+                className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
+              />
+              <p className="text-xs text-slate-500">
+                Used by examiners during manual assessment or for AI candidate evaluation.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-4 pt-4">

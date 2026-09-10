@@ -1,6 +1,7 @@
-from typing import Optional, List, Dict, Any
+import json
+from typing import Optional, List, Dict, Any, Union
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # ==========================================
@@ -109,6 +110,10 @@ class AdminExaminersResponse(BaseModel):
 # Option Schemas
 # ==========================================
 
+# ==========================================
+# Option & Test Case & Code Schemas
+# ==========================================
+
 class OptionBase(BaseModel):
     option_text: str = Field(min_length=1)
     is_correct: bool = False
@@ -137,11 +142,71 @@ class ShuffledOptionForStudent(BaseModel):
     order: int
 
 
+class TestCaseBase(BaseModel):
+    input_data: str = ""
+    expected_output: str = ""
+    is_sample: bool = False
+    explanation: Optional[str] = None
+    weightage_marks: float = 1.0
+    order: int = 0
+
+
+class TestCaseCreate(TestCaseBase):
+    pass
+
+
+class TestCaseResponse(BaseModel):
+    id: str
+    question_id: str
+    input_data: str
+    expected_output: str
+    is_sample: bool
+    explanation: Optional[str] = None
+    weightage_marks: float
+    order: int
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class TestCaseStudentView(BaseModel):
+    id: str
+    input_data: str
+    expected_output: str
+    explanation: Optional[str] = None
+    order: int
+
+    class Config:
+        from_attributes = True
+
+
+class CodeBoilerplateBase(BaseModel):
+    language: str = Field(pattern="^(python|javascript|cpp|java|c)$")
+    starter_code: str
+
+
+class CodeBoilerplateCreate(CodeBoilerplateBase):
+    pass
+
+
+class CodeBoilerplateResponse(BaseModel):
+    id: str
+    question_id: str
+    language: str
+    starter_code: str
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
 # ==========================================
 # Section Schemas
 # ==========================================
 
 class ExamSectionCreate(BaseModel):
+    id: Optional[str] = None
     title: str = Field(min_length=2, max_length=150)
     description: Optional[str] = None
     order: int = 1
@@ -183,11 +248,20 @@ class QuestionCreateRequest(BaseModel):
     question_text: str = Field(min_length=3)
     subject: Optional[str] = None  # Synced from section if provided
     difficulty: str = Field(pattern="^(EASY|MEDIUM|HARD)$")
-    question_type: str = Field(pattern="^(MCQ|MULTI_SELECT|SHORT_ANSWER|LONG_ANSWER|IMAGE)$")
+    question_type: str = Field(pattern="^(MCQ|MULTI_SELECT|SHORT_ANSWER|LONG_ANSWER|IMAGE|CODING)$")
     marks: int = Field(default=1, ge=1, le=100)
     expected_answer: Optional[str] = None
     image_url: Optional[str] = None
     options: Optional[List[OptionCreate]] = None
+    # Coding specific fields
+    input_format: Optional[str] = None
+    output_format: Optional[str] = None
+    constraints: Optional[str] = None
+    allowed_languages: Optional[List[str]] = None
+    time_limit_seconds: Optional[float] = 2.0
+    memory_limit_mb: Optional[int] = 256
+    test_cases: Optional[List[TestCaseCreate]] = None
+    boilerplates: Optional[List[CodeBoilerplateCreate]] = None
 
 
 class QuestionUpdateRequest(BaseModel):
@@ -196,11 +270,31 @@ class QuestionUpdateRequest(BaseModel):
     question_text: Optional[str] = Field(default=None, min_length=3)
     subject: Optional[str] = None
     difficulty: Optional[str] = Field(default=None, pattern="^(EASY|MEDIUM|HARD)$")
-    question_type: Optional[str] = Field(default=None, pattern="^(MCQ|MULTI_SELECT|SHORT_ANSWER|LONG_ANSWER|IMAGE)$")
+    question_type: Optional[str] = Field(default=None, pattern="^(MCQ|MULTI_SELECT|SHORT_ANSWER|LONG_ANSWER|IMAGE|CODING)$")
     marks: Optional[int] = Field(default=None, ge=1, le=100)
     expected_answer: Optional[str] = None
     image_url: Optional[str] = None
     options: Optional[List[OptionCreate]] = None
+    # Coding specific fields
+    input_format: Optional[str] = None
+    output_format: Optional[str] = None
+    constraints: Optional[str] = None
+    allowed_languages: Optional[List[str]] = None
+    time_limit_seconds: Optional[float] = None
+    memory_limit_mb: Optional[int] = None
+    test_cases: Optional[List[TestCaseCreate]] = None
+    boilerplates: Optional[List[CodeBoilerplateCreate]] = None
+
+
+class BulkQuestionImportCommitRequest(BaseModel):
+    subject: str = Field(min_length=2, max_length=150)
+    questions: List[QuestionCreateRequest] = Field(min_length=1, max_length=100)
+
+
+class QuestionAssessmentAssignmentRequest(BaseModel):
+    question_ids: List[str] = Field(min_length=1, max_length=100)
+    exam_id: str
+    section_id: str
 
 
 class QuestionResponse(BaseModel):
@@ -212,12 +306,31 @@ class QuestionResponse(BaseModel):
     subject: str
     difficulty: str
     question_type: str
-    marks: int
+    marks: float
     expected_answer: Optional[str] = None
     image_url: Optional[str] = None
+    # Coding fields
+    input_format: Optional[str] = None
+    output_format: Optional[str] = None
+    constraints: Optional[str] = None
+    allowed_languages: Optional[List[str]] = None
+    time_limit_seconds: Optional[float] = 2.0
+    memory_limit_mb: Optional[int] = 256
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     options: List[OptionResponse] = []
+    test_cases: List[TestCaseResponse] = []
+    boilerplates: List[CodeBoilerplateResponse] = []
+
+    @field_validator("allowed_languages", mode="before")
+    @classmethod
+    def parse_allowed_languages(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v]
+        return v
 
     class Config:
         from_attributes = True
@@ -230,9 +343,28 @@ class QuestionForStudent(BaseModel):
     question_text: str
     difficulty: str
     question_type: str
-    marks: int
+    marks: float
     image_url: Optional[str] = None
     options: List[ShuffledOptionForStudent] = []
+    # Coding fields for student (only sample test cases visible)
+    input_format: Optional[str] = None
+    output_format: Optional[str] = None
+    constraints: Optional[str] = None
+    allowed_languages: List[str] = ["python", "javascript", "cpp", "java"]
+    time_limit_seconds: float = 2.0
+    memory_limit_mb: int = 256
+    sample_test_cases: List[TestCaseStudentView] = []
+    boilerplates: List[CodeBoilerplateResponse] = []
+
+    @field_validator("allowed_languages", mode="before")
+    @classmethod
+    def parse_student_allowed_languages(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return [v]
+        return v
 
 
 class QuestionListResponse(BaseModel):
@@ -288,6 +420,7 @@ class ExamUpdateRequest(BaseModel):
     shuffle_questions: Optional[bool] = None
     shuffle_options: Optional[bool] = None
     status: Optional[str] = Field(default=None, pattern="^(DRAFT|PUBLISHED|CLOSED|ARCHIVED)$")
+    sections: Optional[List[ExamSectionCreate]] = None
 
 
 class ExaminerBrief(BaseModel):
@@ -348,11 +481,19 @@ class ExamListResponse(BaseModel):
 # Student Attempt & Submission Schemas
 # ==========================================
 
+# ==========================================
+# Student Attempt & Submission Schemas
+# ==========================================
+
 class SavedAnswerState(BaseModel):
     question_id: str
     selected_option_id: Optional[str] = None
     selected_option_ids: Optional[List[str]] = None
     text_answer: Optional[str] = None
+    code_language: Optional[str] = None
+    code_answer: Optional[str] = None
+    test_cases_passed: int = 0
+    total_test_cases: int = 0
     time_spent_seconds: int = 0
 
 
@@ -376,6 +517,8 @@ class HeartbeatItem(BaseModel):
     selected_option_id: Optional[str] = None
     selected_option_ids: Optional[List[str]] = None
     text_answer: Optional[str] = None
+    code_language: Optional[str] = None
+    code_answer: Optional[str] = None
     delta_seconds: int = Field(default=0, ge=0)
 
 
@@ -388,6 +531,8 @@ class StudentSubmitItem(BaseModel):
     selected_option_id: Optional[str] = None
     selected_option_ids: Optional[List[str]] = None
     text_answer: Optional[str] = None
+    code_language: Optional[str] = None
+    code_answer: Optional[str] = None
     delta_seconds: int = Field(default=0, ge=0)
 
 
@@ -410,9 +555,66 @@ class AnswerReviewItem(BaseModel):
     selected_option_id: Optional[str] = None
     selected_option_ids: Optional[List[str]] = None
     text_answer: Optional[str] = None
+    code_language: Optional[str] = None
+    code_answer: Optional[str] = None
+    test_cases_passed: int = 0
+    total_test_cases: int = 0
+    code_execution_logs: Optional[str] = None
     correct_option_ids: Optional[List[str]] = None
     expected_answer: Optional[str] = None
     options: List[OptionResponse] = []
+    test_cases: List[TestCaseResponse] = []
+
+
+# ==========================================
+# Code Execution Schemas (Online Judge Engine)
+# ==========================================
+
+class CodeRunRequest(BaseModel):
+    question_id: Optional[str] = None
+    language: str = Field(pattern="^(python|javascript|cpp|java|c)$")
+    code: str = Field(min_length=1)
+    custom_input: Optional[str] = None
+
+
+class TestCaseRunResult(BaseModel):
+    test_case_id: Optional[str] = None
+    is_sample: bool = True
+    input_data: str
+    expected_output: str
+    actual_output: str
+    status: str  # "PASSED", "FAILED", "ERROR", "TIMEOUT"
+    execution_time_ms: float = 0.0
+    error_message: Optional[str] = None
+
+
+class CodeRunResponse(BaseModel):
+    success: bool = True
+    language: str
+    verdict: str  # "ACCEPTED", "WRONG_ANSWER", "TIME_LIMIT_EXCEEDED", "COMPILATION_ERROR", "RUNTIME_ERROR", "SUCCESS"
+    stdout: str = ""
+    stderr: str = ""
+    execution_time_ms: float = 0.0
+    sample_results: List[TestCaseRunResult] = []
+    error_detail: Optional[str] = None
+
+
+class CodeSubmitTestRequest(BaseModel):
+    question_id: str
+    language: str = Field(pattern="^(python|javascript|cpp|java|c)$")
+    code: str = Field(min_length=1)
+
+
+class CodeSubmitTestResponse(BaseModel):
+    success: bool = True
+    question_id: str
+    verdict: str
+    test_cases_passed: int
+    total_test_cases: int
+    score_earned: float
+    max_marks: int
+    execution_time_ms: float
+    results: List[TestCaseRunResult] = []
 
 
 class ExamResultResponse(BaseModel):
@@ -531,5 +733,3 @@ class ExamAnalyticsResponse(BaseModel):
     difficulty_breakdown: List[DifficultyAnalyticsItem]
     section_breakdown: List[SectionAnalyticsItem]
     question_deep_dive: List[QuestionCohortAnalyticsItem]
-
-

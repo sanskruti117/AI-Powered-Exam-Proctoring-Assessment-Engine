@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 import requests
 from pypdf import PdfReader
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from backend.database import get_db
 from backend.schemas import (
     QuestionCreateRequest,
@@ -17,7 +17,12 @@ from backend.schemas import (
     QuestionResponse,
     QuestionListResponse,
     QuestionStatsResponse,
+    BulkQuestionImportCommitRequest,
+    QuestionAssessmentAssignmentRequest,
+    CodeRunRequest,
+    CodeRunResponse,
 )
+from backend.models import Exam, ExamSection, ExamAttempt, QuestionBank
 from backend.crud import (
     create_question,
     get_questions,
@@ -26,9 +31,10 @@ from backend.crud import (
     delete_question,
     get_examiner_question_stats,
     get_distinct_subjects,
+    run_code_sample_test,
 )
 from backend.routers.auth import get_current_user_payload
-from backend.services.ai_evaluator import extract_question_set
+from backend.services.ai_evaluator import extract_question_set, extract_standard_mcq_question_set
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 logger = logging.getLogger(__name__)
@@ -321,27 +327,37 @@ async def import_question_source(
 
 
 @router.post("/import-batch")
-async def import_question_batch(
+async def preview_question_batch_import(
     request: Request,
-    subject: str = Form(...),
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
 ):
-    """Extract a mixed-format PDF and create review-ready question-bank records."""
-    user = require_examiner(request)
+    """Extract a mixed-format PDF; saving requires a separate confirm request."""
+    require_examiner(request)
     if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Bulk import currently accepts PDF files.")
     content = await file.read()
     if len(content) > 10 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="PDF files must be 10 MB or smaller.")
     try:
-        source_text = "\n\n".join(page.extract_text() or "" for page in PdfReader(BytesIO(content)).pages).strip()
-        extracted = extract_question_set(source_text)
+        source_text = ""
+        try:
+            source_text = "\n\n".join(page.extract_text() or "" for page in PdfReader(BytesIO(content)).pages).strip()
+        except Exception:
+            pass
+
+        extracted = []
+        if source_text:
+            extracted = extract_standard_mcq_question_set(source_text)
+
+        if not extracted:
+            extracted = extract_question_set(source_text=source_text, pdf_bytes=content)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=400, detail="Could not extract questions from this PDF.") from exc
-    created, skipped = [], 0
+        logger.exception("PDF question extraction failed")
+        reason = str(exc).strip() or exc.__class__.__name__
+        raise HTTPException(status_code=400, detail=f"AI extraction failed: {reason[:300]}") from exc
+    reviewable, skipped = [], 0
     for item in extracted:
         try:
             question_type = str(item.get("question_type", "SHORT_ANSWER")).upper()
@@ -349,22 +365,136 @@ async def import_question_batch(
                 skipped += 1
                 continue
             options = [option for option in item.get("options", []) if option.get("option_text", "").strip()]
-            if question_type == "MCQ" and sum(bool(option.get("is_correct")) for option in options) != 1:
-                skipped += 1
-                continue
-            if question_type == "MULTI_SELECT" and sum(bool(option.get("is_correct")) for option in options) < 1:
-                skipped += 1
-                continue
+            if question_type == "MCQ":
+                if len(options) < 2:
+                    skipped += 1
+                    continue
+                correct_count = sum(bool(option.get("is_correct")) for option in options)
+                if correct_count == 0:
+                    # Default the first option to True so examiner can review and adjust in the approval modal
+                    options[0]["is_correct"] = True
+                elif correct_count > 1:
+                    question_type = "MULTI_SELECT"
+            elif question_type == "MULTI_SELECT":
+                if len(options) < 2:
+                    skipped += 1
+                    continue
+                correct_count = sum(bool(option.get("is_correct")) for option in options)
+                if correct_count < 1:
+                    options[0]["is_correct"] = True
+
             payload = QuestionCreateRequest(
-                subject=subject.strip(), question_text=str(item.get("question_text", "")).strip(),
-                question_type=question_type, difficulty=str(item.get("difficulty", "MEDIUM")).upper(),
-                marks=min(100, max(1, int(item.get("marks", 1)))), expected_answer=item.get("expected_answer"),
+                subject="Pending review",
+                question_text=str(item.get("question_text", "")).strip(),
+                question_type=question_type,
+                difficulty=str(item.get("difficulty", "MEDIUM")).upper(),
+                marks=min(100, max(1, int(item.get("marks", 1)))),
+                expected_answer=item.get("expected_answer"),
                 options=options or None,
             )
-            created_question = create_question(db, user["userId"], payload)
-            created.append(created_question.id)
+            reviewable.append(payload.model_dump())
+        except Exception as exc:
+            skipped += 1
+            logger.warning("Skipped invalid imported question: %s", exc)
+
+    if not reviewable:
+        if skipped > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Could not extract complete questions: {skipped} items were detected but lacked required options (at least 2 options required).",
+            )
+        raise HTTPException(
+            status_code=400,
+            detail="No questions could be extracted from this PDF. Ensure the PDF contains readable text and assessment questions.",
+        )
+
+    return {"success": True, "questions": reviewable, "skipped": skipped}
+
+
+@router.post("/import-batch/confirm")
+def confirm_question_batch_import(body: BulkQuestionImportCommitRequest, request: Request, db: Session = Depends(get_db)):
+    user = require_examiner(request)
+    created, skipped = [], 0
+    for question in body.questions:
+        try:
+            question.subject = body.subject.strip()
+            created.append(create_question(db, user["userId"], question).id)
         except Exception as exc:
             db.rollback()
             skipped += 1
-            logger.warning("Skipped invalid imported question: %s", exc)
+            logger.warning("Skipped reviewed imported question: %s", exc)
     return {"success": True, "created": len(created), "skipped": skipped, "question_ids": created}
+
+
+@router.post("/assign-to-assessment")
+def assign_questions_to_assessment(
+    body: QuestionAssessmentAssignmentRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Copy bank questions into an assessment section while retaining the originals for reuse."""
+    user = require_examiner(request)
+    examiner_id = user["userId"]
+    exam = db.query(Exam).filter(Exam.id == body.exam_id, Exam.examiner_id == examiner_id).first()
+    section = db.query(ExamSection).filter(ExamSection.id == body.section_id, ExamSection.exam_id == body.exam_id).first()
+    if not exam or not section:
+        raise HTTPException(status_code=404, detail="Assessment or section not found.")
+    if db.query(ExamAttempt).filter(ExamAttempt.exam_id == exam.id).count():
+        raise HTTPException(status_code=400, detail="Questions cannot be changed after candidates have started this assessment.")
+    sources = (
+        db.query(QuestionBank)
+        .options(selectinload(QuestionBank.options))
+        .filter(QuestionBank.id.in_(body.question_ids), QuestionBank.examiner_id == examiner_id)
+        .all()
+    )
+    if not sources:
+        raise HTTPException(status_code=404, detail="No matching questions found to assign.")
+
+    created = []
+    for source in sources:
+        try:
+            options_data = None
+            if source.options:
+                options_data = [
+                    {
+                        "option_text": opt.option_text,
+                        "is_correct": opt.is_correct,
+                        "order": opt.order if opt.order is not None else idx,
+                    }
+                    for idx, opt in enumerate(source.options)
+                ]
+
+            payload = QuestionCreateRequest(
+                exam_id=exam.id,
+                section_id=section.id,
+                subject=section.title,
+                question_text=source.question_text,
+                difficulty=(source.difficulty or "MEDIUM").upper(),
+                question_type=(source.question_type or "MCQ").upper(),
+                marks=source.marks or 1,
+                expected_answer=source.expected_answer,
+                image_url=source.image_url,
+                options=options_data,
+            )
+            created.append(create_question(db, examiner_id, payload).id)
+        except Exception as exc:
+            db.rollback()
+            logger.warning("Error copying question %s to assessment section: %s", source.id, exc)
+            raise HTTPException(status_code=500, detail=f"Failed to copy question into assessment: {str(exc)}")
+    return {"success": True, "created": len(created), "question_ids": created}
+
+
+@router.post("/test-code", response_model=CodeRunResponse)
+def test_examiner_code_endpoint(
+    body: CodeRunRequest,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    require_examiner(request)
+    return run_code_sample_test(
+        db=db,
+        language=body.language,
+        code=body.code,
+        custom_input=body.custom_input,
+        question_id=body.question_id,
+    )

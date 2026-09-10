@@ -42,7 +42,7 @@ export function ExaminerSidebar({ user }: ExaminerSidebarProps) {
   };
 
   return (
-    <aside className="relative w-full rounded-2xl bg-[#10192c] px-5 py-6 ring-1 ring-inset ring-slate-700/60 lg:sticky lg:top-[98px] lg:h-[calc(100vh-122px)] lg:w-[304px] lg:shrink-0 lg:px-[22px] lg:py-5">
+    <aside className="flex w-full flex-col overflow-y-auto rounded-2xl bg-[#10192c] px-5 py-6 ring-1 ring-inset ring-slate-700/60 lg:sticky lg:top-[98px] lg:h-[calc(100vh-122px)] lg:w-[304px] lg:shrink-0 lg:px-[22px] lg:py-5">
       <div className="border-b border-slate-700/70 pb-5">
         <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-500">Examiner portal</p>
         <h2 className="mt-1 text-xl font-bold tracking-tight text-white">{user?.fullName || "Examiner"}</h2>
@@ -67,7 +67,7 @@ export function ExaminerSidebar({ user }: ExaminerSidebarProps) {
         <p className="mt-1.5">Open any assessment to access candidates, grading, leaderboard, and analytics.</p>
       </div>
 
-      <div className="mt-7 border-t border-slate-700/70 pt-4 lg:absolute lg:bottom-6 lg:left-[22px] lg:right-[22px]">
+      <div className="mt-auto border-t border-slate-700/70 pt-4">
         <Link href="/examiner/profile" className="flex min-h-12 items-center gap-4 rounded-xl px-4 text-sm font-semibold text-slate-400 transition-colors hover:bg-slate-800/60 hover:text-slate-100">
           <Settings className="h-5 w-5" />
           Profile & settings

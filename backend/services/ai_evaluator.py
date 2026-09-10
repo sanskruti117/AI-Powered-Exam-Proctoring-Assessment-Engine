@@ -2,8 +2,8 @@ import os
 import re
 import json
 import logging
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from typing import Optional, List, Dict, Any, Union
+from pydantic import BaseModel, Field, field_validator
 from dotenv import load_dotenv
 
 # Load the repository's .env explicitly for workers started from any directory.
@@ -24,24 +24,133 @@ class AIEvaluationResult(BaseModel):
 class ImportedOption(BaseModel):
     option_text: str
     is_correct: bool = False
-    order: int = 0
+    order: Union[int, str] = 0
+
+    @field_validator("order", mode="before")
+    @classmethod
+    def normalize_order(cls, v):
+        if isinstance(v, int):
+            return v
+        if isinstance(v, str):
+            v_upper = v.strip().upper()
+            if v_upper in ("A", "B", "C", "D", "E", "F"):
+                return ord(v_upper) - ord("A")
+            try:
+                return int(v_upper)
+            except ValueError:
+                return 0
+        return 0
 
 
 class ImportedQuestion(BaseModel):
     question_text: str
     question_type: str
     difficulty: str = "MEDIUM"
-    marks: int = 1
-    expected_answer: Optional[str] = None
+    marks: Union[int, float, str] = 1
+    expected_answer: Optional[Any] = None
     options: List[ImportedOption] = Field(default_factory=list)
+
+    @field_validator("marks", mode="before")
+    @classmethod
+    def normalize_marks(cls, v):
+        try:
+            return max(1, int(float(v)))
+        except (ValueError, TypeError):
+            return 1
+
+    @field_validator("expected_answer", mode="before")
+    @classmethod
+    def normalize_expected_answer(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, (dict, list)):
+            return json.dumps(v)
+        return str(v)
 
 
 class ImportedQuestionSet(BaseModel):
-    questions: List[ImportedQuestion]
+    questions: List[ImportedQuestion] = Field(default_factory=list)
 
 
-def extract_question_set(source_text: str) -> List[Dict[str, Any]]:
-    """Use Gemini to turn a source document into reviewable question records."""
+def extract_standard_mcq_question_set(source_text: str) -> List[Dict[str, Any]]:
+    """Parse conventional MCQ documents supporting both inline answers and separate answer keys."""
+    if not source_text or not source_text.strip():
+        return []
+
+    cleaned = re.sub(r"^.*?Question Bank.*?Page \d+\s*$", "", source_text, flags=re.MULTILINE | re.IGNORECASE)
+
+    # Check for trailing answer section
+    trailing_answers: Dict[int, str] = {}
+    answer_split = re.split(r"\b(?:ANSWER\s*KEY|ANSWERS|SOLUTIONS)\b", cleaned, maxsplit=1, flags=re.IGNORECASE)
+    question_source = cleaned
+    if len(answer_split) == 2:
+        question_source, answer_source = answer_split
+        # Extract pairs like Q1: A, 1. B, 1) C, 1 - D, Q.1 A
+        for match in re.finditer(r"(?:Q\.?\s*)?(\d+)\s*[\.:\)-]?\s*\(?([A-Da-d])\)?", answer_source):
+            trailing_answers[int(match.group(1))] = match.group(2).upper()
+
+    # Match questions starting with 1., Q1., Question 1:, 1), etc.
+    question_pattern = re.compile(
+        r"(?:^|\n)\s*(?:Q(?:uestion)?\.?\s*)?(\d+)[\.:\)]\s*(.*?)(?=(?:\n\s*(?:Q(?:uestion)?\.?\s*)?\d+[\.:\)])|\Z)",
+        flags=re.DOTALL,
+    )
+    option_pattern = re.compile(
+        r"(?:^|\n)\s*(?:\(?([A-Da-d])\)|\(?([A-Da-d])\.)\s*(.*?)(?=(?:\n\s*(?:\(?[A-Da-d]\)|\(?[A-Da-d]\.))|\Z)",
+        flags=re.DOTALL,
+    )
+    inline_ans_pattern = re.compile(
+        r"\b(?:Ans(?:wer)?|Correct(?:\s*Option)?)\s*[:=-]?\s*\(?([A-Da-d])\)?",
+        flags=re.IGNORECASE,
+    )
+
+    extracted: List[Dict[str, Any]] = []
+    blocks = list(question_pattern.finditer(question_source))
+
+    for block_match in blocks:
+        num = int(block_match.group(1))
+        content = block_match.group(2).strip()
+
+        # Check inline answer
+        correct_letter = trailing_answers.get(num)
+        inline_match = inline_ans_pattern.search(content)
+        if inline_match:
+            correct_letter = inline_match.group(1).upper()
+            content = content[:inline_match.start()].strip()
+
+        # Extract options
+        opt_matches = list(option_pattern.finditer(content))
+        if len(opt_matches) < 2:
+            continue
+
+        q_statement = content[:opt_matches[0].start()].strip()
+        q_statement = re.sub(r"\s+", " ", q_statement)
+        if not q_statement:
+            continue
+
+        options = []
+        for idx, om in enumerate(opt_matches):
+            label = (om.group(1) or om.group(2)).upper()
+            opt_text = re.sub(r"\s+", " ", om.group(3)).strip()
+            # Remove any trailing inline answer if attached to last option
+            opt_text = inline_ans_pattern.sub("", opt_text).strip()
+            if opt_text:
+                is_correct = (label == correct_letter) if correct_letter else (idx == 0)
+                options.append({"option_text": opt_text, "is_correct": is_correct, "order": idx})
+
+        if len(options) >= 2:
+            extracted.append({
+                "question_text": q_statement,
+                "question_type": "MCQ",
+                "difficulty": "MEDIUM",
+                "marks": 1,
+                "options": options,
+            })
+
+    return extracted
+
+
+def extract_question_set(source_text: str = "", pdf_bytes: Optional[bytes] = None) -> List[Dict[str, Any]]:
+    """Use Gemini to turn a source document or PDF bytes into reviewable question records."""
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError(
@@ -49,22 +158,80 @@ def extract_question_set(source_text: str) -> List[Dict[str, Any]]:
         )
     from google import genai
     from google.genai import types
-    prompt = f"""Extract every assessment question and its answer key from this source.
-Classify each as MCQ, MULTI_SELECT, SHORT_ANSWER, or LONG_ANSWER. For MCQ/MULTI_SELECT,
-include all options with option_text and is_correct. For descriptive questions, put the
-answer key or rubric in expected_answer. Do not invent missing answers; use null instead.
-Source:\n{source_text[:50000]}"""
+
+    prompt = """You are an expert assessment parser. Extract every examination question and its choices/answers from the provided document.
+Return a valid JSON array where each object has:
+- "question_text": string (the complete question statement)
+- "question_type": "MCQ" | "MULTI_SELECT" | "SHORT_ANSWER" | "LONG_ANSWER"
+- "difficulty": "EASY" | "MEDIUM" | "HARD"
+- "marks": integer (default to 1 or 2)
+- "expected_answer": string or null (rubric or expected response for descriptive questions)
+- "options": array of objects with "option_text" (string), "is_correct" (boolean), and "order" (integer).
+
+Extraction Rules:
+1. For MCQ questions, identify the correct answer if provided in the text or answer key. If no answer key is provided, infer and set "is_correct": true for the single best/correct option so it is complete.
+2. For MULTI_SELECT, set "is_correct": true for all correct options.
+3. For descriptive questions (SHORT_ANSWER, LONG_ANSWER), options should be empty [].
+4. Output strictly a JSON array without markdown backticks or commentary."""
+
+    contents: List[Any] = [prompt]
+    if pdf_bytes and len(pdf_bytes) > 0:
+        contents.append(types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"))
+    elif source_text:
+        contents.append(f"Source text:\n{source_text[:50000]}")
+    else:
+        raise ValueError("No input text or PDF content provided for extraction.")
+
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-        # The Developer API rejects some generated JSON-schema features. Request
-        # JSON directly, then validate it locally with the strict Pydantic model.
-        config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0),
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0),
+        )
+    except Exception as exc:
+        raise ValueError(f"Gemini request failed: {str(exc)[:300]}") from exc
+
     if not response or not response.text:
         raise ValueError("No questions could be extracted from this source.")
-    return ImportedQuestionSet.model_validate_json(response.text).model_dump()["questions"]
+
+    raw_text = response.text.strip()
+    if raw_text.startswith("```"):
+        raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
+        raw_text = re.sub(r"\s*```$", "", raw_text)
+
+    try:
+        data = json.loads(raw_text)
+    except Exception as exc:
+        logger.error(f"Failed to decode JSON from Gemini: {raw_text[:300]}")
+        raise ValueError("Gemini returned an unreadable JSON structure. Try a clearer text-based PDF.") from exc
+
+    raw_questions: List[Dict[str, Any]] = []
+    if isinstance(data, list):
+        raw_questions = data
+    elif isinstance(data, dict):
+        if "questions" in data and isinstance(data["questions"], list):
+            raw_questions = data["questions"]
+        elif "items" in data and isinstance(data["items"], list):
+            raw_questions = data["items"]
+        else:
+            raw_questions = [data]
+
+    if not raw_questions:
+        raise ValueError("No question items found in the extracted content.")
+
+    validated: List[Dict[str, Any]] = []
+    for item in raw_questions:
+        try:
+            parsed = ImportedQuestion.model_validate(item)
+            validated.append(parsed.model_dump())
+        except Exception as exc:
+            logger.warning(f"Skipped invalid question item: {exc}")
+
+    if not validated:
+        raise ValueError("Extracted questions could not be validated. Please check the PDF formatting.")
+
+    return validated
 
 
 def _clean_text(text: str) -> str:

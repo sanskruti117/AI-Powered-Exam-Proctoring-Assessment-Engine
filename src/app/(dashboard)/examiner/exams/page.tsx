@@ -90,7 +90,7 @@ export default function ExaminerExamsPage() {
   const [modalShuffleQuestions, setModalShuffleQuestions] = useState(true);
   const [modalShuffleOptions, setModalShuffleOptions] = useState(true);
   const [modalSections, setModalSections] = useState<
-    { title: string; target_marks: number; description: string }[]
+    { id?: string; title: string; target_marks: number; description: string }[]
   >([{ title: "Section 1", target_marks: 30, description: "" }]);
   const [modalError, setModalError] = useState<string | null>(null);
 
@@ -109,15 +109,14 @@ export default function ExaminerExamsPage() {
       setLoading(true);
       const params = new URLSearchParams();
       if (statusFilter !== "ALL") params.append("status", statusFilter);
-      if (search) params.append("search", search);
 
       const res = await fetch(`/api/exams?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to load examinations.");
+
       const data = await res.json();
-      if (data.success) {
-        setExams(data.exams || []);
-      }
-    } catch (err) {
-      console.error("Failed to fetch exams:", err);
+      setExams(data.exams || data || []);
+    } catch (err: any) {
+      setFeedback({ type: "error", msg: err.message || "Failed to load exams." });
     } finally {
       setLoading(false);
     }
@@ -166,11 +165,16 @@ export default function ExaminerExamsPage() {
     setModalMaxAttempts(exam.max_attempts);
     setModalShuffleQuestions(exam.shuffle_questions);
     setModalShuffleOptions(exam.shuffle_options);
-    setModalSections(exam.sections.map((section) => ({
-      title: section.title,
-      target_marks: section.target_marks,
-      description: section.description || "",
-    })));
+    setModalSections(
+      exam.sections && exam.sections.length > 0
+        ? exam.sections.map((section: any) => ({
+            id: section.id,
+            title: section.title,
+            target_marks: section.target_marks,
+            description: section.description || "",
+          }))
+        : [{ title: "Section 1", target_marks: exam.total_marks, description: "" }]
+    );
     setModalError(null);
     setIsModalOpen(true);
   };
@@ -209,10 +213,8 @@ export default function ExaminerExamsPage() {
       return;
     }
 
-    // Sections are configured while creating an assessment. Edit them from the
-    // assessment workspace so existing question mappings stay intact.
     const sectionSum = modalSections.reduce((acc, s) => acc + Number(s.target_marks || 0), 0);
-    if (!editingExamId && sectionSum !== Number(modalTotalMarks)) {
+    if (sectionSum !== Number(modalTotalMarks)) {
       setModalError(
         `The sum of section target marks (${sectionSum}) must equal the total exam marks (${modalTotalMarks}). Please adjust your section marks.`
       );
@@ -233,18 +235,18 @@ export default function ExaminerExamsPage() {
         shuffle_questions: modalShuffleQuestions,
         shuffle_options: modalShuffleOptions,
         sections: modalSections.map((s, idx) => ({
+          id: s.id,
           title: s.title.trim(),
-          description: s.description.trim() || undefined,
+          description: s.description?.trim() || undefined,
           order: idx + 1,
           target_marks: Number(s.target_marks),
         })),
       };
 
-      const { sections, ...examPayload } = payload;
       const res = await fetch(editingExamId ? `/api/exams/${editingExamId}` : "/api/exams", {
         method: editingExamId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingExamId ? examPayload : payload),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -940,14 +942,14 @@ export default function ExaminerExamsPage() {
                         Define the subject hierarchy. Questions created under this exam will be mapped to these sections.
                       </p>
                     </div>
-                    {!editingExamId && <button
+                    <button
                       type="button"
                       onClick={handleAddSectionRow}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>Add Section</span>
-                    </button>}
+                    </button>
                   </div>
 
                   <div className="space-y-2.5">

@@ -11,6 +11,8 @@ from backend.models import (
     ExamSection,
     QuestionBank,
     Option,
+    TestCase,
+    CodeBoilerplate,
     ExamAttempt,
     StudentAnswer,
     QuestionTimeLog,
@@ -28,6 +30,7 @@ from backend.schemas import (
     EvaluateAttemptRequest,
 )
 from backend.services.ai_evaluator import evaluate_descriptive_answer
+from backend.services.code_executor import execute_single_run, evaluate_test_cases_suite
 
 
 # ==========================================
@@ -469,6 +472,49 @@ def update_exam(
     if data.status is not None:
         exam.status = data.status
 
+    if data.sections is not None:
+        existing_sections = (
+            db.query(ExamSection)
+            .filter(ExamSection.exam_id == exam.id)
+            .order_by(ExamSection.order.asc())
+            .all()
+        )
+        existing_map = {s.id: s for s in existing_sections}
+        kept_section_ids = set()
+
+        for idx, sec_input in enumerate(data.sections):
+            sec_order = sec_input.order if sec_input.order is not None else (idx + 1)
+            matched_sec = None
+            if sec_input.id and sec_input.id in existing_map:
+                matched_sec = existing_map[sec_input.id]
+            elif idx < len(existing_sections):
+                matched_sec = existing_sections[idx]
+
+            if matched_sec:
+                matched_sec.title = sec_input.title.strip()
+                matched_sec.description = sec_input.description.strip() if sec_input.description else None
+                matched_sec.order = sec_order
+                matched_sec.target_marks = sec_input.target_marks
+                if sec_input.required_question_count is not None:
+                    matched_sec.required_question_count = sec_input.required_question_count
+                kept_section_ids.add(matched_sec.id)
+            else:
+                new_sec = ExamSection(
+                    exam_id=exam.id,
+                    title=sec_input.title.strip(),
+                    description=sec_input.description.strip() if sec_input.description else None,
+                    order=sec_order,
+                    target_marks=sec_input.target_marks,
+                    required_question_count=sec_input.required_question_count,
+                )
+                db.add(new_sec)
+                db.flush()
+                kept_section_ids.add(new_sec.id)
+
+        for s in existing_sections:
+            if s.id not in kept_section_ids:
+                db.delete(s)
+
     db.commit()
     db.refresh(exam)
     return exam
@@ -758,6 +804,13 @@ def create_question(
         marks=data.marks,
         expected_answer=data.expected_answer.strip() if data.expected_answer else None,
         image_url=data.image_url.strip() if data.image_url else None,
+        # Coding fields
+        input_format=data.input_format.strip() if data.input_format else None,
+        output_format=data.output_format.strip() if data.output_format else None,
+        constraints=data.constraints.strip() if data.constraints else None,
+        allowed_languages=json.dumps(data.allowed_languages) if data.allowed_languages else json.dumps(["python", "javascript", "cpp", "java"]),
+        time_limit_seconds=float(data.time_limit_seconds or 2.0),
+        memory_limit_mb=int(data.memory_limit_mb or 256),
     )
     db.add(question)
     db.flush()
@@ -771,6 +824,28 @@ def create_question(
                 order=opt_data.order if opt_data.order is not None else idx,
             )
             db.add(option)
+
+    if data.test_cases:
+        for idx, tc_data in enumerate(data.test_cases):
+            test_case = TestCase(
+                question_id=question.id,
+                input_data=tc_data.input_data,
+                expected_output=tc_data.expected_output,
+                is_sample=tc_data.is_sample,
+                explanation=tc_data.explanation.strip() if tc_data.explanation else None,
+                weightage_marks=float(tc_data.weightage_marks if tc_data.weightage_marks is not None else 1.0),
+                order=tc_data.order if tc_data.order is not None else idx,
+            )
+            db.add(test_case)
+
+    if data.boilerplates:
+        for bp_data in data.boilerplates:
+            bp = CodeBoilerplate(
+                question_id=question.id,
+                language=bp_data.language.lower().strip(),
+                starter_code=bp_data.starter_code,
+            )
+            db.add(bp)
 
     db.commit()
     db.refresh(question)
@@ -789,7 +864,14 @@ def get_questions(
     skip: int = 0,
     limit: int = 50,
 ) -> Tuple[List[QuestionBank], int]:
-    query = db.query(QuestionBank).options(selectinload(QuestionBank.options))
+    query = (
+        db.query(QuestionBank)
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+        )
+    )
 
     if examiner_id:
         query = query.filter(QuestionBank.examiner_id == examiner_id)
@@ -828,7 +910,15 @@ def get_question_by_id(
     question_id: str,
     examiner_id: Optional[str] = None,
 ) -> Optional[QuestionBank]:
-    query = db.query(QuestionBank).options(selectinload(QuestionBank.options)).filter(QuestionBank.id == question_id)
+    query = (
+        db.query(QuestionBank)
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+        )
+        .filter(QuestionBank.id == question_id)
+    )
     if examiner_id:
         query = query.filter(QuestionBank.examiner_id == examiner_id)
     return query.first()
@@ -842,7 +932,11 @@ def update_question(
 ) -> Optional[QuestionBank]:
     question = (
         db.query(QuestionBank)
-        .options(selectinload(QuestionBank.options))
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+        )
         .filter(QuestionBank.id == question_id, QuestionBank.examiner_id == examiner_id)
         .first()
     )
@@ -878,6 +972,20 @@ def update_question(
     if data.image_url is not None:
         question.image_url = data.image_url.strip() if data.image_url else None
 
+    # Coding specific fields
+    if data.input_format is not None:
+        question.input_format = data.input_format.strip() if data.input_format else None
+    if data.output_format is not None:
+        question.output_format = data.output_format.strip() if data.output_format else None
+    if data.constraints is not None:
+        question.constraints = data.constraints.strip() if data.constraints else None
+    if data.allowed_languages is not None:
+        question.allowed_languages = json.dumps(data.allowed_languages)
+    if data.time_limit_seconds is not None:
+        question.time_limit_seconds = float(data.time_limit_seconds)
+    if data.memory_limit_mb is not None:
+        question.memory_limit_mb = int(data.memory_limit_mb)
+
     if data.options is not None:
         db.query(Option).filter(Option.question_id == question.id).delete()
         for idx, opt_data in enumerate(data.options):
@@ -888,6 +996,30 @@ def update_question(
                 order=opt_data.order if opt_data.order is not None else idx,
             )
             db.add(option)
+
+    if data.test_cases is not None:
+        db.query(TestCase).filter(TestCase.question_id == question.id).delete()
+        for idx, tc_data in enumerate(data.test_cases):
+            test_case = TestCase(
+                question_id=question.id,
+                input_data=tc_data.input_data,
+                expected_output=tc_data.expected_output,
+                is_sample=tc_data.is_sample,
+                explanation=tc_data.explanation.strip() if tc_data.explanation else None,
+                weightage_marks=float(tc_data.weightage_marks if tc_data.weightage_marks is not None else 1.0),
+                order=tc_data.order if tc_data.order is not None else idx,
+            )
+            db.add(test_case)
+
+    if data.boilerplates is not None:
+        db.query(CodeBoilerplate).filter(CodeBoilerplate.question_id == question.id).delete()
+        for bp_data in data.boilerplates:
+            bp = CodeBoilerplate(
+                question_id=question.id,
+                language=bp_data.language.lower().strip(),
+                starter_code=bp_data.starter_code,
+            )
+            db.add(bp)
 
     db.commit()
     db.refresh(question)
@@ -1087,10 +1219,15 @@ def _reconstruct_student_questions(db: Session, attempt: ExamAttempt, exam: Exam
     q_ids = json.loads(attempt.assigned_question_order)
     opt_orders = json.loads(attempt.assigned_option_orders)
 
-    # Fetch questions
+    # Fetch questions with all options, test cases, and boilerplates
     questions_map = {
         q.id: q for q in db.query(QuestionBank)
-        .options(selectinload(QuestionBank.options), joinedload(QuestionBank.section))
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+            joinedload(QuestionBank.section),
+        )
         .filter(QuestionBank.id.in_(q_ids))
         .all()
     }
@@ -1114,6 +1251,37 @@ def _reconstruct_student_questions(db: Session, attempt: ExamAttempt, exam: Exam
                     "order": idx,
                 })
 
+        # Filter only sample test cases for student view
+        sample_tcs = [
+            {
+                "id": tc.id,
+                "input_data": tc.input_data,
+                "expected_output": tc.expected_output,
+                "explanation": tc.explanation,
+                "order": tc.order,
+            }
+            for tc in (q.test_cases or [])
+            if tc.is_sample
+        ]
+
+        boilerplates_list = [
+            {
+                "id": bp.id,
+                "question_id": bp.question_id,
+                "language": bp.language,
+                "starter_code": bp.starter_code,
+                "created_at": bp.created_at,
+            }
+            for bp in (q.boilerplates or [])
+        ]
+
+        allowed_langs = ["python", "javascript", "cpp", "java"]
+        if q.allowed_languages:
+            try:
+                allowed_langs = json.loads(q.allowed_languages)
+            except Exception:
+                pass
+
         result.append({
             "id": q.id,
             "section_id": q.section_id or "",
@@ -1124,6 +1292,16 @@ def _reconstruct_student_questions(db: Session, attempt: ExamAttempt, exam: Exam
             "marks": q.marks,
             "image_url": q.image_url,
             "options": shuffled_options,
+            # Coding fields
+            "input_format": q.input_format,
+            "output_format": q.output_format,
+            "constraints": q.constraints,
+            "allowed_languages": allowed_langs,
+            "time_limit_seconds": q.time_limit_seconds or 2.0,
+            "memory_limit_mb": q.memory_limit_mb or 256,
+            "sample_test_cases": sample_tcs,
+            "test_cases": sample_tcs,
+            "boilerplates": boilerplates_list,
         })
 
     return result
@@ -1152,6 +1330,8 @@ def record_student_heartbeat(
                 selected_option_id=item.selected_option_id,
                 selected_option_ids=json.dumps(item.selected_option_ids) if item.selected_option_ids else None,
                 text_answer=item.text_answer,
+                code_language=item.code_language,
+                code_answer=item.code_answer,
                 time_spent_seconds=item.delta_seconds,
             )
             db.add(answer)
@@ -1162,6 +1342,10 @@ def record_student_heartbeat(
                 answer.selected_option_ids = json.dumps(item.selected_option_ids)
             if item.text_answer is not None:
                 answer.text_answer = item.text_answer
+            if item.code_language is not None:
+                answer.code_language = item.code_language
+            if item.code_answer is not None:
+                answer.code_answer = item.code_answer
             answer.time_spent_seconds += item.delta_seconds
 
         # Record delta time log if delta > 0
@@ -1215,6 +1399,8 @@ def submit_student_attempt(
                 selected_option_id=item.selected_option_id,
                 selected_option_ids=json.dumps(item.selected_option_ids) if item.selected_option_ids else None,
                 text_answer=item.text_answer,
+                code_language=item.code_language,
+                code_answer=item.code_answer,
                 time_spent_seconds=item.delta_seconds,
             )
             db.add(answer)
@@ -1225,6 +1411,10 @@ def submit_student_attempt(
                 answer.selected_option_ids = json.dumps(item.selected_option_ids)
             if item.text_answer is not None:
                 answer.text_answer = item.text_answer
+            if item.code_language is not None:
+                answer.code_language = item.code_language
+            if item.code_answer is not None:
+                answer.code_answer = item.code_answer
             answer.time_spent_seconds += item.delta_seconds
 
         if item.delta_seconds > 0:
@@ -1241,7 +1431,11 @@ def submit_student_attempt(
     q_ids = json.loads(attempt.assigned_question_order)
     questions = (
         db.query(QuestionBank)
-        .options(selectinload(QuestionBank.options))
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+        )
         .filter(QuestionBank.id.in_(q_ids))
         .all()
     )
@@ -1251,7 +1445,6 @@ def submit_student_attempt(
     answers_map = {a.question_id: a for a in answers}
 
     auto_score = 0.0
-    has_descriptive = False
 
     for q_id in q_ids:
         q = questions_map.get(q_id)
@@ -1308,6 +1501,49 @@ def submit_student_attempt(
                     ans.is_correct = False
                     ans.examiner_feedback = "[AI Evaluation]: Response was left blank."
                     ans.evaluation_status = "AI_EVALUATED"
+
+        elif q_type == "CODING":
+            if ans and ans.code_answer and ans.code_answer.strip():
+                lang = ans.code_language or "python"
+                tcs_data = [
+                    {
+                        "id": tc.id,
+                        "input_data": tc.input_data,
+                        "expected_output": tc.expected_output,
+                        "is_sample": tc.is_sample,
+                        "weightage_marks": tc.weightage_marks,
+                    }
+                    for tc in (q.test_cases or [])
+                ]
+                time_limit = q.time_limit_seconds or 2.0
+                verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
+                    language=lang,
+                    code=ans.code_answer,
+                    test_cases=tcs_data,
+                    time_limit_seconds=time_limit,
+                )
+                ans.test_cases_passed = passed_cnt
+                ans.total_test_cases = total_cnt
+                ans.code_execution_logs = json.dumps({
+                    "verdict": verdict,
+                    "passed_count": passed_cnt,
+                    "total_count": total_cnt,
+                    "execution_time_ms": exec_ms,
+                })
+                earned_marks = round((passed_cnt / max(1, total_cnt)) * float(q.marks), 2) if total_cnt > 0 else 0.0
+                ans.marks_obtained = earned_marks
+                ans.is_correct = (passed_cnt == total_cnt and total_cnt > 0)
+                ans.evaluation_status = "AUTO_EVALUATED"
+                ans.examiner_feedback = f"[{verdict}]: {passed_cnt}/{total_cnt} Test Cases Passed ({earned_marks}/{q.marks} Marks)"
+                auto_score += earned_marks
+            else:
+                if ans:
+                    ans.marks_obtained = 0.0
+                    ans.is_correct = False
+                    ans.test_cases_passed = 0
+                    ans.total_test_cases = len(q.test_cases or [])
+                    ans.examiner_feedback = "[CODING]: No code submitted."
+                    ans.evaluation_status = "AUTO_EVALUATED"
 
     total_final_score = round(auto_score, 2)
     attempt.auto_graded_score = total_final_score
@@ -1493,7 +1729,12 @@ def get_student_attempt_result(
     q_ids = json.loads(attempt.assigned_question_order)
     questions = (
         db.query(QuestionBank)
-        .options(selectinload(QuestionBank.options), joinedload(QuestionBank.section))
+        .options(
+            selectinload(QuestionBank.options),
+            selectinload(QuestionBank.test_cases),
+            selectinload(QuestionBank.boilerplates),
+            joinedload(QuestionBank.section),
+        )
         .filter(QuestionBank.id.in_(q_ids))
         .all()
     )
@@ -1526,6 +1767,12 @@ def get_student_attempt_result(
             "selected_option_id": ans.selected_option_id if ans else None,
             "selected_option_ids": json.loads(ans.selected_option_ids) if ans and ans.selected_option_ids else None,
             "text_answer": ans.text_answer if ans else None,
+            # Coding Answer Fields
+            "code_language": ans.code_language if ans else None,
+            "code_answer": ans.code_answer if ans else None,
+            "test_cases_passed": ans.test_cases_passed if ans else 0,
+            "total_test_cases": ans.total_test_cases if ans else 0,
+            "code_execution_logs": ans.code_execution_logs if ans else None,
             "correct_option_ids": correct_opt_ids if attempt.status == "EVALUATED" else None,
             "expected_answer": q.expected_answer if attempt.status == "EVALUATED" else None,
             "options": [
@@ -1538,6 +1785,20 @@ def get_student_attempt_result(
                     "created_at": o.created_at,
                 }
                 for o in q.options
+            ],
+            "test_cases": [
+                {
+                    "id": tc.id,
+                    "question_id": tc.question_id,
+                    "input_data": tc.input_data,
+                    "expected_output": tc.expected_output,
+                    "is_sample": tc.is_sample,
+                    "explanation": tc.explanation,
+                    "weightage_marks": tc.weightage_marks,
+                    "order": tc.order,
+                    "created_at": tc.created_at,
+                }
+                for tc in (q.test_cases or [])
             ],
         })
 
@@ -1628,6 +1889,35 @@ def get_exam_leaderboard(db: Session, exam_id: str) -> Optional[Dict[str, Any]]:
         "pending_evaluation_count": pending_count,
         "leaderboard": leaderboard,
     }
+
+
+def get_exam_candidates(db: Session, exam_id: str) -> List[Dict[str, Any]]:
+    """Return every candidate attempt for an examiner-owned assessment."""
+    attempts = (
+        db.query(ExamAttempt)
+        .options(joinedload(ExamAttempt.student))
+        .filter(ExamAttempt.exam_id == exam_id)
+        .order_by(desc(ExamAttempt.started_at))
+        .all()
+    )
+    return [
+        {
+            "id": attempt.id,
+            "student_id": attempt.student_id,
+            "student_name": attempt.student.full_name,
+            "student_email": attempt.student.email,
+            "attempt_number": attempt.attempt_number,
+            "status": attempt.status,
+            "score": attempt.score,
+            "total_marks": attempt.total_marks,
+            "percentage": attempt.percentage,
+            "is_passed": attempt.is_passed,
+            "started_at": attempt.started_at,
+            "submitted_at": attempt.submitted_at,
+            "has_pending_descriptive": attempt.has_pending_descriptive,
+        }
+        for attempt in attempts
+    ]
 
 
 def get_exam_analytics(db: Session, exam_id: str) -> Optional[Dict[str, Any]]:
@@ -1757,4 +2047,178 @@ def get_exam_analytics(db: Session, exam_id: str) -> Optional[Dict[str, Any]]:
         "question_deep_dive": q_deep_dive,
     }
 
+
+# ==========================================
+# Code Runner Endpoints CRUD Helpers
+# ==========================================
+
+def run_code_sample_test(
+    db: Session,
+    language: str,
+    code: str,
+    custom_input: Optional[str] = None,
+    question_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Executes code either against custom input OR against sample test cases of the specified question.
+    """
+    if custom_input is not None or not question_id:
+        # Run free-form with custom stdin
+        res = execute_single_run(
+            language=language,
+            code=code,
+            stdin_input=custom_input or "",
+            time_limit_seconds=3.0,
+        )
+        return {
+            "success": True,
+            "language": language,
+            "verdict": res.get("status", "SUCCESS"),
+            "stdout": res.get("stdout", ""),
+            "stderr": res.get("stderr", ""),
+            "execution_time_ms": res.get("execution_time_ms", 0.0),
+            "sample_results": [],
+            "error_detail": res.get("error_detail"),
+        }
+
+    # Fetch question and sample test cases
+    question = (
+        db.query(QuestionBank)
+        .options(selectinload(QuestionBank.test_cases))
+        .filter(QuestionBank.id == question_id)
+        .first()
+    )
+    if not question:
+        res = execute_single_run(language=language, code=code, stdin_input="", time_limit_seconds=2.0)
+        return {
+            "success": True,
+            "language": language,
+            "verdict": res.get("status", "SUCCESS"),
+            "stdout": res.get("stdout", ""),
+            "stderr": res.get("stderr", ""),
+            "execution_time_ms": res.get("execution_time_ms", 0.0),
+            "sample_results": [],
+            "error_detail": res.get("error_detail"),
+        }
+
+    sample_tcs = [
+        {
+            "id": tc.id,
+            "input_data": tc.input_data,
+            "expected_output": tc.expected_output,
+            "is_sample": True,
+        }
+        for tc in (question.test_cases or [])
+        if tc.is_sample
+    ]
+
+    if not sample_tcs:
+        res = execute_single_run(language=language, code=code, stdin_input="", time_limit_seconds=float(question.time_limit_seconds or 2.0))
+        return {
+            "success": True,
+            "language": language,
+            "verdict": res.get("status", "SUCCESS"),
+            "stdout": res.get("stdout", ""),
+            "stderr": res.get("stderr", ""),
+            "execution_time_ms": res.get("execution_time_ms", 0.0),
+            "sample_results": [],
+            "error_detail": res.get("error_detail"),
+        }
+
+    verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
+        language=language,
+        code=code,
+        test_cases=sample_tcs,
+        time_limit_seconds=float(question.time_limit_seconds or 2.0),
+    )
+
+    first_stdout = results[0].get("actual_output", "") if results else ""
+    first_stderr = results[0].get("error_message", "") if results else ""
+
+    return {
+        "success": True,
+        "language": language,
+        "verdict": verdict,
+        "stdout": first_stdout,
+        "stderr": first_stderr or "",
+        "execution_time_ms": exec_ms,
+        "sample_results": results,
+        "error_detail": None,
+    }
+
+
+def submit_code_evaluation(
+    db: Session,
+    question_id: str,
+    language: str,
+    code: str,
+) -> Dict[str, Any]:
+    """
+    Evaluates candidate's code against ALL test cases (sample + hidden) for the question.
+    """
+    question = (
+        db.query(QuestionBank)
+        .options(selectinload(QuestionBank.test_cases))
+        .filter(QuestionBank.id == question_id)
+        .first()
+    )
+    if not question:
+        return {
+            "success": False,
+            "question_id": question_id,
+            "verdict": "ERROR",
+            "test_cases_passed": 0,
+            "total_test_cases": 0,
+            "score_earned": 0.0,
+            "max_marks": 0,
+            "execution_time_ms": 0.0,
+            "results": [],
+        }
+
+    tcs = [
+        {
+            "id": tc.id,
+            "input_data": tc.input_data,
+            "expected_output": tc.expected_output,
+            "is_sample": tc.is_sample,
+            "weightage_marks": tc.weightage_marks,
+        }
+        for tc in (question.test_cases or [])
+    ]
+
+    verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
+        language=language,
+        code=code,
+        test_cases=tcs,
+        time_limit_seconds=float(question.time_limit_seconds or 2.0),
+    )
+
+    # For hidden test cases, obscure the actual inputs/outputs from the student
+    masked_results = []
+    for r in results:
+        is_sample = r.get("is_sample", False)
+        masked_results.append({
+            "test_case_id": r.get("test_case_id"),
+            "is_sample": is_sample,
+            "input_data": r.get("input_data") if is_sample else "[Hidden Test Case]",
+            "expected_output": r.get("expected_output") if is_sample else "[Hidden Output]",
+            "actual_output": r.get("actual_output") if is_sample else ("[Output Hidden]" if r.get("status") == "PASSED" else r.get("actual_output", "")),
+            "status": r.get("status"),
+            "execution_time_ms": r.get("execution_time_ms", 0.0),
+            "error_message": r.get("error_message"),
+        })
+
+    earned = round((passed_cnt / max(1, total_cnt)) * float(question.marks), 2) if total_cnt > 0 else 0.0
+
+    return {
+        "success": True,
+        "question_id": question_id,
+        "verdict": verdict,
+        "test_cases_passed": passed_cnt,
+        "total_test_cases": total_cnt,
+        "score_earned": earned,
+        "max_marks": question.marks,
+        "execution_time_ms": exec_ms,
+        "results": masked_results,
+    }
 

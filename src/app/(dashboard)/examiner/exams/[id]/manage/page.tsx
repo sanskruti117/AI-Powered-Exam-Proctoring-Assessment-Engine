@@ -210,7 +210,7 @@ export default function ExamSectionManagePage() {
             <span>Question Paper & Subject Pools</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Questions added here belong to this examination's section pool. Candidate attempts will be dynamically sampled to reach exact target marks.
+            Questions added here belong to this examination&apos;s section pool. Candidate attempts will be dynamically sampled to reach exact target marks.
           </p>
         </div>
 
