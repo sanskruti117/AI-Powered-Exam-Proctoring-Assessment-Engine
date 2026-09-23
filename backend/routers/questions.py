@@ -21,6 +21,10 @@ from backend.schemas import (
     QuestionAssessmentAssignmentRequest,
     CodeRunRequest,
     CodeRunResponse,
+    QuestionTranslationRequest,
+    QuestionTranslationResponse,
+    BatchQuestionTranslationRequest,
+    BatchQuestionTranslationResponse,
 )
 from backend.models import Exam, ExamSection, ExamAttempt, QuestionBank
 from backend.crud import (
@@ -35,6 +39,7 @@ from backend.crud import (
 )
 from backend.routers.auth import get_current_user_payload
 from backend.services.ai_evaluator import extract_question_set, extract_standard_mcq_question_set
+from backend.services.translator import translate_question_content, batch_translate_questions_content
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 logger = logging.getLogger(__name__)
@@ -499,3 +504,71 @@ def test_examiner_code_endpoint(
         custom_input=body.custom_input,
         question_id=body.question_id,
     )
+
+
+@router.post("/translate", response_model=QuestionTranslationResponse)
+def translate_single_question_endpoint(
+    body: QuestionTranslationRequest,
+    request: Request,
+):
+    """
+    Dynamically translates a question and its choices into target Indian regional language or English.
+    Available to students during active proctored exams and examiners in studio.
+    """
+    user = get_current_user_payload(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+    options_dicts = [opt.model_dump() for opt in body.options] if body.options else []
+
+    res = translate_question_content(
+        target_language=body.target_language,
+        question_text=body.question_text,
+        options=options_dicts,
+        constraints=body.constraints,
+        input_format=body.input_format,
+        output_format=body.output_format,
+        question_id=body.question_id,
+    )
+    return res
+
+
+@router.post("/batch-translate", response_model=BatchQuestionTranslationResponse)
+def translate_batch_questions_endpoint(
+    body: BatchQuestionTranslationRequest,
+    request: Request,
+):
+    """
+    Translates a batch of questions in one high-throughput request.
+    """
+    user = get_current_user_payload(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Authentication required.")
+
+    questions_payload = []
+    for q in body.questions:
+        opts = [opt.model_dump() for opt in q.options] if q.options else []
+        questions_payload.append({
+            "question_id": q.question_id,
+            "question_text": q.question_text,
+            "options": opts,
+            "constraints": q.constraints,
+            "input_format": q.input_format,
+            "output_format": q.output_format,
+        })
+
+    results = batch_translate_questions_content(
+        target_language=body.target_language,
+        questions=questions_payload,
+    )
+
+    from backend.services.translator import LANGUAGE_NAMES
+    lang_name = LANGUAGE_NAMES.get(body.target_language.lower(), body.target_language)
+
+    return {
+        "success": True,
+        "target_language": body.target_language,
+        "target_language_name": lang_name,
+        "translations": results,
+    }
+

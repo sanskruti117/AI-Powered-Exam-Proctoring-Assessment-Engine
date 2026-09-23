@@ -746,3 +746,47 @@ class ExamAnalyticsResponse(BaseModel):
     difficulty_breakdown: List[DifficultyAnalyticsItem]
     section_breakdown: List[SectionAnalyticsItem]
     question_deep_dive: List[QuestionCohortAnalyticsItem]
+
+
+# ==========================================
+# Question Translation Schemas
+# ==========================================
+
+class OptionTranslationItem(BaseModel):
+    id: str
+    option_text: str
+
+
+class QuestionTranslationRequest(BaseModel):
+    target_language: str = Field(description="Target language code: hi, mr, ml, te, ta, kn, bn, gu, en")
+    question_id: Optional[str] = None
+    question_text: str
+    options: Optional[List[OptionTranslationItem]] = None
+    constraints: Optional[str] = None
+    input_format: Optional[str] = None
+    output_format: Optional[str] = None
+
+
+class QuestionTranslationResponse(BaseModel):
+    success: bool = True
+    target_language: str
+    target_language_name: str
+    question_id: Optional[str] = None
+    translated_question_text: str
+    translated_options: List[OptionTranslationItem] = Field(default_factory=list)
+    translated_constraints: Optional[str] = None
+    translated_input_format: Optional[str] = None
+    translated_output_format: Optional[str] = None
+
+
+class BatchQuestionTranslationRequest(BaseModel):
+    target_language: str
+    questions: List[QuestionTranslationRequest]
+
+
+class BatchQuestionTranslationResponse(BaseModel):
+    success: bool = True
+    target_language: str
+    target_language_name: str
+    translations: List[QuestionTranslationResponse]
+

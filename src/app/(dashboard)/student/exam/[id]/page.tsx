@@ -40,8 +40,10 @@ import {
   CheckSquare,
   Video,
   Sliders,
+  Globe,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { SUPPORTED_LANGUAGES } from "@/lib/i18n/translations";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface OptionChoice {
@@ -149,7 +151,7 @@ public class Main {
 };
 
 export default function StudentExamChamberPage() {
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const examId = params?.id as string;
@@ -165,6 +167,19 @@ export default function StudentExamChamberPage() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+  // Multilingual Dynamic Question Translation
+  const [questionTranslations, setQuestionTranslations] = useState<{
+    [langAndQId: string]: {
+      translated_question_text: string;
+      translated_options?: { id: string; option_text: string }[];
+      translated_constraints?: string;
+      translated_input_format?: string;
+      translated_output_format?: string;
+    };
+  }>({});
+  const [isTranslatingQuestion, setIsTranslatingQuestion] = useState<boolean>(false);
+  const [showOriginalLanguage, setShowOriginalLanguage] = useState<boolean>(false);
 
   // =========================================================================
   // Proctoring, Fullscreen Gate & 3-Strike Warning Architecture
@@ -1078,6 +1093,76 @@ export default function StudentExamChamberPage() {
   const currentQ = questions[currentIdx];
   const currentAnswer = currentQ ? answers[currentQ.id] : undefined;
 
+  // Dynamic Multilingual Question Translation Hook
+  useEffect(() => {
+    if (!currentQ || language === "en") return;
+
+    const cacheKey = `${language}::${currentQ.id}`;
+    if (questionTranslations[cacheKey]) return;
+
+    let isMounted = true;
+    const fetchTranslation = async () => {
+      try {
+        setIsTranslatingQuestion(true);
+        const res = await fetch("/api/questions/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            target_language: language,
+            question_id: currentQ.id,
+            question_text: currentQ.question_text,
+            options: currentQ.options?.map((o) => ({ id: o.id, option_text: o.option_text })),
+            constraints: currentQ.constraints,
+            input_format: currentQ.input_format,
+            output_format: currentQ.output_format,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success) {
+            setQuestionTranslations((prev) => ({
+              ...prev,
+              [cacheKey]: {
+                translated_question_text: data.translated_question_text,
+                translated_options: data.translated_options,
+                translated_constraints: data.translated_constraints,
+                translated_input_format: data.translated_input_format,
+                translated_output_format: data.translated_output_format,
+              },
+            }));
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to translate question:", err);
+      } finally {
+        if (isMounted) setIsTranslatingQuestion(false);
+      }
+    };
+
+    fetchTranslation();
+    return () => {
+      isMounted = false;
+    };
+  }, [language, currentIdx, currentQ?.id]);
+
+  const activeTranslation =
+    language !== "en" && !showOriginalLanguage && currentQ
+      ? questionTranslations[`${language}::${currentQ.id}`]
+      : null;
+
+  const displayQuestionText = activeTranslation?.translated_question_text || currentQ?.question_text;
+  const displayConstraints = activeTranslation?.translated_constraints || currentQ?.constraints;
+  const displayInputFormat = activeTranslation?.translated_input_format || currentQ?.input_format;
+  const displayOutputFormat = activeTranslation?.translated_output_format || currentQ?.output_format;
+
+  const getDisplayOptionText = (opt: OptionChoice) => {
+    if (activeTranslation?.translated_options) {
+      const matched = activeTranslation.translated_options.find((tOpt) => tOpt.id === opt.id);
+      if (matched?.option_text) return matched.option_text;
+    }
+    return opt.option_text;
+  };
+
   const answeredCount = questions.filter((q) => {
     const a = answers[q.id];
     if (!a) return false;
@@ -1585,21 +1670,52 @@ export default function StudentExamChamberPage() {
                 </div>
               </div>
 
+              {/* Multilingual Question Translation Banner */}
+              {language !== "en" && (
+                <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-xs">
+                  <div className="flex items-center gap-2.5">
+                    <Globe className="h-4 w-4 text-indigo-400 shrink-0" />
+                    {isTranslatingQuestion ? (
+                      <span className="flex items-center gap-2 text-indigo-300 font-medium">
+                        <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                        Translating question to {SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName || language}...
+                      </span>
+                    ) : showOriginalLanguage ? (
+                      <span className="text-slate-300 font-medium">
+                        Showing original English text
+                      </span>
+                    ) : (
+                      <span className="text-indigo-200 font-medium">
+                        Translated to <strong className="text-white font-bold">{SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName}</strong>
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowOriginalLanguage((prev) => !prev)}
+                    className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600/25 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/40 transition-all shrink-0"
+                  >
+                    {showOriginalLanguage ? "Show Translated" : "View Original (English)"}
+                  </button>
+                </div>
+              )}
+
               {/* CODING PROBLEM WORKSPACE (LeetCode / HackerEarth UX) */}
               {currentQ.question_type === "CODING" ? (
                 <div className="space-y-6">
                   {/* Problem Description & Specifications */}
                   <div className="space-y-4 bg-slate-950/60 p-5 rounded-2xl border border-slate-800/80">
                     <p className="text-base font-semibold text-white leading-relaxed whitespace-pre-wrap">
-                      {currentQ.question_text}
+                      {displayQuestionText}
                     </p>
 
                     {/* Constraints & Limits */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
-                      {currentQ.constraints && (
+                      {displayConstraints && (
                         <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
                           <span className="font-bold text-slate-400 uppercase block mb-1">Constraints</span>
-                          <span className="text-slate-300 font-mono whitespace-pre-wrap">{currentQ.constraints}</span>
+                          <span className="text-slate-300 font-mono whitespace-pre-wrap">{displayConstraints}</span>
                         </div>
                       )}
                       <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
@@ -1612,18 +1728,18 @@ export default function StudentExamChamberPage() {
                     </div>
 
                     {/* Input/Output Format */}
-                    {(currentQ.input_format || currentQ.output_format) && (
+                    {(displayInputFormat || displayOutputFormat) && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
-                        {currentQ.input_format && (
+                        {displayInputFormat && (
                           <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
                             <span className="font-bold text-slate-400 uppercase block mb-1">Input Format</span>
-                            <span className="text-slate-300 whitespace-pre-wrap">{currentQ.input_format}</span>
+                            <span className="text-slate-300 whitespace-pre-wrap">{displayInputFormat}</span>
                           </div>
                         )}
-                        {currentQ.output_format && (
+                        {displayOutputFormat && (
                           <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
                             <span className="font-bold text-slate-400 uppercase block mb-1">Output Format</span>
-                            <span className="text-slate-300 whitespace-pre-wrap">{currentQ.output_format}</span>
+                            <span className="text-slate-300 whitespace-pre-wrap">{displayOutputFormat}</span>
                           </div>
                         )}
                       </div>
@@ -1967,7 +2083,7 @@ export default function StudentExamChamberPage() {
                 /* STANDARD QUESTIONS (MCQ, MULTI_SELECT, SHORT/LONG ANSWER) */
                 <div className="space-y-6">
                   <p className="text-base font-semibold text-white leading-relaxed whitespace-pre-wrap">
-                    {currentQ.question_text}
+                    {displayQuestionText}
                   </p>
 
                   {currentQ.image_url && (
@@ -2002,7 +2118,7 @@ export default function StudentExamChamberPage() {
                               >
                                 {isSelected && <Check className="h-3 w-3 text-white stroke-[3]" />}
                               </div>
-                              <span className="text-sm font-medium flex-1">{opt.option_text}</span>
+                              <span className="text-sm font-medium flex-1">{getDisplayOptionText(opt)}</span>
                             </div>
                           );
                         })}
@@ -2030,7 +2146,7 @@ export default function StudentExamChamberPage() {
                               >
                                 {isSelected && <Check className="h-3 w-3 text-white stroke-[3]" />}
                               </div>
-                              <span className="text-sm font-medium flex-1">{opt.option_text}</span>
+                              <span className="text-sm font-medium flex-1">{getDisplayOptionText(opt)}</span>
                             </div>
                           );
                         })}
