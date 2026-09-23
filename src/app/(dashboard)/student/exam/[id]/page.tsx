@@ -41,6 +41,8 @@ import {
   Video,
   Sliders,
   Globe,
+  Bookmark,
+  Flag,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n/translations";
@@ -180,6 +182,9 @@ export default function StudentExamChamberPage() {
   }>({});
   const [isTranslatingQuestion, setIsTranslatingQuestion] = useState<boolean>(false);
   const [showOriginalLanguage, setShowOriginalLanguage] = useState<boolean>(false);
+
+  // Mark for Review state
+  const [reviewedQuestionIds, setReviewedQuestionIds] = useState<{ [qId: string]: boolean }>({});
 
   // =========================================================================
   // Proctoring, Fullscreen Gate & 3-Strike Warning Architecture
@@ -1125,6 +1130,34 @@ export default function StudentExamChamberPage() {
     return opt.option_text;
   };
 
+  const toggleMarkForReview = (questionId: string) => {
+    setReviewedQuestionIds((prev) => ({
+      ...prev,
+      [questionId]: !prev[questionId],
+    }));
+  };
+
+  const handleClearCurrentResponse = () => {
+    if (!currentQ) return;
+    setAnswers((prev) => {
+      const next = { ...prev };
+      delete next[currentQ.id];
+      return next;
+    });
+  };
+
+  const handleMarkForReviewAndNext = () => {
+    if (currentQ) {
+      setReviewedQuestionIds((prev) => ({
+        ...prev,
+        [currentQ.id]: true,
+      }));
+    }
+    if (currentIdx < questions.length - 1) {
+      handleNavigateQuestion(currentIdx + 1);
+    }
+  };
+
   const answeredCount = questions.filter((q) => {
     const a = answers[q.id];
     if (!a) return false;
@@ -1134,6 +1167,8 @@ export default function StudentExamChamberPage() {
     if (a.code_answer && a.code_answer.trim().length > 0) return true;
     return false;
   }).length;
+
+  const reviewedCount = Object.values(reviewedQuestionIds).filter(Boolean).length;
 
   if (loading) {
     return (
@@ -1664,9 +1699,29 @@ export default function StudentExamChamberPage() {
                   </span>
                 </div>
 
-                <div className="text-sm font-extrabold text-amber-400 flex items-center gap-1">
-                  <Award className="h-4 w-4" />
-                  <span>{currentQ.marks} Marks</span>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleMarkForReview(currentQ.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                      reviewedQuestionIds[currentQ.id]
+                        ? "bg-purple-600/20 text-purple-300 border-purple-500/50 shadow-sm shadow-purple-500/10"
+                        : "bg-slate-900 text-slate-400 border-slate-800 hover:text-purple-300 hover:border-purple-500/30"
+                    }`}
+                    title="Mark this question to review later"
+                  >
+                    <Bookmark
+                      className={`h-3.5 w-3.5 ${
+                        reviewedQuestionIds[currentQ.id] ? "fill-purple-400 text-purple-400" : ""
+                      }`}
+                    />
+                    <span>{reviewedQuestionIds[currentQ.id] ? "Marked for Review" : "Mark for Review"}</span>
+                  </button>
+
+                  <div className="text-sm font-extrabold text-amber-400 flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl">
+                    <Award className="h-4 w-4" />
+                    <span>{currentQ.marks} Marks</span>
+                  </div>
                 </div>
               </div>
 
@@ -2170,40 +2225,77 @@ export default function StudentExamChamberPage() {
               )}
 
               {/* Bottom Navigation */}
-              <div className="flex items-center justify-between pt-6 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => handleNavigateQuestion(currentIdx - 1)}
-                  disabled={currentIdx === 0}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  <span>Previous</span>
-                </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t border-slate-800">
+                {/* Left controls: Previous & Clear Response */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleNavigateQuestion(currentIdx - 1)}
+                    disabled={currentIdx === 0}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Previous</span>
+                  </button>
 
-                <div className="text-xs text-slate-400">
+                  <button
+                    type="button"
+                    onClick={handleClearCurrentResponse}
+                    disabled={!currentAnswer}
+                    className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-rose-300 bg-slate-900/80 border border-slate-800 hover:border-rose-500/40 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5 transition-all"
+                    title="Clear selected answer for this question"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Clear Response</span>
+                  </button>
+                </div>
+
+                <div className="text-xs text-slate-400 text-center order-first sm:order-none font-medium">
                   Question {currentIdx + 1} of {questions.length}
                 </div>
 
-                {currentIdx < questions.length - 1 ? (
+                {/* Right controls: Mark for Review & Next, Save & Next */}
+                <div className="flex items-center gap-2 justify-end flex-wrap sm:flex-nowrap">
                   <button
                     type="button"
-                    onClick={() => handleNavigateQuestion(currentIdx + 1)}
-                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+                    onClick={handleMarkForReviewAndNext}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 shadow-sm ${
+                      reviewedQuestionIds[currentQ.id]
+                        ? "bg-purple-600/25 text-purple-200 border-purple-500/50 hover:bg-purple-600/35"
+                        : "bg-purple-950/40 text-purple-300 border-purple-500/30 hover:bg-purple-900/40"
+                    }`}
+                    title="Mark this question and proceed to next"
                   >
-                    <span>Save & Next</span>
-                    <ChevronRight className="h-4 w-4" />
+                    <Bookmark
+                      className={`h-3.5 w-3.5 ${
+                        reviewedQuestionIds[currentQ.id] ? "fill-purple-400 text-purple-400" : ""
+                      }`}
+                    />
+                    <span>
+                      {reviewedQuestionIds[currentQ.id] ? "Marked • Next" : "Mark for Review & Next"}
+                    </span>
                   </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setIsConfirmModalOpen(true)}
-                    className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2 shadow-lg shadow-emerald-600/20"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    <span>Review & Submit</span>
-                  </button>
-                )}
+
+                  {currentIdx < questions.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => handleNavigateQuestion(currentIdx + 1)}
+                      className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all"
+                    >
+                      <span>Save & Next</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsConfirmModalOpen(true)}
+                      className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all"
+                    >
+                      <Send className="h-3.5 w-3.5" />
+                      <span>Review & Submit</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
@@ -2278,22 +2370,31 @@ export default function StudentExamChamberPage() {
                     (a.selected_option_ids && a.selected_option_ids.length > 0) ||
                     (a.text_answer && a.text_answer.trim().length > 0) ||
                     (a.code_answer && a.code_answer.trim().length > 0));
+                const isMarkedReview = !!reviewedQuestionIds[q.id];
                 const isCurrent = idx === currentIdx;
+
+                let btnStyle = "bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700";
+                if (isCurrent) {
+                  btnStyle = "bg-indigo-600 text-white border-indigo-400 shadow-md ring-2 ring-indigo-500/50";
+                } else if (isAnswered && isMarkedReview) {
+                  btnStyle = "bg-purple-600/30 text-purple-200 border-purple-400 shadow-sm";
+                } else if (isMarkedReview) {
+                  btnStyle = "bg-purple-950/70 text-purple-300 border-purple-500/60";
+                } else if (isAnswered) {
+                  btnStyle = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+                }
 
                 return (
                   <button
                     key={q.id}
                     type="button"
                     onClick={() => handleNavigateQuestion(idx)}
-                    className={`h-9 rounded-xl font-bold text-xs transition-all flex items-center justify-center border ${
-                      isCurrent
-                        ? "bg-indigo-600 text-white border-indigo-400 shadow-md ring-2 ring-indigo-500/50"
-                        : isAnswered
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                        : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
-                    }`}
+                    className={`h-9 rounded-xl font-bold text-xs transition-all flex items-center justify-center border relative ${btnStyle}`}
                   >
                     {idx + 1}
+                    {isMarkedReview && (
+                      <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-purple-400 border border-slate-950 shadow-sm" />
+                    )}
                   </button>
                 );
               })}
@@ -2306,12 +2407,20 @@ export default function StudentExamChamberPage() {
                 <span>Answered</span>
               </div>
               <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-md bg-purple-950/70 border border-purple-500" />
+                <span>Marked for Review</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2.5 w-2.5 rounded-md bg-purple-600/30 border border-purple-400" />
+                <span>Answered & Marked</span>
+              </div>
+              <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-slate-900 border border-slate-800" />
                 <span>Unattempted</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 col-span-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-indigo-600" />
-                <span>Current</span>
+                <span>Current Active</span>
               </div>
             </div>
           </div>
@@ -2338,6 +2447,10 @@ export default function StudentExamChamberPage() {
               <div className="flex justify-between text-slate-400">
                 <span>Total Answered:</span>
                 <span className="font-bold text-emerald-400">{answeredCount}</span>
+              </div>
+              <div className="flex justify-between text-slate-400">
+                <span>Marked for Review:</span>
+                <span className="font-bold text-purple-400">{reviewedCount}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Unanswered:</span>
