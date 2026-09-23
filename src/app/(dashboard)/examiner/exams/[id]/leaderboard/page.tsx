@@ -22,6 +22,7 @@ import {
   Download,
 } from "lucide-react";
 import { ExamContextNav } from "@/components/ExamContextNav";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface LeaderboardEntry {
   rank: number;
@@ -54,6 +55,7 @@ interface LeaderboardData {
 export default function ExamLeaderboardPage() {
   const params = useParams();
   const examId = params?.id as string;
+  const { t } = useLanguage();
 
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -177,7 +179,7 @@ export default function ExamLeaderboardPage() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Trophy className="h-5 w-5 text-amber-400" />
-            <span>Official Ranked Standings</span>
+            <span>{t("examiner.leaderboard", "Official Ranked Standings")}</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Rankings computed by Maximum Marks Achieved, followed by Least Completion Time.
@@ -192,7 +194,7 @@ export default function ExamLeaderboardPage() {
             title="Download Leaderboard as CSV"
           >
             <Download className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Export CSV</span>
+            <span>{t("common.exportCSV", "Export CSV")}</span>
           </button>
 
           {data.pending_evaluation_count > 0 && (
@@ -313,11 +315,11 @@ export default function ExamLeaderboardPage() {
               <thead className="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase font-bold tracking-wider">
                 <tr>
                   <th className="py-4 px-6 text-center w-16">Rank</th>
-                  <th className="py-4 px-6">Candidate</th>
-                  <th className="py-4 px-6 text-center">Score</th>
-                  <th className="py-4 px-6 text-center">Percentage</th>
-                  <th className="py-4 px-6 text-center">Status</th>
-                  <th className="py-4 px-6 text-center">Total Time</th>
+                  <th className="py-4 px-6">{t("examiner.candidates", "Candidate")}</th>
+                  <th className="py-4 px-6 text-center">{t("common.score", "Score")}</th>
+                  <th className="py-4 px-6 text-center">{t("common.percentage", "Percentage")}</th>
+                  <th className="py-4 px-6 text-center">{t("common.status", "Status")}</th>
+                  <th className="py-4 px-6 text-center">{t("common.duration", "Total Time")}</th>
                   <th className="py-4 px-6 text-center">Avg Time / Q</th>
                   <th className="py-4 px-6 text-right">Submitted</th>
                 </tr>

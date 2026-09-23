@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { ExaminerApprovalModal } from "@/components/ExaminerApprovalModal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ExaminerItem {
   id: string;
@@ -111,6 +112,7 @@ interface StatsData {
 }
 
 export default function AdminDashboardPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"EXAMINERS" | "EXAMS" | "QUESTIONS">("EXAMINERS");
   const [stats, setStats] = useState<StatsData>({
     totalStudents: 0,
@@ -259,10 +261,10 @@ export default function AdminDashboardPage() {
         <div>
           <div className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-rose-400">
             <Shield className="h-4 w-4" />
-            <span>Master Administrator Control</span>
+            <span>{t("admin.dashboardTitle", "Master Administrator Control")}</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2">
-            System Administration
+            {t("nav.adminPortal", "System Administration")}
           </h1>
           <p className="text-base text-slate-400 mt-2 max-w-3xl leading-relaxed">
             Full oversight of academic institutions, verified examiners, question banks, candidate leaderboards, and cohort proctoring analytics.
@@ -321,7 +323,7 @@ export default function AdminDashboardPage() {
           color="amber"
         />
         <StatCard
-          title="Active Examiners"
+          title={t("examiner.examinerPortal", "Active Examiners")}
           value={stats.activeExaminers}
           subtitle="Verified instructors & proctors"
           icon={UserCheck}
@@ -335,7 +337,7 @@ export default function AdminDashboardPage() {
           color="emerald"
         />
         <StatCard
-          title="Global Assessments"
+          title={t("examiner.examinations", "Global Assessments")}
           value={exams.length}
           subtitle="Examinations across system"
           icon={FileSpreadsheet}
@@ -357,7 +359,7 @@ export default function AdminDashboardPage() {
           }`}
         >
           <UserCheck className="h-4 w-4" />
-          <span>Examiner Approvals ({stats.pendingApprovals} Pending)</span>
+          <span>{t("admin.userManagement", "Examiner Approvals")} ({stats.pendingApprovals} Pending)</span>
         </button>
 
         <button
@@ -372,7 +374,7 @@ export default function AdminDashboardPage() {
           }`}
         >
           <FileSpreadsheet className="h-4 w-4" />
-          <span>Global Examinations Oversight ({exams.length})</span>
+          <span>{t("examiner.manageAssessments", "Global Examinations Oversight")} ({exams.length})</span>
         </button>
 
         <button
@@ -387,7 +389,7 @@ export default function AdminDashboardPage() {
           }`}
         >
           <Layers className="h-4 w-4" />
-          <span>Master Question Pool ({totalQuestionsCount || "All"})</span>
+          <span>{t("admin.questionPool", "Master Question Pool")} ({totalQuestionsCount || "All"})</span>
         </button>
       </div>
 

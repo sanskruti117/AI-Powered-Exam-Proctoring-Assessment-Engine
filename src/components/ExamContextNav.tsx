@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ArrowLeft,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ExamContextNavProps {
   examId: string;
@@ -30,38 +31,45 @@ export function ExamContextNav({
   totalQuestions = 0,
   totalMarks = 0,
 }: ExamContextNavProps) {
+  const { t } = useLanguage();
   const pathname = usePathname();
 
   const tabs = [
     {
-      label: "Overview",
+      key: "examiner.overview",
+      label: t("examiner.overview", "Overview"),
       href: `/examiner/exams/${examId}`,
       icon: LayoutDashboard,
       exact: true,
     },
     {
-      label: "Question Paper & Pools",
+      key: "examiner.questionPaperPools",
+      label: t("examiner.questionPaperPools", "Question Paper & Pools"),
       href: `/examiner/exams/${examId}/manage`,
       icon: Layers,
       count: totalQuestions,
     },
     {
-      label: "Candidates",
+      key: "examiner.candidates",
+      label: t("examiner.candidates", "Candidates"),
       href: `/examiner/exams/${examId}/candidates`,
       icon: Users,
     },
     {
-      label: "Grading Studio",
+      key: "examiner.gradingStudio",
+      label: t("examiner.gradingStudio", "Grading Studio"),
       href: `/examiner/exams/${examId}/evaluate`,
       icon: PenTool,
     },
     {
-      label: "Leaderboard",
+      key: "examiner.leaderboard",
+      label: t("examiner.leaderboard", "Leaderboard"),
       href: `/examiner/exams/${examId}/leaderboard`,
       icon: Trophy,
     },
     {
-      label: "Analytics",
+      key: "examiner.analytics",
+      label: t("examiner.analytics", "Analytics"),
       href: `/examiner/exams/${examId}/analytics`,
       icon: BarChart3,
     },
@@ -72,6 +80,12 @@ export function ExamContextNav({
       return pathname === href;
     }
     return pathname.startsWith(href);
+  };
+
+  const getStatusLabel = (s: string) => {
+    if (s === "PUBLISHED") return t("examiner.published", "PUBLISHED");
+    if (s === "DRAFT") return t("examiner.draft", "DRAFT");
+    return t("examiner.closed", "CLOSED");
   };
 
   return (
@@ -85,7 +99,7 @@ export function ExamContextNav({
               className="hover:text-white flex items-center gap-1 transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Examinations</span>
+              <span>{t("examiner.examinations", "Examinations")}</span>
             </Link>
             <ChevronRight className="h-3 w-3 text-slate-600" />
             <span className="text-white font-bold truncate max-w-md">{examTitle}</span>
@@ -101,17 +115,17 @@ export function ExamContextNav({
                   : "bg-rose-500/15 text-rose-300 border-rose-500/30"
               }`}
             >
-              {status}
+              {getStatusLabel(status)}
             </span>
           </h1>
         </div>
 
         <div className="flex items-center gap-2 text-xs text-slate-400 self-start sm:self-auto">
           <div className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 font-bold text-slate-300">
-            {totalMarks} Marks
+            {totalMarks} {t("examiner.marks", "Marks")}
           </div>
           <div className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 font-bold text-indigo-400">
-            {totalQuestions} Questions in Pool
+            {totalQuestions} {t("examiner.questionsInPool", "Questions in Pool")}
           </div>
         </div>
       </div>
@@ -124,7 +138,7 @@ export function ExamContextNav({
 
           return (
             <Link
-              key={tab.label}
+              key={tab.key}
               href={tab.href}
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                 active
@@ -150,3 +164,4 @@ export function ExamContextNav({
     </div>
   );
 }
+

@@ -21,6 +21,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { ExamContextNav } from "@/components/ExamContextNav";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface DifficultyBreakdown {
   difficulty: string;
@@ -71,6 +72,7 @@ interface AnalyticsData {
 }
 
 export default function ExamAnalyticsPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const examId = params?.id as string;
 
@@ -113,7 +115,7 @@ export default function ExamAnalyticsPage() {
   });
 
   if (loading && !data) {
-    return <div className="p-12 text-center text-slate-400">Loading exam analytics...</div>;
+    return <div className="p-12 text-center text-slate-400">{t("common.loading", "Loading exam analytics...")}</div>;
   }
 
   if (!data) {
@@ -121,7 +123,7 @@ export default function ExamAnalyticsPage() {
       <div className="p-12 text-center space-y-4">
         <div className="text-rose-400 font-bold">Analytics record not found or access denied.</div>
         <Link href="/examiner/exams" className="text-xs text-indigo-400 underline">
-          Return to Examinations
+          {t("common.backToDashboard", "Return to Examinations")}
         </Link>
       </div>
     );
@@ -142,10 +144,10 @@ export default function ExamAnalyticsPage() {
         <div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-emerald-400" />
-            <span>Cohort Performance Analytics</span>
+            <span>{t("examiner.cohortAnalytics", "Cohort Performance Analytics")}</span>
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Statistical evaluation of candidate cohort mastery, section distributions, and item diagnostics.
+            {t("examiner.cohortSubtitle", "Statistical evaluation of candidate cohort mastery, section distributions, and item diagnostics.")}
           </p>
         </div>
 
@@ -163,7 +165,7 @@ export default function ExamAnalyticsPage() {
         {/* Pass Rate */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Pass Rate</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.passRate", "Pass Rate")}</span>
             <TrendingUp className="h-4 w-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-extrabold text-emerald-400">
@@ -177,11 +179,11 @@ export default function ExamAnalyticsPage() {
         {/* Average Score */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Average Score</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.averageScore", "Average Score")}</span>
             <Award className="h-4 w-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-extrabold text-white">
-            {data.average_score} <span className="text-xs font-normal text-slate-400">marks</span>
+            {data.average_score} <span className="text-xs font-normal text-slate-400">{t("examiner.marks", "marks")}</span>
           </div>
           <div className="text-xs text-slate-500">
             Median: {data.median_score} | High: {data.highest_score} | Low: {data.lowest_score}
@@ -191,7 +193,7 @@ export default function ExamAnalyticsPage() {
         {/* Avg Completion Time */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Avg Completion Time</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.avgCompletionTime", "Avg Completion Time")}</span>
             <Clock className="h-4 w-4 text-amber-400" />
           </div>
           <div className="text-2xl font-extrabold text-amber-400">
@@ -203,7 +205,7 @@ export default function ExamAnalyticsPage() {
         {/* Avg Time per Question */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Avg Time / Question</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.avgTimePerQuestion", "Avg Time / Question")}</span>
             <Sparkles className="h-4 w-4 text-violet-400" />
           </div>
           <div className="text-2xl font-extrabold text-violet-400">
@@ -218,8 +220,8 @@ export default function ExamAnalyticsPage() {
         {/* Difficulty Breakdown */}
         <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">Difficulty Pacing & Accuracy</h3>
-            <span className="text-xs text-slate-400">Cohort Accuracy %</span>
+            <h3 className="text-base font-bold text-white">{t("examiner.difficultyPacing", "Difficulty Pacing & Accuracy")}</h3>
+            <span className="text-xs text-slate-400">{t("examiner.cohortAccuracy", "Cohort Accuracy %")}</span>
           </div>
 
           <div className="space-y-3">
@@ -235,9 +237,9 @@ export default function ExamAnalyticsPage() {
                         : "text-rose-400"
                     }
                   >
-                    {item.difficulty} ({item.total_questions} questions)
+                    {item.difficulty} ({item.total_questions} {t("student.totalQuestions", "questions")})
                   </span>
-                  <span className="text-white font-extrabold">{item.average_accuracy}% Accuracy</span>
+                  <span className="text-white font-extrabold">{item.average_accuracy}% {t("examiner.accuracy", "Accuracy")}</span>
                 </div>
 
                 <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
@@ -260,8 +262,8 @@ export default function ExamAnalyticsPage() {
         {/* Section Mastery Breakdown */}
         <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">Subject Section Mastery</h3>
-            <span className="text-xs text-slate-400">Target Marks vs Cohort Avg</span>
+            <h3 className="text-base font-bold text-white">{t("examiner.subjectSectionMastery", "Subject Section Mastery")}</h3>
+            <span className="text-xs text-slate-400">{t("examiner.targetVsCohort", "Target Marks vs Cohort Avg")}</span>
           </div>
 
           <div className="space-y-3">
@@ -270,7 +272,7 @@ export default function ExamAnalyticsPage() {
                 <div className="flex items-center justify-between text-xs font-bold text-white">
                   <span>{sec.section_title}</span>
                   <span className="text-indigo-400">
-                    {sec.average_score} / {sec.target_marks} Marks Avg
+                    {sec.average_score} / {sec.target_marks} {t("examiner.marks", "Marks")} Avg
                   </span>
                 </div>
 
@@ -304,7 +306,7 @@ export default function ExamAnalyticsPage() {
           <div className="flex items-center gap-2">
             <input
               type="text"
-              placeholder="Search questions..."
+              placeholder={t("common.search", "Search questions...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
@@ -386,3 +388,4 @@ export default function ExamAnalyticsPage() {
     </div>
   );
 }
+

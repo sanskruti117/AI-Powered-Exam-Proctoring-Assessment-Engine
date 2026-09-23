@@ -24,6 +24,7 @@ import {
   MonitorOff,
 } from "lucide-react";
 import { ExamContextNav } from "@/components/ExamContextNav";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ProctorIncident {
   id: string;
@@ -56,6 +57,7 @@ interface CandidateAttempt {
 export default function ExamCandidatesPage() {
   const params = useParams();
   const examId = params?.id as string;
+  const { t } = useLanguage();
 
   const [exam, setExam] = useState<any>(null);
   const [candidates, setCandidates] = useState<CandidateAttempt[]>([]);
@@ -228,7 +230,7 @@ export default function ExamCandidatesPage() {
           <div className="flex items-center gap-2.5 flex-wrap">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
               <Users className="h-5 w-5 text-indigo-400" />
-              <span>Candidate Attempts & Submissions ({candidates.length})</span>
+              <span>{t("examiner.candidateRoster", "Candidate Attempts & Submissions")} ({candidates.length})</span>
             </h2>
             {exam && (
               <span
@@ -238,7 +240,7 @@ export default function ExamCandidatesPage() {
                     : "bg-amber-500/15 text-amber-300 border-amber-500/30"
                 }`}
               >
-                {exam.results_published ? "● Scores Published to Students" : "○ Scores Withheld (Private to Examiner)"}
+                {exam.results_published ? `● ${t("examiner.scoresPublished", "Scores Published to Students")}` : `○ ${t("examiner.scoresWithheld", "Scores Withheld (Private to Examiner)")}`}
               </span>
             )}
           </div>
@@ -256,7 +258,7 @@ export default function ExamCandidatesPage() {
             title="Download Candidate Roster as CSV"
           >
             <Download className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Export CSV</span>
+            <span>{t("common.exportCSV", "Export CSV")}</span>
           </button>
 
           {exam && (
@@ -272,10 +274,10 @@ export default function ExamCandidatesPage() {
               <Award className="h-3.5 w-3.5" />
               <span>
                 {publishingResults
-                  ? "Updating..."
+                  ? t("common.loading", "Updating...")
                   : exam.results_published
-                  ? "Unpublish Scores"
-                  : "Publish Scores to Students"}
+                  ? t("examiner.unpublishScores", "Unpublish Scores")
+                  : t("examiner.publishScores", "Publish Scores to Students")}
               </span>
             </button>
           )}
@@ -284,7 +286,7 @@ export default function ExamCandidatesPage() {
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search candidate..."
+              placeholder={t("common.search", "Search candidate...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
@@ -299,19 +301,19 @@ export default function ExamCandidatesPage() {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-900/90 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
               <tr>
-                <th className="p-4">Candidate</th>
-                <th className="p-4">Live Status</th>
+                <th className="p-4">{t("examiner.candidates", "Candidate")}</th>
+                <th className="p-4">{t("common.status", "Live Status")}</th>
                 <th className="p-4">Started / Submitted</th>
-                <th className="p-4 text-center">Proctoring Telemetry</th>
-                <th className="p-4 text-right">Score</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 text-center">{t("examiner.proctorTelemetry", "Proctoring Telemetry")}</th>
+                <th className="p-4 text-right">{t("common.score", "Score")}</th>
+                <th className="p-4 text-right">{t("common.actions", "Actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/80">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-slate-500">
-                    Loading candidates...
+                    {t("common.loading", "Loading candidates...")}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
