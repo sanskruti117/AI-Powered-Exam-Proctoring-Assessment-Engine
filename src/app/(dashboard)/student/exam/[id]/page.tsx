@@ -1052,44 +1052,6 @@ export default function StudentExamChamberPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
-        <div className="h-12 w-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center animate-pulse">
-          <Layers className="h-6 w-6" />
-        </div>
-        <div className="text-sm font-bold text-white">Initializing Secure Proctored Chamber...</div>
-        <div className="text-xs text-slate-400">Loading assessments, code templates and randomizing palette</div>
-      </div>
-    );
-  }
-
-  if (errorMessage && !questions.length) {
-    return (
-      <div className="p-12 text-center space-y-5 max-w-lg mx-auto glass-card rounded-3xl border border-slate-800 my-12">
-        <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto" />
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold text-white">Exam Chamber Notice</h2>
-          <p className="text-sm text-slate-300">{errorMessage}</p>
-        </div>
-        <div className="flex items-center justify-center gap-3 pt-2">
-          <Link
-            href={`/student/exam/${examId}/result`}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all"
-          >
-            <span>View Result Report</span>
-          </Link>
-          <Link
-            href="/student"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-all"
-          >
-            <span>Return to Dashboard</span>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   const currentQ = questions[currentIdx];
   const currentAnswer = currentQ ? answers[currentQ.id] : undefined;
 
@@ -1172,6 +1134,44 @@ export default function StudentExamChamberPage() {
     if (a.code_answer && a.code_answer.trim().length > 0) return true;
     return false;
   }).length;
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <div className="h-12 w-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center animate-pulse">
+          <Layers className="h-6 w-6" />
+        </div>
+        <div className="text-sm font-bold text-white">Initializing Secure Proctored Chamber...</div>
+        <div className="text-xs text-slate-400">Loading assessments, code templates and randomizing palette</div>
+      </div>
+    );
+  }
+
+  if (errorMessage && !questions.length) {
+    return (
+      <div className="p-12 text-center space-y-5 max-w-lg mx-auto glass-card rounded-3xl border border-slate-800 my-12">
+        <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto" />
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-white">Exam Chamber Notice</h2>
+          <p className="text-sm text-slate-300">{errorMessage}</p>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link
+            href={`/student/exam/${examId}/result`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all"
+          >
+            <span>View Result Report</span>
+          </Link>
+          <Link
+            href="/student"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-all"
+          >
+            <span>Return to Dashboard</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-20 relative">
