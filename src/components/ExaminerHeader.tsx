@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface ExaminerHeaderProps {
   user?: {
@@ -17,6 +19,7 @@ interface ExaminerHeaderProps {
 export function ExaminerHeader({ user }: ExaminerHeaderProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
+  const { t } = useLanguage();
   const name = user?.fullName || "Examiner";
   const isAdmin = user?.role === "ADMIN";
 
@@ -40,17 +43,20 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
           </div>
           <div className="leading-tight">
             <p className="text-lg font-extrabold tracking-tight text-white">Proctor <span className="text-indigo-400">AI</span></p>
-            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">Assessment platform</p>
+            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">{t("common.platformTitle", "Assessment platform")}</p>
           </div>
         </Link>
 
         <div className="flex items-center gap-3">
+          {/* Language Selector */}
+          <LanguageSelector variant="compact" />
+
           {isAdmin && (
             <Link
               href="/admin"
               className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-rose-500/15 px-3.5 py-2 text-xs font-bold text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition-colors"
             >
-              Master Admin Portal
+              {t("nav.adminPortal", "Master Admin Portal")}
             </Link>
           )}
 
@@ -70,10 +76,11 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
           </div>
           <button onClick={handleLogout} disabled={loggingOut} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-800 px-3.5 text-xs font-bold text-slate-200 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-60 sm:px-4">
             <LogOut className="h-4 w-4" />
-            <span>{loggingOut ? "Signing out…" : "Sign out"}</span>
+            <span>{loggingOut ? t("common.signingOut", "Signing out…") : t("common.signOut", "Sign out")}</span>
           </button>
         </div>
       </div>
     </header>
   );
 }
+

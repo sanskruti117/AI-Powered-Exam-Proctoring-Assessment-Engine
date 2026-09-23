@@ -41,6 +41,8 @@ import {
   Video,
   Sliders,
 } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface OptionChoice {
   id: string;
@@ -147,6 +149,7 @@ public class Main {
 };
 
 export default function StudentExamChamberPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const examId = params?.id as string;
@@ -1100,39 +1103,42 @@ export default function StudentExamChamberPage() {
                   <ShieldCheck className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">System Readiness & Exam Entrance</h2>
+                  <h2 className="text-lg font-bold text-white">{t("student.systemReadinessTitle", "System Readiness & Exam Entrance")}</h2>
                   <p className="text-xs text-slate-400">
-                    Verify hardware, AI telemetry, and fullscreen readiness before commencing.
+                    {t("student.systemReadinessSubtitle", "Verify hardware, AI telemetry, and fullscreen readiness before commencing.")}
                   </p>
                 </div>
               </div>
 
-              {/* Sandbox vs Protocols Tab Switcher */}
-              <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 self-start sm:self-auto">
-                <button
-                  type="button"
-                  onClick={() => setEntranceTab("SANDBOX")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    entranceTab === "SANDBOX"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Activity className="h-3.5 w-3.5" />
-                  <span>Diagnostic Sandbox</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEntranceTab("PROTOCOLS")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    entranceTab === "PROTOCOLS"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  <Sliders className="h-3.5 w-3.5" />
-                  <span>Rules & Conduct</span>
-                </button>
+              {/* Language Selector + Sandbox vs Protocols Tab Switcher */}
+              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <LanguageSelector variant="compact" />
+                <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1">
+                  <button
+                    type="button"
+                    onClick={() => setEntranceTab("SANDBOX")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      entranceTab === "SANDBOX"
+                        ? "bg-indigo-600 text-white shadow-md"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <Activity className="h-3.5 w-3.5" />
+                    <span>{t("student.diagnosticSandbox", "Diagnostic Sandbox")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEntranceTab("PROTOCOLS")}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      entranceTab === "PROTOCOLS"
+                        ? "bg-indigo-600 text-white shadow-md"
+                        : "text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    <Sliders className="h-3.5 w-3.5" />
+                    <span>{t("student.rulesConduct", "Rules & Conduct")}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1496,7 +1502,7 @@ export default function StudentExamChamberPage() {
           <div>
             <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-emerald-400">Proctored Session Active</span>
+              <span className="text-emerald-400">{t("student.proctoredSessionActive", "Proctored Session Active")}</span>
               {/* Strike Warning Counter Pill */}
               <span
                 className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
@@ -1505,37 +1511,39 @@ export default function StudentExamChamberPage() {
                     : "bg-rose-500/20 border-rose-500/40 text-rose-300 animate-pulse"
                 }`}
               >
-                {strikesCount} / 3 Strikes
+                {strikesCount} / 3 {t("student.strikes", "Strikes")}
               </span>
             </div>
             <div className="text-sm font-bold text-white">
-              Progress: {answeredCount} / {questions.length} Questions Answered
+              {t("student.progress", "Progress")}: {answeredCount} / {questions.length} {t("student.questionsAnswered", "Questions Answered")}
             </div>
           </div>
         </div>
 
-        {/* Countdown Timer & Submit CTA */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        {/* Countdown Timer, Language Selector & Submit CTA */}
+        <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
+          <LanguageSelector variant="compact" />
+
           <div
-            className={`px-4 sm:px-5 py-2.5 rounded-2xl border flex items-center gap-2.5 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-2xl border flex items-center gap-2 ${
               (remainingSeconds || 0) <= 300
                 ? "bg-rose-500/15 border-rose-500/40 text-rose-300 animate-pulse"
                 : "bg-slate-900/90 border-slate-800 text-white"
             }`}
           >
-            <Clock className="h-4 w-4 text-indigo-400" />
-            <div className="text-xs text-slate-400 uppercase font-bold hidden sm:block">Time Remaining:</div>
-            <div className="text-base sm:text-lg font-black tracking-widest font-mono">
+            <Clock className="h-4 w-4 text-indigo-400 shrink-0" />
+            <div className="text-xs text-slate-400 uppercase font-bold hidden md:block">{t("student.timeRemaining", "Time")}:</div>
+            <div className="text-sm sm:text-base font-black tracking-widest font-mono">
               {formatTimer(remainingSeconds)}
             </div>
           </div>
 
           <button
             onClick={() => setIsConfirmModalOpen(true)}
-            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
+            className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
           >
             <Send className="h-3.5 w-3.5" />
-            <span>Finish & Submit</span>
+            <span>{t("student.finishSubmit", "Finish & Submit")}</span>
           </button>
         </div>
       </div>

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Shield, User, LogOut, Menu, X } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface NavbarProps {
   user?: {
@@ -20,6 +22,7 @@ export function Navbar({ user }: NavbarProps) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const { t } = useLanguage();
 
   // Strictly hide Navbar during active student exam taking chamber
   if (pathname?.startsWith("/student/exam/") && !pathname?.includes("/result")) {
@@ -79,14 +82,17 @@ export function Navbar({ user }: NavbarProps) {
                   Proctor<span className="text-indigo-400">AI</span>
                 </span>
                 <span className="hidden sm:block text-xs text-slate-400 tracking-wider uppercase font-semibold">
-                  Assessment Platform
+                  {t("common.platformTitle", "Assessment Platform")}
                 </span>
               </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-5">
+          <div className="hidden md:flex items-center gap-4">
+            {/* Multilingual Selector */}
+            <LanguageSelector />
+
             {user ? (
               <>
                 <div className="flex items-center gap-3.5 px-4 py-2 rounded-2xl bg-slate-900/90 border border-slate-800">
@@ -110,7 +116,7 @@ export function Navbar({ user }: NavbarProps) {
                     href="/admin"
                     className="text-sm font-semibold text-slate-300 hover:text-white px-3.5 py-2.5 rounded-xl hover:bg-slate-900 transition-colors"
                   >
-                    Admin Dashboard
+                    {t("nav.adminPortal", "Admin Dashboard")}
                   </Link>
                 )}
                 {user.role === "EXAMINER" && pathname !== "/examiner" && (
@@ -118,7 +124,7 @@ export function Navbar({ user }: NavbarProps) {
                     href="/examiner"
                     className="text-sm font-semibold text-slate-300 hover:text-white px-3.5 py-2.5 rounded-xl hover:bg-slate-900 transition-colors"
                   >
-                    Examiner Portal
+                    {t("nav.examinerPortal", "Examiner Portal")}
                   </Link>
                 )}
                 {user.role === "STUDENT" && pathname !== "/student" && (
@@ -126,7 +132,7 @@ export function Navbar({ user }: NavbarProps) {
                     href="/student"
                     className="text-sm font-semibold text-slate-300 hover:text-white px-3.5 py-2.5 rounded-xl hover:bg-slate-900 transition-colors"
                   >
-                    Student Portal
+                    {t("nav.studentPortal", "Student Portal")}
                   </Link>
                 )}
 
@@ -136,7 +142,7 @@ export function Navbar({ user }: NavbarProps) {
                   className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all border border-slate-800 hover:border-rose-500/20"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>{loggingOut ? "Signing out..." : "Sign Out"}</span>
+                  <span>{loggingOut ? t("common.signingOut", "Signing out...") : t("common.signOut", "Sign Out")}</span>
                 </button>
               </>
             ) : (
@@ -145,20 +151,20 @@ export function Navbar({ user }: NavbarProps) {
                   href="/login"
                   className="text-sm font-semibold text-slate-300 hover:text-white px-4 py-2.5 rounded-xl hover:bg-slate-900 transition-colors"
                 >
-                  Sign In
+                  {t("common.signIn", "Sign In")}
                 </Link>
                 <div className="flex items-center gap-3">
                   <Link
                     href="/register/student"
                     className="text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/25 transition-all hover:scale-[1.02]"
                   >
-                    Student Registration
+                    {t("nav.studentRegistration", "Student Registration")}
                   </Link>
                   <Link
                     href="/register/examiner"
                     className="text-sm font-semibold text-indigo-300 bg-slate-900 hover:bg-slate-800 border border-slate-800 px-5 py-2.5 rounded-xl transition-colors"
                   >
-                    Apply as Examiner
+                    {t("nav.applyExaminer", "Apply as Examiner")}
                   </Link>
                 </div>
               </div>
@@ -166,7 +172,8 @@ export function Navbar({ user }: NavbarProps) {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageSelector variant="compact" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 focus:outline-none"
@@ -196,7 +203,7 @@ export function Navbar({ user }: NavbarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-900"
                   >
-                    Admin Dashboard
+                    {t("nav.adminPortal", "Admin Dashboard")}
                   </Link>
                 )}
                 {user.role === "EXAMINER" && (
@@ -205,7 +212,7 @@ export function Navbar({ user }: NavbarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-900"
                   >
-                    Examiner Portal
+                    {t("nav.examinerPortal", "Examiner Portal")}
                   </Link>
                 )}
                 {user.role === "STUDENT" && (
@@ -214,7 +221,7 @@ export function Navbar({ user }: NavbarProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="px-4 py-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-slate-900"
                   >
-                    Student Portal
+                    {t("nav.studentPortal", "Student Portal")}
                   </Link>
                 )}
                 <button
@@ -222,7 +229,7 @@ export function Navbar({ user }: NavbarProps) {
                   className="w-full text-left flex items-center gap-2.5 px-4 py-3 rounded-xl text-sm font-semibold text-rose-400 hover:bg-rose-500/10"
                 >
                   <LogOut className="h-4 w-4" />
-                  Sign Out
+                  {t("common.signOut", "Sign Out")}
                 </button>
               </div>
             </div>
@@ -233,21 +240,21 @@ export function Navbar({ user }: NavbarProps) {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-3 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900 border border-slate-800"
               >
-                Sign In
+                {t("common.signIn", "Sign In")}
               </Link>
               <Link
                 href="/register/student"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-3 rounded-xl text-sm font-semibold text-white bg-indigo-600"
               >
-                Student Registration
+                {t("nav.studentRegistration", "Student Registration")}
               </Link>
               <Link
                 href="/register/examiner"
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-3 rounded-xl text-sm font-semibold text-indigo-300 bg-slate-900 border border-slate-800"
               >
-                Apply as Examiner
+                {t("nav.applyExaminer", "Apply as Examiner")}
               </Link>
             </div>
           )}
@@ -256,3 +263,4 @@ export function Navbar({ user }: NavbarProps) {
     </header>
   );
 }
+
