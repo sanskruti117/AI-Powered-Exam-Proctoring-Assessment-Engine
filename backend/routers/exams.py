@@ -20,6 +20,7 @@ from backend.schemas import (
     ExamLeaderboardResponse,
     ExamAnalyticsResponse,
     EvaluateAttemptRequest,
+    PublishResultsRequest,
     CodeRunRequest,
     CodeRunResponse,
     CodeSubmitTestRequest,
@@ -32,6 +33,7 @@ from backend.crud import (
     update_exam,
     delete_exam,
     publish_exam,
+    publish_exam_results,
     close_exam,
     create_exam_section,
     get_exam_sections,
@@ -49,6 +51,7 @@ from backend.crud import (
     run_code_sample_test,
     submit_code_evaluation,
 )
+
 from backend.routers.auth import get_current_user_payload
 
 router = APIRouter(prefix="/api/exams", tags=["exams"])
@@ -124,7 +127,7 @@ def list_exams(
     elif role == "ADMIN":
         exams = get_exams(db, examiner_id=None, status=status, search=search)
     else:  # STUDENT
-        exams = get_exams(db, examiner_id=None, status=status, search=search, for_student=True)
+        exams = get_exams(db, examiner_id=None, status=status, search=search, for_student=True, student_id=user_id)
 
     return {"success": True, "total": len(exams), "exams": exams}
 
@@ -171,7 +174,8 @@ def get_single_exam(
     user_id = user.get("userId")
 
     examiner_scope = user_id if role == "EXAMINER" else None
-    exam = get_exam_by_id(db, exam_id=id, examiner_id=examiner_scope)
+    student_id = user_id if role == "STUDENT" else None
+    exam = get_exam_by_id(db, exam_id=id, examiner_id=examiner_scope, student_id=student_id)
 
     if not exam:
         raise HTTPException(
@@ -250,7 +254,42 @@ def publish_single_exam(
     return {"success": True, "message": msg}
 
 
+@router.post("/{id}/publish-results")
+def publish_single_exam_results(
+    id: str,
+    request: Request,
+    body: Optional[PublishResultsRequest] = None,
+    db: Session = Depends(get_db),
+):
+    user = require_examiner_or_admin(request)
+    role = user.get("role")
+    user_id = user.get("userId")
+
+    examiner_scope = user_id if role == "EXAMINER" else None
+    publish_flag = body.publish if body is not None else True
+
+    success, msg, exam = publish_exam_results(
+        db,
+        exam_id=id,
+        examiner_id=examiner_scope,
+        publish=publish_flag,
+    )
+
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=msg,
+        )
+
+    return {
+        "success": True,
+        "message": msg,
+        "results_published": exam.results_published if exam else False,
+    }
+
+
 @router.post("/{id}/close")
+
 def close_single_exam(
     id: str,
     request: Request,
@@ -495,8 +534,15 @@ def get_exam_result(
     role = user.get("role")
     req_user_id = user.get("userId")
 
+    is_examiner = role in ("EXAMINER", "ADMIN")
     target_student_id = req_user_id if role == "STUDENT" else (student_id or req_user_id)
-    result = get_student_attempt_result(db, exam_id=id, student_id=target_student_id, attempt_id=attempt_id)
+    result = get_student_attempt_result(
+        db,
+        exam_id=id,
+        student_id=target_student_id,
+        attempt_id=attempt_id,
+        is_examiner=is_examiner,
+    )
 
     if not result:
         raise HTTPException(status_code=404, detail="Exam result record not found.")

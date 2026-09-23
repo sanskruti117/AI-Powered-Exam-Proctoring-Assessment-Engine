@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 
-    if (isExaminerRoute && user.role !== "EXAMINER") {
+    if (isExaminerRoute && user.role !== "EXAMINER" && user.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/unauthorized", request.url));
     }
 

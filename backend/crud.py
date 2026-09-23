@@ -208,9 +208,12 @@ def create_exam(
         shuffle_questions=data.shuffle_questions,
         shuffle_options=data.shuffle_options,
         status="DRAFT",
+        results_published=False,
     )
     db.add(exam)
     db.flush()
+
+
 
     # Add initial sections if provided, or create default General Section
     if data.sections and len(data.sections) > 0:
@@ -245,6 +248,7 @@ def get_exams(
     status: Optional[str] = None,
     search: Optional[str] = None,
     for_student: bool = False,
+    student_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     query = (
         db.query(Exam)
@@ -292,6 +296,69 @@ def get_exams(
         is_upc = (exam.status == "PUBLISHED" and now_utc < st)
         is_end = (now_utc > et or exam.status == "CLOSED")
 
+        # Student-specific attempt details
+        student_attempts_count = 0
+        student_can_attempt = None
+        student_has_submitted = None
+        student_has_in_progress = None
+        student_latest_status = None
+        student_latest_score = None
+
+        if student_id:
+            student_attempts = [a for a in exam.attempts if a.student_id == student_id]
+            
+            # Deduplicate by attempt_number in case multiple records exist
+            status_priority = {"EVALUATED": 5, "SUBMITTED": 4, "PENDING_EVALUATION": 3, "IN_PROGRESS": 2, "EXPIRED": 1}
+            attempts_by_number = {}
+            for a in student_attempts:
+                num = a.attempt_number or 1
+                if num not in attempts_by_number:
+                    attempts_by_number[num] = a
+                else:
+                    curr = attempts_by_number[num]
+                    if status_priority.get(a.status, 0) > status_priority.get(curr.status, 0):
+                        attempts_by_number[num] = a
+
+            deduped_attempts = list(attempts_by_number.values())
+            student_completed = [a for a in deduped_attempts if a.status in ("SUBMITTED", "PENDING_EVALUATION", "EVALUATED", "EXPIRED")]
+            student_in_prog = [a for a in deduped_attempts if a.status == "IN_PROGRESS"]
+
+            # If student has already completed max allowed attempts, any remaining IN_PROGRESS attempt must be expired
+            if len(student_completed) >= exam.max_attempts:
+                for a in student_in_prog:
+                    a.status = "EXPIRED"
+                if student_in_prog:
+                    db.commit()
+                student_in_prog = []
+                active_in_prog = False
+            else:
+                active_in_prog = False
+                for a in student_in_prog:
+                    dead = a.deadline_at if a.deadline_at.tzinfo else a.deadline_at.replace(tzinfo=timezone.utc)
+                    if now_utc <= dead + timedelta(seconds=30):
+                        active_in_prog = True
+                    else:
+                        a.status = "EXPIRED"
+                if not active_in_prog and student_in_prog:
+                    db.commit()
+
+            student_attempts_count = min(len(student_completed), exam.max_attempts)
+            student_has_submitted = len(student_completed) > 0
+            student_has_in_progress = active_in_prog
+            student_can_attempt = is_act and (active_in_prog or student_attempts_count < exam.max_attempts)
+
+            if deduped_attempts:
+                is_scores_published = getattr(exam, "results_published", False)
+                evaluated_att = [a for a in deduped_attempts if a.status == "EVALUATED"]
+                if evaluated_att and is_scores_published:
+                    sorted_eval = sorted(evaluated_att, key=lambda a: a.attempt_number or 0, reverse=True)
+                    student_latest_status = sorted_eval[0].status
+                    student_latest_score = sorted_eval[0].score
+                else:
+                    sorted_att = sorted(deduped_attempts, key=lambda a: a.attempt_number or 0, reverse=True)
+                    student_latest_status = "SUBMITTED" if sorted_att[0].status in ("EVALUATED", "SUBMITTED", "PENDING_EVALUATION") else sorted_att[0].status
+                    student_latest_score = None
+
         # Format sections
         sec_responses = []
         for s in exam.sections:
@@ -324,6 +391,7 @@ def get_exams(
             "shuffle_questions": exam.shuffle_questions,
             "shuffle_options": exam.shuffle_options,
             "status": exam.status,
+            "results_published": getattr(exam, "results_published", False),
             "created_at": exam.created_at,
             "updated_at": exam.updated_at,
             "examiner": exam.examiner,
@@ -335,7 +403,14 @@ def get_exams(
             "is_active": is_act,
             "is_upcoming": is_upc,
             "is_ended": is_end,
+            "student_attempts_count": student_attempts_count,
+            "student_can_attempt": student_can_attempt,
+            "student_has_submitted": student_has_submitted,
+            "student_has_in_progress": student_has_in_progress,
+            "student_latest_status": student_latest_status,
+            "student_latest_score": student_latest_score,
         })
+
 
     return results
 
@@ -344,6 +419,7 @@ def get_exam_by_id(
     db: Session,
     exam_id: str,
     examiner_id: Optional[str] = None,
+    student_id: Optional[str] = None,
 ) -> Optional[Dict[str, Any]]:
     query = (
         db.query(Exam)
@@ -376,6 +452,55 @@ def get_exam_by_id(
     is_upc = (exam.status == "PUBLISHED" and now_utc < st)
     is_end = (now_utc > et or exam.status == "CLOSED")
 
+    # Student-specific attempt details
+    student_attempts_count = 0
+    student_can_attempt = None
+    student_has_submitted = None
+    student_has_in_progress = None
+    student_latest_status = None
+    student_latest_score = None
+
+    if student_id:
+        student_attempts = [a for a in exam.attempts if a.student_id == student_id]
+        
+        status_priority = {"EVALUATED": 5, "SUBMITTED": 4, "PENDING_EVALUATION": 3, "IN_PROGRESS": 2, "EXPIRED": 1}
+        attempts_by_number = {}
+        for a in student_attempts:
+            num = a.attempt_number or 1
+            if num not in attempts_by_number:
+                attempts_by_number[num] = a
+            else:
+                curr = attempts_by_number[num]
+                if status_priority.get(a.status, 0) > status_priority.get(curr.status, 0):
+                    attempts_by_number[num] = a
+
+        deduped_attempts = list(attempts_by_number.values())
+        student_completed = [a for a in deduped_attempts if a.status in ("SUBMITTED", "PENDING_EVALUATION", "EVALUATED", "EXPIRED")]
+        student_in_prog = [a for a in deduped_attempts if a.status == "IN_PROGRESS"]
+
+        active_in_prog = False
+        for a in student_in_prog:
+            dead = a.deadline_at if a.deadline_at.tzinfo else a.deadline_at.replace(tzinfo=timezone.utc)
+            if now_utc <= dead + timedelta(seconds=30):
+                active_in_prog = True
+                break
+
+        student_attempts_count = min(len(student_completed), exam.max_attempts)
+        student_has_submitted = len(student_completed) > 0
+        student_has_in_progress = active_in_prog
+        student_can_attempt = is_act and (active_in_prog or student_attempts_count < exam.max_attempts)
+
+        if deduped_attempts:
+            is_scores_published = getattr(exam, "results_published", False)
+            sorted_att = sorted(deduped_attempts, key=lambda a: a.attempt_number or 0, reverse=True)
+            if is_scores_published:
+                student_latest_status = sorted_att[0].status
+                evaluated_att = [a for a in sorted_att if a.status == "EVALUATED"]
+                student_latest_score = evaluated_att[0].score if evaluated_att else None
+            else:
+                student_latest_status = "SUBMITTED" if sorted_att[0].status in ("EVALUATED", "SUBMITTED", "PENDING_EVALUATION") else sorted_att[0].status
+                student_latest_score = None
+
     sec_responses = []
     for s in exam.sections:
         sec_q_count = len(s.questions)
@@ -407,6 +532,7 @@ def get_exam_by_id(
         "shuffle_questions": exam.shuffle_questions,
         "shuffle_options": exam.shuffle_options,
         "status": exam.status,
+        "results_published": getattr(exam, "results_published", False),
         "created_at": exam.created_at,
         "updated_at": exam.updated_at,
         "examiner": exam.examiner,
@@ -418,7 +544,14 @@ def get_exam_by_id(
         "is_active": is_act,
         "is_upcoming": is_upc,
         "is_ended": is_end,
+        "student_attempts_count": student_attempts_count,
+        "student_can_attempt": student_can_attempt,
+        "student_has_submitted": student_has_submitted,
+        "student_has_in_progress": student_has_in_progress,
+        "student_latest_status": student_latest_status,
+        "student_latest_score": student_latest_score,
     }
+
 
 
 def update_exam(
@@ -758,6 +891,28 @@ def publish_exam(db: Session, exam_id: str, examiner_id: Optional[str]) -> Tuple
     return True, "Exam successfully published and scheduled for students."
 
 
+def publish_exam_results(
+    db: Session,
+    exam_id: str,
+    examiner_id: Optional[str] = None,
+    publish: bool = True,
+) -> Tuple[bool, str, Optional[Exam]]:
+    query = db.query(Exam).filter(Exam.id == exam_id)
+    if examiner_id:
+        query = query.filter(Exam.examiner_id == examiner_id)
+
+    exam = query.first()
+    if not exam:
+        return False, "Exam not found or you do not have permission to publish scores.", None
+
+    exam.results_published = publish
+    db.commit()
+    db.refresh(exam)
+    msg = "Candidate scores and detailed result reports have been successfully published to students." if publish else "Candidate score release has been revoked."
+    return True, msg, exam
+
+
+
 def close_exam(db: Session, exam_id: str, examiner_id: Optional[str]) -> Tuple[bool, str]:
     query = db.query(Exam).filter(Exam.id == exam_id)
     if examiner_id:
@@ -927,19 +1082,22 @@ def get_question_by_id(
 def update_question(
     db: Session,
     question_id: str,
-    examiner_id: str,
-    data: QuestionUpdateRequest,
+    examiner_id: Optional[str] = None,
+    data: QuestionUpdateRequest = None,
 ) -> Optional[QuestionBank]:
-    question = (
+    query = (
         db.query(QuestionBank)
         .options(
             selectinload(QuestionBank.options),
             selectinload(QuestionBank.test_cases),
             selectinload(QuestionBank.boilerplates),
         )
-        .filter(QuestionBank.id == question_id, QuestionBank.examiner_id == examiner_id)
-        .first()
+        .filter(QuestionBank.id == question_id)
     )
+    if examiner_id:
+        query = query.filter(QuestionBank.examiner_id == examiner_id)
+    
+    question = query.first()
     if not question:
         return None
 
@@ -1029,13 +1187,13 @@ def update_question(
 def delete_question(
     db: Session,
     question_id: str,
-    examiner_id: str,
+    examiner_id: Optional[str] = None,
 ) -> bool:
-    question = (
-        db.query(QuestionBank)
-        .filter(QuestionBank.id == question_id, QuestionBank.examiner_id == examiner_id)
-        .first()
-    )
+    query = db.query(QuestionBank).filter(QuestionBank.id == question_id)
+    if examiner_id:
+        query = query.filter(QuestionBank.examiner_id == examiner_id)
+    
+    question = query.first()
     if not question:
         return False
 
@@ -1049,20 +1207,27 @@ def delete_question(
     return True
 
 
-def get_examiner_question_stats(db: Session, examiner_id: str, exam_id: Optional[str] = None) -> Dict[str, Any]:
-    query = db.query(QuestionBank).filter(QuestionBank.examiner_id == examiner_id)
+def get_examiner_question_stats(db: Session, examiner_id: Optional[str] = None, exam_id: Optional[str] = None) -> Dict[str, Any]:
+    query = db.query(QuestionBank)
+    if examiner_id:
+        query = query.filter(QuestionBank.examiner_id == examiner_id)
     if exam_id:
         query = query.filter(QuestionBank.exam_id == exam_id)
 
     total_questions = query.count()
+
+    marks_filters = []
+    if examiner_id:
+        marks_filters.append(QuestionBank.examiner_id == examiner_id)
+    if exam_id:
+        marks_filters.append(QuestionBank.exam_id == exam_id)
+
     total_marks = db.query(func.coalesce(func.sum(QuestionBank.marks), 0)).filter(
-        QuestionBank.examiner_id == examiner_id,
-        *( [QuestionBank.exam_id == exam_id] if exam_id else [] )
+        *marks_filters
     ).scalar() or 0
 
     total_subjects = db.query(func.count(distinct(QuestionBank.subject))).filter(
-        QuestionBank.examiner_id == examiner_id,
-        *( [QuestionBank.exam_id == exam_id] if exam_id else [] )
+        *marks_filters
     ).scalar() or 0
 
     easy_count = query.filter(QuestionBank.difficulty == "EASY").count()
@@ -1160,13 +1325,26 @@ def get_or_create_student_attempt(
                 att.submitted_at = dead
                 db.commit()
 
-    # 2. Check maximum attempts allowed
-    completed_count = sum(1 for a in existing_attempts if a.status in ("SUBMITTED", "PENDING_EVALUATION", "EVALUATED", "EXPIRED"))
+    # 2. Check maximum attempts allowed with deduplication
+    status_priority = {"EVALUATED": 5, "SUBMITTED": 4, "PENDING_EVALUATION": 3, "IN_PROGRESS": 2, "EXPIRED": 1}
+    attempts_by_number = {}
+    for a in existing_attempts:
+        num = a.attempt_number or 1
+        if num not in attempts_by_number:
+            attempts_by_number[num] = a
+        else:
+            curr = attempts_by_number[num]
+            if status_priority.get(a.status, 0) > status_priority.get(curr.status, 0):
+                attempts_by_number[num] = a
+
+    completed_count = sum(1 for a in attempts_by_number.values() if a.status in ("SUBMITTED", "PENDING_EVALUATION", "EVALUATED", "EXPIRED"))
     if completed_count >= exam.max_attempts:
         return None, None, f"Maximum attempt limit ({exam.max_attempts}) reached for this examination."
 
     # 3. Create new randomized attempt
-    attempt_num = completed_count + 1
+    attempt_num = max(attempts_by_number.keys(), default=0) + 1
+    if attempt_num > exam.max_attempts:
+        return None, None, f"Maximum attempt limit ({exam.max_attempts}) reached for this examination."
     duration_deadline = now_utc + timedelta(minutes=exam.duration_minutes)
     deadline_at = min(duration_deadline, et)
 
@@ -1444,6 +1622,81 @@ def submit_student_attempt(
     answers = db.query(StudentAnswer).filter(StudentAnswer.attempt_id == attempt.id).all()
     answers_map = {a.question_id: a for a in answers}
 
+    # Parallel evaluation for descriptive and coding questions to eliminate submission latency
+    from concurrent.futures import ThreadPoolExecutor
+
+    descriptive_tasks = []
+    coding_tasks = []
+
+    for q_id in q_ids:
+        q = questions_map.get(q_id)
+        if not q:
+            continue
+        ans = answers_map.get(q_id)
+        q_type = q.question_type.upper()
+
+        if q_type in ("SHORT_ANSWER", "LONG_ANSWER") and ans and ans.text_answer and ans.text_answer.strip():
+            descriptive_tasks.append((q_id, q, ans, q_type))
+        elif q_type == "CODING" and ans and ans.code_answer and ans.code_answer.strip():
+            coding_tasks.append((q_id, q, ans))
+
+    def run_eval_descriptive(task):
+        q_id, q, ans, q_type = task
+        try:
+            res = evaluate_descriptive_answer(
+                question_text=q.question_text,
+                expected_answer=q.expected_answer,
+                student_answer=ans.text_answer,
+                max_marks=float(q.marks),
+                question_type=q_type,
+            )
+            return (q_id, res)
+        except Exception as e:
+            logger.error(f"Error evaluating descriptive {q_id}: {e}")
+            return (q_id, None)
+
+    def run_eval_coding(task):
+        q_id, q, ans = task
+        try:
+            lang = ans.code_language or "python"
+            tcs_data = [
+                {
+                    "id": tc.id,
+                    "input_data": tc.input_data,
+                    "expected_output": tc.expected_output,
+                    "is_sample": tc.is_sample,
+                    "weightage_marks": tc.weightage_marks,
+                }
+                for tc in (q.test_cases or [])
+            ]
+            time_limit = q.time_limit_seconds or 2.0
+            verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
+                language=lang,
+                code=ans.code_answer,
+                test_cases=tcs_data,
+                time_limit_seconds=time_limit,
+            )
+            return (q_id, (verdict, results, passed_cnt, total_cnt, exec_ms))
+        except Exception as e:
+            logger.error(f"Error evaluating coding {q_id}: {e}")
+            return (q_id, None)
+
+    desc_eval_results = {}
+    code_eval_results = {}
+
+    if descriptive_tasks or coding_tasks:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            desc_futures = [executor.submit(run_eval_descriptive, t) for t in descriptive_tasks]
+            code_futures = [executor.submit(run_eval_coding, t) for t in coding_tasks]
+            for f in desc_futures:
+                qid, r = f.result()
+                if r:
+                    desc_eval_results[qid] = r
+            for f in code_futures:
+                qid, r = f.result()
+                if r:
+                    code_eval_results[qid] = r
+
     auto_score = 0.0
 
     for q_id in q_ids:
@@ -1483,13 +1736,15 @@ def submit_student_attempt(
 
         elif q_type in ("SHORT_ANSWER", "LONG_ANSWER"):
             if ans and ans.text_answer and ans.text_answer.strip():
-                ai_res = evaluate_descriptive_answer(
-                    question_text=q.question_text,
-                    expected_answer=q.expected_answer,
-                    student_answer=ans.text_answer,
-                    max_marks=float(q.marks),
-                    question_type=q_type,
-                )
+                ai_res = desc_eval_results.get(q_id)
+                if not ai_res:
+                    ai_res = evaluate_descriptive_answer(
+                        question_text=q.question_text,
+                        expected_answer=q.expected_answer,
+                        student_answer=ans.text_answer,
+                        max_marks=float(q.marks),
+                        question_type=q_type,
+                    )
                 ans.marks_obtained = ai_res.marks_obtained
                 ans.examiner_feedback = ai_res.feedback
                 ans.evaluation_status = "AI_EVALUATED"
@@ -1504,24 +1759,28 @@ def submit_student_attempt(
 
         elif q_type == "CODING":
             if ans and ans.code_answer and ans.code_answer.strip():
-                lang = ans.code_language or "python"
-                tcs_data = [
-                    {
-                        "id": tc.id,
-                        "input_data": tc.input_data,
-                        "expected_output": tc.expected_output,
-                        "is_sample": tc.is_sample,
-                        "weightage_marks": tc.weightage_marks,
-                    }
-                    for tc in (q.test_cases or [])
-                ]
-                time_limit = q.time_limit_seconds or 2.0
-                verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
-                    language=lang,
-                    code=ans.code_answer,
-                    test_cases=tcs_data,
-                    time_limit_seconds=time_limit,
-                )
+                c_res = code_eval_results.get(q_id)
+                if c_res:
+                    verdict, results, passed_cnt, total_cnt, exec_ms = c_res
+                else:
+                    lang = ans.code_language or "python"
+                    tcs_data = [
+                        {
+                            "id": tc.id,
+                            "input_data": tc.input_data,
+                            "expected_output": tc.expected_output,
+                            "is_sample": tc.is_sample,
+                            "weightage_marks": tc.weightage_marks,
+                        }
+                        for tc in (q.test_cases or [])
+                    ]
+                    time_limit = q.time_limit_seconds or 2.0
+                    verdict, results, passed_cnt, total_cnt, exec_ms = evaluate_test_cases_suite(
+                        language=lang,
+                        code=ans.code_answer,
+                        test_cases=tcs_data,
+                        time_limit_seconds=time_limit,
+                    )
                 ans.test_cases_passed = passed_cnt
                 ans.total_test_cases = total_cnt
                 ans.code_execution_logs = json.dumps({
@@ -1554,6 +1813,20 @@ def submit_student_attempt(
     attempt.percentage = round((total_final_score / max(1.0, float(attempt.total_marks))) * 100, 2)
     attempt.is_passed = (total_final_score >= float(attempt.exam.passing_marks))
 
+    # Mark any other in-progress attempts for this exam and student as EXPIRED
+    other_in_prog = (
+        db.query(ExamAttempt)
+        .filter(
+            ExamAttempt.exam_id == attempt.exam_id,
+            ExamAttempt.student_id == student_id,
+            ExamAttempt.id != attempt.id,
+            ExamAttempt.status == "IN_PROGRESS",
+        )
+        .all()
+    )
+    for other in other_in_prog:
+        other.status = "EXPIRED"
+
     db.commit()
     db.refresh(attempt)
     return True, "Exam submitted and automatically evaluated successfully.", attempt
@@ -1574,21 +1847,31 @@ def evaluate_attempt_descriptive_answers(
         return False, "Attempt not found.", None
 
     answers_map = {a.question_id: a for a in attempt.answers}
-    manual_score = 0.0
 
     for eval_item in data.evaluations:
         ans = answers_map.get(eval_item.question_id)
-        if ans:
+        if not ans:
+            ans = StudentAnswer(
+                attempt_id=attempt.id,
+                question_id=eval_item.question_id,
+                marks_obtained=eval_item.marks_obtained,
+                examiner_feedback=eval_item.feedback,
+                evaluation_status="MANUALLY_EVALUATED",
+                is_correct=(eval_item.marks_obtained > 0),
+                time_spent_seconds=0,
+            )
+            db.add(ans)
+            answers_map[eval_item.question_id] = ans
+        else:
             ans.marks_obtained = eval_item.marks_obtained
             ans.examiner_feedback = eval_item.feedback
             ans.evaluation_status = "MANUALLY_EVALUATED"
             ans.is_correct = (eval_item.marks_obtained > 0)
-            manual_score += eval_item.marks_obtained
 
-    attempt.manual_graded_score = manual_score
-    total_score = attempt.auto_graded_score + manual_score
+    # Recompute total score across all questions in the attempt
+    total_score = round(sum(a.marks_obtained for a in answers_map.values()), 2)
     attempt.score = total_score
-    attempt.percentage = round((total_score / float(attempt.total_marks)) * 100, 2)
+    attempt.percentage = round((total_score / float(max(1, attempt.total_marks))) * 100, 2)
     attempt.is_passed = (total_score >= float(attempt.exam.passing_marks))
     attempt.has_pending_descriptive = False
     attempt.status = "EVALUATED"
@@ -1708,6 +1991,7 @@ def get_student_attempt_result(
     exam_id: str,
     student_id: str,
     attempt_id: Optional[str] = None,
+    is_examiner: bool = False,
 ) -> Optional[Dict[str, Any]]:
     query = (
         db.query(ExamAttempt)
@@ -1720,9 +2004,17 @@ def get_student_attempt_result(
     )
 
     if attempt_id:
-        query = query.filter(ExamAttempt.id == attempt_id)
+        attempt = query.filter(ExamAttempt.id == attempt_id).first()
+    else:
+        # Prioritize evaluated/submitted attempts so an accidental empty in-progress attempt does not override actual scores
+        attempt = (
+            query.filter(ExamAttempt.status.in_(["EVALUATED", "SUBMITTED", "PENDING_EVALUATION"]))
+            .order_by(ExamAttempt.attempt_number.desc())
+            .first()
+        )
+        if not attempt:
+            attempt = query.order_by(ExamAttempt.attempt_number.desc()).first()
 
-    attempt = query.order_by(ExamAttempt.attempt_number.desc()).first()
     if not attempt:
         return None
 
@@ -1743,6 +2035,8 @@ def get_student_attempt_result(
 
     reviews = []
     total_assigned_q = len(q_ids)
+    is_results_published = is_examiner or getattr(attempt.exam, "results_published", False)
+    show_solutions = is_results_published
 
     for q_id in q_ids:
         q = questions_map.get(q_id)
@@ -1759,10 +2053,10 @@ def get_student_attempt_result(
             "question_type": q.question_type,
             "difficulty": q.difficulty,
             "marks": q.marks,
-            "marks_obtained": ans.marks_obtained if ans else 0.0,
-            "is_correct": ans.is_correct if ans else False,
-            "evaluation_status": ans.evaluation_status if ans else "UNANSWERED",
-            "examiner_feedback": ans.examiner_feedback if ans else None,
+            "marks_obtained": (ans.marks_obtained if ans else 0.0) if is_results_published else 0.0,
+            "is_correct": (ans.is_correct if ans else False) if is_results_published else None,
+            "evaluation_status": (ans.evaluation_status if ans else "UNANSWERED") if is_results_published else "SUBMITTED",
+            "examiner_feedback": (ans.examiner_feedback if ans else None) if is_results_published else None,
             "time_spent_seconds": ans.time_spent_seconds if ans else 0,
             "selected_option_id": ans.selected_option_id if ans else None,
             "selected_option_ids": json.loads(ans.selected_option_ids) if ans and ans.selected_option_ids else None,
@@ -1770,17 +2064,17 @@ def get_student_attempt_result(
             # Coding Answer Fields
             "code_language": ans.code_language if ans else None,
             "code_answer": ans.code_answer if ans else None,
-            "test_cases_passed": ans.test_cases_passed if ans else 0,
-            "total_test_cases": ans.total_test_cases if ans else 0,
-            "code_execution_logs": ans.code_execution_logs if ans else None,
-            "correct_option_ids": correct_opt_ids if attempt.status == "EVALUATED" else None,
-            "expected_answer": q.expected_answer if attempt.status == "EVALUATED" else None,
+            "test_cases_passed": (ans.test_cases_passed if ans else 0) if is_results_published else 0,
+            "total_test_cases": (ans.total_test_cases if ans else 0) if is_results_published else 0,
+            "code_execution_logs": (ans.code_execution_logs if ans else None) if is_results_published else None,
+            "correct_option_ids": correct_opt_ids if show_solutions else None,
+            "expected_answer": q.expected_answer if show_solutions else None,
             "options": [
                 {
                     "id": o.id,
                     "question_id": o.question_id,
                     "option_text": o.option_text,
-                    "is_correct": o.is_correct if attempt.status == "EVALUATED" else False,
+                    "is_correct": o.is_correct if show_solutions else False,
                     "order": o.order,
                     "created_at": o.created_at,
                 }
@@ -1812,20 +2106,22 @@ def get_student_attempt_result(
         "student_id": attempt.student_id,
         "student_name": attempt.student.full_name,
         "student_email": attempt.student.email,
-        "status": attempt.status,
-        "has_pending_descriptive": attempt.has_pending_descriptive,
+        "status": attempt.status if is_results_published else "SUBMITTED",
+        "results_published": is_results_published,
+        "has_pending_descriptive": attempt.has_pending_descriptive if is_results_published else False,
         "started_at": attempt.started_at,
         "submitted_at": attempt.submitted_at,
         "total_time_seconds": attempt.total_time_seconds,
-        "auto_graded_score": attempt.auto_graded_score,
-        "manual_graded_score": attempt.manual_graded_score,
-        "score": attempt.score,
+        "auto_graded_score": attempt.auto_graded_score if is_results_published else 0.0,
+        "manual_graded_score": attempt.manual_graded_score if is_results_published else 0.0,
+        "score": attempt.score if is_results_published else 0.0,
         "total_marks": attempt.total_marks,
-        "percentage": attempt.percentage,
-        "is_passed": attempt.is_passed,
+        "percentage": attempt.percentage if is_results_published else 0.0,
+        "is_passed": attempt.is_passed if is_results_published else False,
         "average_time_per_question": avg_time_per_q,
         "answers": reviews,
     }
+
 
 
 # ==========================================

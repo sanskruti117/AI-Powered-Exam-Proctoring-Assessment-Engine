@@ -118,7 +118,7 @@ def get_stats(
     db: Session = Depends(get_db),
 ):
     user = require_examiner(request)
-    examiner_id = user.get("userId")
+    examiner_id = user.get("userId") if user.get("role") == "EXAMINER" else None
 
     stats = get_examiner_question_stats(db, examiner_id=examiner_id, exam_id=exam_id)
     subjects = get_distinct_subjects(db, examiner_id=examiner_id, exam_id=exam_id)
@@ -193,7 +193,7 @@ def update_existing_question(
     db: Session = Depends(get_db),
 ):
     user = require_examiner(request)
-    examiner_id = user.get("userId")
+    examiner_id = user.get("userId") if user.get("role") == "EXAMINER" else None
 
     # Validate option requirements if options are provided
     if body.options is not None:
@@ -238,7 +238,7 @@ def delete_existing_question(
     db: Session = Depends(get_db),
 ):
     user = require_examiner(request)
-    examiner_id = user.get("userId")
+    examiner_id = user.get("userId") if user.get("role") == "EXAMINER" else None
 
     deleted = delete_question(db, question_id=id, examiner_id=examiner_id)
     if not deleted:
@@ -434,19 +434,20 @@ def assign_questions_to_assessment(
 ):
     """Copy bank questions into an assessment section while retaining the originals for reuse."""
     user = require_examiner(request)
-    examiner_id = user["userId"]
-    exam = db.query(Exam).filter(Exam.id == body.exam_id, Exam.examiner_id == examiner_id).first()
+    examiner_id = user["userId"] if user.get("role") == "EXAMINER" else None
+    exam_query = db.query(Exam).filter(Exam.id == body.exam_id)
+    if examiner_id:
+        exam_query = exam_query.filter(Exam.examiner_id == examiner_id)
+    exam = exam_query.first()
     section = db.query(ExamSection).filter(ExamSection.id == body.section_id, ExamSection.exam_id == body.exam_id).first()
     if not exam or not section:
         raise HTTPException(status_code=404, detail="Assessment or section not found.")
     if db.query(ExamAttempt).filter(ExamAttempt.exam_id == exam.id).count():
         raise HTTPException(status_code=400, detail="Questions cannot be changed after candidates have started this assessment.")
-    sources = (
-        db.query(QuestionBank)
-        .options(selectinload(QuestionBank.options))
-        .filter(QuestionBank.id.in_(body.question_ids), QuestionBank.examiner_id == examiner_id)
-        .all()
-    )
+    sources_query = db.query(QuestionBank).options(selectinload(QuestionBank.options)).filter(QuestionBank.id.in_(body.question_ids))
+    if examiner_id:
+        sources_query = sources_query.filter(QuestionBank.examiner_id == examiner_id)
+    sources = sources_query.all()
     if not sources:
         raise HTTPException(status_code=404, detail="No matching questions found to assign.")
 
