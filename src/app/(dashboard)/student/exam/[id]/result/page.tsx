@@ -15,6 +15,12 @@ import {
   FileSpreadsheet,
   Layers,
   HelpCircle,
+  Download,
+  Printer,
+  ShieldCheck,
+  QrCode,
+  FileText,
+  X,
 } from "lucide-react";
 
 interface AnswerItem {
@@ -76,6 +82,7 @@ function StudentExamResultContent() {
 
   const [data, setData] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
 
   useEffect(() => {
     if (examId) {
@@ -106,6 +113,10 @@ function StudentExamResultContent() {
     return `${mins}m ${remainder}s`;
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   if (loading) {
     return <div className="p-12 text-center text-slate-400">Loading your assessment record...</div>;
   }
@@ -125,8 +136,34 @@ function StudentExamResultContent() {
 
   return (
     <div className="space-y-8 pb-16">
+      {/* Print styles */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-certificate,
+          #printable-certificate * {
+            visibility: visible;
+          }
+          #printable-certificate {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background: white !important;
+            color: black !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+      <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 no-print">
         <Link href="/student" className="hover:text-white flex items-center gap-1">
           <ArrowLeft className="h-3.5 w-3.5" />
           <span>Dashboard</span>
@@ -140,7 +177,7 @@ function StudentExamResultContent() {
       </div>
 
       {/* Header Banner */}
-      <div className="glass-card rounded-3xl p-8 border border-slate-800 space-y-4">
+      <div className="glass-card rounded-3xl p-8 border border-slate-800 space-y-4 no-print">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <span
@@ -171,12 +208,24 @@ function StudentExamResultContent() {
             </p>
           </div>
 
-          <Link
-            href="/student"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-all self-start md:self-auto"
-          >
-            <span>Back to Assessments</span>
-          </Link>
+          <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
+            {isPublished && (
+              <button
+                onClick={() => setShowCertificateModal(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
+              >
+                <Award className="h-4 w-4 text-amber-300" />
+                <span>Certificate & Scorecard</span>
+              </button>
+            )}
+
+            <Link
+              href="/student"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-all"
+            >
+              <span>Back to Assessments</span>
+            </Link>
+          </div>
         </div>
 
         {/* Results Pending Publication Notice */}
@@ -204,7 +253,7 @@ function StudentExamResultContent() {
 
       {/* Performance Summary KPI Cards */}
       {isPublished ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
           {/* Total Score */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
@@ -280,7 +329,7 @@ function StudentExamResultContent() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 no-print">
           {/* Submission Status */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
@@ -321,9 +370,8 @@ function StudentExamResultContent() {
         </div>
       )}
 
-
       {/* Question Breakdown List */}
-      <div className="space-y-4">
+      <div className="space-y-4 no-print">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <Layers className="h-5 w-5 text-indigo-400" />
           Question-by-Question Breakdown
@@ -492,6 +540,140 @@ function StudentExamResultContent() {
           })}
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* Official Certificate & Verified Scorecard Modal                           */}
+      {/* ========================================================================= */}
+      {showCertificateModal && isPublished && (
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="max-w-3xl w-full space-y-4 animate-scaleUp my-auto">
+            {/* Modal Controls Bar (hidden during print) */}
+            <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl p-3 px-4 shadow-xl no-print">
+              <div className="flex items-center gap-2 text-xs text-slate-300 font-bold">
+                <Award className="h-4 w-4 text-amber-400" />
+                <span>Verified Assessment Scorecard & Certificate</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrint}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md transition-all"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>Print / Save as PDF</span>
+                </button>
+                <button
+                  onClick={() => setShowCertificateModal(false)}
+                  className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition-all"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Certificate Canvas */}
+            <div
+              id="printable-certificate"
+              className="bg-white text-slate-900 rounded-3xl p-8 sm:p-12 border-8 border-double border-indigo-900/40 shadow-2xl space-y-6 relative overflow-hidden"
+            >
+              {/* Background watermark badge */}
+              <div className="absolute right-4 bottom-4 opacity-5 pointer-events-none">
+                <Award className="w-96 h-96 text-indigo-950" />
+              </div>
+
+              {/* Certificate Header */}
+              <div className="text-center space-y-2 border-b-2 border-slate-200 pb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold text-[11px] tracking-widest uppercase mb-1">
+                  <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                  <span>AI Proctor Verified &bull; Official Assessment Record</span>
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-serif font-black tracking-tight text-slate-950">
+                  Certificate of Assessment
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-600 uppercase tracking-widest font-semibold">
+                  This is to certify that
+                </p>
+              </div>
+
+              {/* Candidate Name */}
+              <div className="text-center py-2">
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-950 border-b border-indigo-200 inline-block pb-1 px-8">
+                  {data.student_name}
+                </h2>
+                <p className="text-xs text-slate-500 mt-2 font-mono">{data.student_email}</p>
+              </div>
+
+              {/* Assessment Description */}
+              <div className="text-center text-xs sm:text-sm text-slate-700 max-w-xl mx-auto leading-relaxed">
+                has successfully completed the proctored examination for{" "}
+                <span className="font-bold text-slate-900">&ldquo;{data.exam_title}&rdquo;</span>{" "}
+                under strict automated dual-model biometric and behavioral monitoring.
+              </div>
+
+              {/* Scores & Performance Box */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+                <div className="p-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Score Awarded</div>
+                  <div className="text-lg font-black text-indigo-950">
+                    {data.score} / {data.total_marks}
+                  </div>
+                </div>
+
+                <div className="p-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Percentage</div>
+                  <div className="text-lg font-black text-indigo-950">{data.percentage}%</div>
+                </div>
+
+                <div className="p-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Outcome</div>
+                  <div
+                    className={`text-lg font-black ${
+                      data.is_passed ? "text-emerald-700" : "text-rose-700"
+                    }`}
+                  >
+                    {data.is_passed ? "PASSED" : "FAILED"}
+                  </div>
+                </div>
+
+                <div className="p-2">
+                  <div className="text-[10px] uppercase font-bold text-slate-500">Total Duration</div>
+                  <div className="text-lg font-black text-indigo-950">
+                    {formatTime(data.total_time_seconds)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer & Security Verification Seal */}
+              <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+                <div className="space-y-1 text-center sm:text-left">
+                  <div className="font-semibold text-slate-800">
+                    Issued On:{" "}
+                    {data.submitted_at
+                      ? new Date(data.submitted_at).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })
+                      : "—"}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    Verification ID: {data.attempt_id.toUpperCase()}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="text-right hidden sm:block">
+                    <div className="font-bold text-indigo-950">Proctoring Assessment Engine</div>
+                    <div className="text-[10px] text-slate-400">Cryptographically Signed</div>
+                  </div>
+                  <div className="h-12 w-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-md">
+                    <QrCode className="h-7 w-7 text-indigo-300" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

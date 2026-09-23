@@ -2188,10 +2188,13 @@ def get_exam_leaderboard(db: Session, exam_id: str) -> Optional[Dict[str, Any]]:
 
 
 def get_exam_candidates(db: Session, exam_id: str) -> List[Dict[str, Any]]:
-    """Return every candidate attempt for an examiner-owned assessment."""
+    """Return every candidate attempt for an examiner-owned assessment with proctoring incidents and live telemetry."""
     attempts = (
         db.query(ExamAttempt)
-        .options(joinedload(ExamAttempt.student))
+        .options(
+            joinedload(ExamAttempt.student),
+            selectinload(ExamAttempt.proctor_events)
+        )
         .filter(ExamAttempt.exam_id == exam_id)
         .order_by(desc(ExamAttempt.started_at))
         .all()
@@ -2200,8 +2203,8 @@ def get_exam_candidates(db: Session, exam_id: str) -> List[Dict[str, Any]]:
         {
             "id": attempt.id,
             "student_id": attempt.student_id,
-            "student_name": attempt.student.full_name,
-            "student_email": attempt.student.email,
+            "student_name": attempt.student.full_name if attempt.student else "Unknown Student",
+            "student_email": attempt.student.email if attempt.student else "No email",
             "attempt_number": attempt.attempt_number,
             "status": attempt.status,
             "score": attempt.score,
@@ -2210,7 +2213,20 @@ def get_exam_candidates(db: Session, exam_id: str) -> List[Dict[str, Any]]:
             "is_passed": attempt.is_passed,
             "started_at": attempt.started_at,
             "submitted_at": attempt.submitted_at,
+            "updated_at": attempt.updated_at,
+            "total_time_seconds": attempt.total_time_seconds,
             "has_pending_descriptive": attempt.has_pending_descriptive,
+            "proctor_warnings_count": len(attempt.proctor_events) if attempt.proctor_events else 0,
+            "proctor_events": [
+                {
+                    "id": pe.id,
+                    "event_type": pe.event_type,
+                    "severity": pe.severity,
+                    "details": pe.details,
+                    "timestamp": pe.timestamp.isoformat() if pe.timestamp else None,
+                }
+                for pe in (attempt.proctor_events or [])
+            ],
         }
         for attempt in attempts
     ]

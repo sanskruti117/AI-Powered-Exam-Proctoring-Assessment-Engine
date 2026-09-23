@@ -19,6 +19,7 @@ import {
   PenTool,
   RefreshCw,
   ExternalLink,
+  Download,
 } from "lucide-react";
 import { ExamContextNav } from "@/components/ExamContextNav";
 
@@ -117,6 +118,50 @@ export default function ExamLeaderboardPage() {
     );
   }
 
+  const handleExportCSV = () => {
+    if (!data?.leaderboard || data.leaderboard.length === 0) return;
+
+    const headers = [
+      "Rank",
+      "Candidate Name",
+      "Candidate Email",
+      "Score",
+      "Total Marks",
+      "Percentage",
+      "Result",
+      "Status",
+      "Total Time Spent",
+      "Avg Time Per Question (s)",
+      "Submitted At",
+    ];
+
+    const rows = data.leaderboard.map((entry) => [
+      entry.rank,
+      `"${(entry.student_name || "").replace(/"/g, '""')}"`,
+      `"${(entry.student_email || "").replace(/"/g, '""')}"`,
+      entry.score ?? 0,
+      entry.total_marks ?? data.total_marks,
+      `${entry.percentage ?? 0}%`,
+      entry.status === "EVALUATED" ? (entry.is_passed ? "PASSED" : "FAILED") : "PENDING",
+      `"${entry.status}"`,
+      `"${formatTime(entry.total_time_seconds)}"`,
+      entry.average_time_per_question ?? 0,
+      `"${entry.submitted_at ? new Date(entry.submitted_at).toISOString() : ""}"`,
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const examSlug = data.exam_title ? data.exam_title.replace(/[^a-zA-Z0-9_-]/g, "_") : "Exam";
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${examSlug}_Ranked_Leaderboard.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-8 pb-16">
       {/* Contextual Sub-Nav */}
@@ -139,7 +184,17 @@ export default function ExamLeaderboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleExportCSV}
+            disabled={!data?.leaderboard || data.leaderboard.length === 0}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-700/80 hover:border-slate-600 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Download Leaderboard as CSV"
+          >
+            <Download className="h-3.5 w-3.5 text-indigo-400" />
+            <span>Export CSV</span>
+          </button>
+
           {data.pending_evaluation_count > 0 && (
             <Link
               href={`/examiner/exams/${examId}/evaluate`}
