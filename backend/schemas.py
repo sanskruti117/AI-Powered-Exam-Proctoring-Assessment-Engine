@@ -455,6 +455,7 @@ class ExamResponse(BaseModel):
     shuffle_questions: bool
     shuffle_options: bool
     status: str
+    results_published: bool = False
     created_at: datetime
     updated_at: datetime
     examiner: Optional[ExaminerBrief] = None
@@ -466,6 +467,13 @@ class ExamResponse(BaseModel):
     is_active: bool = False
     is_upcoming: bool = False
     is_ended: bool = False
+    student_attempts_count: Optional[int] = 0
+    student_can_attempt: Optional[bool] = None
+    student_has_submitted: Optional[bool] = None
+    student_has_in_progress: Optional[bool] = None
+    student_latest_status: Optional[str] = None
+    student_latest_score: Optional[float] = None
+
 
     class Config:
         from_attributes = True
@@ -626,6 +634,7 @@ class ExamResultResponse(BaseModel):
     student_name: str
     student_email: str
     status: str
+    results_published: bool = True
     has_pending_descriptive: bool
     started_at: datetime
     submitted_at: Optional[datetime] = None
@@ -641,8 +650,12 @@ class ExamResultResponse(BaseModel):
 
 
 # ==========================================
-# Evaluation Studio Schemas
+# Evaluation Studio & Publishing Schemas
 # ==========================================
+
+class PublishResultsRequest(BaseModel):
+    publish: bool = True
+
 
 class EvaluateQuestionAnswer(BaseModel):
     question_id: str

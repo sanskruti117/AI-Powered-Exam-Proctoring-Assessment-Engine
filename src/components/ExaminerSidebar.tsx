@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, ClipboardList, FilePlus2, LayoutDashboard, LogOut, Settings } from "lucide-react";
 
 interface ExaminerSidebarProps {
-  user?: { fullName?: string; email?: string; institution?: string | null } | null;
+  user?: { fullName?: string; email?: string; institution?: string | null; role?: string } | null;
 }
 
 const navigation = [
@@ -21,6 +21,7 @@ export function ExaminerSidebar({ user }: ExaminerSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loggingOut, setLoggingOut] = useState(false);
+  const isAdmin = user?.role === "ADMIN";
 
   const handleLogout = async () => {
     try {
@@ -43,9 +44,21 @@ export function ExaminerSidebar({ user }: ExaminerSidebarProps) {
 
   return (
     <aside className="flex w-full flex-col overflow-y-auto rounded-2xl bg-[#10192c] px-5 py-6 ring-1 ring-inset ring-slate-700/60 lg:sticky lg:top-[98px] lg:h-[calc(100vh-122px)] lg:w-[304px] lg:shrink-0 lg:px-[22px] lg:py-5">
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="mb-4 flex items-center justify-between rounded-xl bg-rose-500/15 p-3 text-xs font-bold text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition-all shadow-sm"
+        >
+          <span>← Master Admin Console</span>
+          <span className="text-[10px] bg-rose-500/20 px-1.5 py-0.5 rounded">ADMIN</span>
+        </Link>
+      )}
+
       <div className="border-b border-slate-700/70 pb-5">
-        <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-500">Examiner portal</p>
-        <h2 className="mt-1 text-xl font-bold tracking-tight text-white">{user?.fullName || "Examiner"}</h2>
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+          {isAdmin ? "Admin Oversight Mode" : "Examiner portal"}
+        </p>
+        <h2 className="mt-1 text-xl font-bold tracking-tight text-white">{user?.fullName || (isAdmin ? "Super Administrator" : "Examiner")}</h2>
         <p className="mt-0.5 truncate text-sm text-slate-400">{user?.institution || user?.email || "Academic Institution"}</p>
       </div>
 

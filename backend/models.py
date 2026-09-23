@@ -151,9 +151,11 @@ class Exam(Base):
     
     # "DRAFT", "PUBLISHED", "CLOSED", "ARCHIVED"
     status = Column(String(20), default="DRAFT", index=True, nullable=False)
+    results_published = Column(Boolean, default=False, nullable=False)
     
     created_at = Column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now(), server_default=func.now(), nullable=False)
+
 
     # Relationships
     examiner = relationship("User", back_populates="created_exams")

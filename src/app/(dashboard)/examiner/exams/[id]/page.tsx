@@ -48,6 +48,7 @@ interface ExamDetail {
   shuffle_questions: boolean;
   shuffle_options: boolean;
   status: "DRAFT" | "PUBLISHED" | "CLOSED";
+  results_published?: boolean;
   sections: ExamSection[];
   total_questions: number;
   total_pool_marks: number;
@@ -65,6 +66,7 @@ export default function ExamOverviewPage() {
   const [exam, setExam] = useState<ExamDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishLoading, setPublishLoading] = useState(false);
+  const [resultsPublishLoading, setResultsPublishLoading] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   useEffect(() => {
@@ -106,6 +108,31 @@ export default function ExamOverviewPage() {
       setPublishLoading(false);
     }
   };
+
+  const handleTogglePublishResults = async (publishStatus: boolean) => {
+    try {
+      setResultsPublishLoading(true);
+      setFeedback(null);
+      const res = await fetch(`/api/exams/${examId}/publish-results`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ publish: publishStatus }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || data.message || "Failed to update score publication status.");
+      }
+
+      setFeedback({ type: "success", msg: data.message || "Score publication updated!" });
+      fetchExam();
+    } catch (err: any) {
+      setFeedback({ type: "error", msg: err.message });
+    } finally {
+      setResultsPublishLoading(false);
+    }
+  };
+
 
   const formatDate = (isoString: string) => {
     try {
@@ -236,8 +263,58 @@ export default function ExamOverviewPage() {
         </div>
       </div>
 
+      {/* Candidate Score Release & Results Publishing Banner */}
+      <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-5 bg-gradient-to-r from-slate-900/90 to-slate-900/50">
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            <span
+              className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
+                exam.results_published
+                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+              }`}
+            >
+              {exam.results_published ? "● Scores Published to Students" : "○ Scores Withheld (Private to Examiner)"}
+            </span>
+            <span className="text-xs text-slate-400 font-medium">&bull; {exam.attempts_count} Submissions Recorded</span>
+          </div>
+          <h3 className="text-base font-bold text-white">
+            {exam.results_published
+              ? "Candidate Results Are Live & Viewable by Students"
+              : "Scores & Answer Keys Are Hidden from Candidates"}
+          </h3>
+          <p className="text-xs text-slate-400 max-w-2xl">
+            {exam.results_published
+              ? "Students can currently view their certified score reports, earned marks, and question breakdown."
+              : "Students can only see that their exam attempt was recorded. Publish scores once you have completed all evaluations and reviews."}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => handleTogglePublishResults(!exam.results_published)}
+            disabled={resultsPublishLoading}
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg ${
+              exam.results_published
+                ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/25"
+            }`}
+          >
+            <Award className="h-4 w-4" />
+            <span>
+              {resultsPublishLoading
+                ? "Updating..."
+                : exam.results_published
+                ? "Unpublish / Revoke Scores"
+                : "Publish Scores to Students"}
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* Section-by-Section Question Pool Readiness */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">

@@ -8,11 +8,17 @@ from backend.routers.questions import router as questions_router
 from backend.routers.exams import router as exams_router
 from backend.database import Base, engine
 
+from sqlalchemy import text
+
 # Initialize database schema metadata safely
 try:
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
+        conn.commit()
 except Exception as e:
-    print(f"[INFO] Database connection deferred at startup: {e}")
+    print(f"[INFO] Database connection / auto-migration deferred at startup: {e}")
+
 
 # Ensure upload directory exists
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
@@ -72,12 +78,13 @@ class UserAdmin(ModelView, model=User):
 
 
 class ExamAdmin(ModelView, model=Exam):
-    column_list = [Exam.id, Exam.title, Exam.total_marks, Exam.duration_minutes, Exam.status, Exam.start_time, Exam.end_time, Exam.created_at]
+    column_list = [Exam.id, Exam.title, Exam.total_marks, Exam.duration_minutes, Exam.status, Exam.results_published, Exam.start_time, Exam.end_time, Exam.created_at]
     column_searchable_list = [Exam.title]
-    column_sortable_list = [Exam.title, Exam.status, Exam.total_marks, Exam.start_time, Exam.created_at]
+    column_sortable_list = [Exam.title, Exam.status, Exam.results_published, Exam.total_marks, Exam.start_time, Exam.created_at]
     icon = "fa-solid fa-graduation-cap"
     name = "Exam"
     name_plural = "Exams"
+
 
 
 class ExamSectionAdmin(ModelView, model=ExamSection):
