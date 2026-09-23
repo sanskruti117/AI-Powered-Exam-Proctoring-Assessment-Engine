@@ -31,16 +31,25 @@ interface ExamItem {
   duration_minutes: number;
   total_marks: number;
   passing_marks: number;
+  max_attempts: number;
   status: string;
+  results_published?: boolean;
   total_questions: number;
   is_active: boolean;
   is_upcoming: boolean;
   is_ended: boolean;
+  student_attempts_count?: number;
+  student_can_attempt?: boolean;
+  student_has_submitted?: boolean;
+  student_has_in_progress?: boolean;
+  student_latest_status?: string;
+  student_latest_score?: number;
   examiner?: {
     full_name: string;
     email: string;
   };
 }
+
 
 export default function StudentDashboardPage() {
   const [exams, setExams] = useState<ExamItem[]>([]);
@@ -78,9 +87,8 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const liveExams = exams.filter((e) => e.is_active);
+  const liveExams = exams.filter((e) => e.is_active && (e.student_can_attempt ?? true));
   const upcomingExams = exams.filter((e) => e.is_upcoming);
-  const pastExams = exams.filter((e) => e.is_ended || e.status === "CLOSED");
 
   return (
     <div className="space-y-10 pb-16">
@@ -214,6 +222,13 @@ export default function StudentDashboardPage() {
         ) : (
           <div className="divide-y divide-slate-800/60">
             {exams.map((exam) => {
+              const rawAttemptsCount = exam.student_attempts_count || 0;
+              const maxAttempts = exam.max_attempts || 1;
+              const attemptsCount = Math.min(rawAttemptsCount, maxAttempts);
+              const hasExhaustedAttempts = rawAttemptsCount >= maxAttempts;
+              const hasActiveInProgress = Boolean(exam.student_has_in_progress && !hasExhaustedAttempts);
+              const canAttempt = (Boolean(exam.student_can_attempt) && !hasExhaustedAttempts) || hasActiveInProgress;
+
               return (
                 <div
                   key={exam.id}
@@ -222,21 +237,35 @@ export default function StudentDashboardPage() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-lg font-bold text-white">{exam.title}</span>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                          exam.is_active
-                            ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 animate-pulse"
-                            : exam.is_upcoming
-                            ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
-                            : "bg-slate-500/15 text-slate-400 border-slate-500/30"
-                        }`}
-                      >
-                        {exam.is_active
-                          ? "● Open for Attempt"
-                          : exam.is_upcoming
-                          ? "Upcoming Schedule"
-                          : "Closed / Ended"}
-                      </span>
+                      
+                      {/* Status Tag */}
+                      {hasExhaustedAttempts ? (
+                        exam.results_published ? (
+                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-purple-500/15 text-purple-300 border-purple-500/30">
+                            Completed ({attemptsCount}/{maxAttempts} Attempts Used)
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-500/15 text-indigo-300 border-indigo-500/30">
+                            Attempt Submitted &bull; Scores Pending
+                          </span>
+                        )
+                      ) : hasActiveInProgress ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-amber-500/15 text-amber-300 border-amber-500/30 animate-pulse">
+                          In Progress (Resume Available)
+                        </span>
+                      ) : exam.is_active ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-emerald-500/15 text-emerald-300 border-emerald-500/30">
+                          ● Open for Attempt (Attempt {attemptsCount + 1} of {maxAttempts})
+                        </span>
+                      ) : exam.is_upcoming ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-500/15 text-indigo-300 border-indigo-500/30">
+                          Upcoming Schedule
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-slate-500/15 text-slate-400 border-slate-500/30">
+                          Closed / Ended
+                        </span>
+                      )}
                     </div>
 
                     <p className="text-sm text-slate-300">
@@ -245,38 +274,87 @@ export default function StudentDashboardPage() {
                         {exam.examiner?.full_name || "Academic Examiner"}
                       </span>{" "}
                       &bull; Duration: {exam.duration_minutes} Mins &bull; Total Marks: {exam.total_marks}{" "}
-                      &bull; Passing Marks: {exam.passing_marks}
+                      &bull; Passing Marks: {exam.passing_marks} &bull; Max Attempts: {maxAttempts}
                     </p>
 
                     <div className="text-xs text-slate-500 flex items-center gap-4 flex-wrap">
                       <span>Starts: {new Date(exam.start_time).toLocaleString()}</span>
                       <span>Ends: {new Date(exam.end_time).toLocaleString()}</span>
+                      {exam.student_has_submitted && (
+                        exam.results_published && exam.student_latest_score !== undefined && exam.student_latest_score !== null ? (
+                          <span className="text-emerald-400 font-bold">
+                            Latest Score: {exam.student_latest_score} / {exam.total_marks}
+                          </span>
+                        ) : (
+                          <span className="text-indigo-300 font-semibold flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                            Attempt Recorded &bull; Scores Pending Release
+                          </span>
+                        )
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    {exam.is_active ? (
+                  <div className="flex items-center gap-3 shrink-0 flex-wrap">
+                    {/* If student has exhausted all allowed attempts or has completed: Strictly show View Result Report */}
+                    {hasExhaustedAttempts ? (
+                      <Link
+                        href={`/student/exam/${exam.id}/result`}
+                        className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:scale-105 ${
+                          exam.results_published
+                            ? "bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25"
+                            : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                        }`}
+                      >
+                        {exam.results_published ? <Award className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5 text-emerald-400" />}
+                        <span>{exam.results_published ? "View Score Report" : "View Attempt Status"}</span>
+                      </Link>
+                    ) : hasActiveInProgress ? (
                       <Link
                         href={`/student/exam/${exam.id}`}
-                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/25 transition-all hover:scale-105"
+                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-amber-600 hover:bg-amber-500 shadow-xl shadow-amber-600/25 transition-all hover:scale-105"
                       >
-                        <span>Enter Exam Chamber</span>
+                        <span>Resume Attempt</span>
                         <ArrowRight className="h-5 w-5" />
                       </Link>
+                    ) : canAttempt ? (
+                      <div className="flex items-center gap-3">
+                        {exam.student_has_submitted && (
+                          <Link
+                            href={`/student/exam/${exam.id}/result`}
+                            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 transition-all"
+                          >
+                            <Award className="h-4 w-4" />
+                            <span>{exam.results_published ? "Previous Score" : "Previous Attempt"}</span>
+                          </Link>
+                        )}
+                        <Link
+                          href={`/student/exam/${exam.id}`}
+                          className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/25 transition-all hover:scale-105"
+                        >
+                          <span>Enter Exam Chamber</span>
+                          <ArrowRight className="h-5 w-5" />
+                        </Link>
+                      </div>
                     ) : exam.is_upcoming ? (
                       <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800">
                         Scheduled Window Not Started
                       </div>
-                    ) : (
+                    ) : exam.student_has_submitted ? (
                       <Link
                         href={`/student/exam/${exam.id}/result`}
                         className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 transition-all"
                       >
                         <Award className="h-4 w-4" />
-                        <span>View Result Report</span>
+                        <span>{exam.results_published ? "View Score Report" : "View Attempt Status"}</span>
                       </Link>
+                    ) : (
+                      <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-500 bg-slate-900 border border-slate-800">
+                        Assessment Closed
+                      </div>
                     )}
                   </div>
+
                 </div>
               );
             })}

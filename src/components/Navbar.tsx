@@ -21,6 +21,11 @@ export function Navbar({ user }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
+  // Strictly hide Navbar during active student exam taking chamber
+  if (pathname?.startsWith("/student/exam/") && !pathname?.includes("/result")) {
+    return null;
+  }
+
   const handleLogout = async () => {
     try {
       setLoggingOut(true);

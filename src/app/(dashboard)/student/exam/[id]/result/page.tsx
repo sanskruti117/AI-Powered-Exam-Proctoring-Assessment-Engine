@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Award,
@@ -53,6 +53,7 @@ interface ResultData {
   student_name: string;
   student_email: string;
   status: "SUBMITTED" | "PENDING_EVALUATION" | "EVALUATED";
+  results_published: boolean;
   has_pending_descriptive: boolean;
   started_at: string;
   submitted_at: string;
@@ -67,9 +68,11 @@ interface ResultData {
   answers: AnswerItem[];
 }
 
-export default function StudentExamResultPage() {
+function StudentExamResultContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const examId = params?.id as string;
+  const attemptId = searchParams.get("attempt_id");
 
   const [data, setData] = useState<ResultData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -78,12 +81,15 @@ export default function StudentExamResultPage() {
     if (examId) {
       fetchResult();
     }
-  }, [examId]);
+  }, [examId, attemptId]);
 
   const fetchResult = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`/api/exams/${examId}/result`);
+      const url = attemptId
+        ? `/api/exams/${examId}/result?attempt_id=${encodeURIComponent(attemptId)}`
+        : `/api/exams/${examId}/result`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to load result.");
       const resData = await res.json();
       setData(resData);
@@ -101,7 +107,7 @@ export default function StudentExamResultPage() {
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-slate-400">Loading your score report...</div>;
+    return <div className="p-12 text-center text-slate-400">Loading your assessment record...</div>;
   }
 
   if (!data) {
@@ -115,6 +121,8 @@ export default function StudentExamResultPage() {
     );
   }
 
+  const isPublished = Boolean(data.results_published);
+
   return (
     <div className="space-y-8 pb-16">
       {/* Breadcrumb Navigation */}
@@ -126,19 +134,36 @@ export default function StudentExamResultPage() {
         <ChevronRight className="h-3 w-3 text-slate-600" />
         <span className="text-white font-bold">{data.exam_title}</span>
         <ChevronRight className="h-3 w-3 text-slate-600" />
-        <span className="text-indigo-400">Official Score Report</span>
+        <span className="text-indigo-400">
+          {isPublished ? "Official Score Report" : "Submission Receipt"}
+        </span>
       </div>
 
       {/* Header Banner */}
       <div className="glass-card rounded-3xl p-8 border border-slate-800 space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-              <Award className="h-4 w-4" />
-              <span>Certified Candidate Performance Record</span>
+          <div className="space-y-1.5">
+            <span
+              className={`text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${
+                isPublished
+                  ? "bg-indigo-500/15 text-indigo-400 border-indigo-500/30"
+                  : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+              }`}
+            >
+              {isPublished ? (
+                <>
+                  <Award className="h-4 w-4" />
+                  <span>Certified Candidate Performance Record</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Exam Attempt Submitted Successfully</span>
+                </>
+              )}
             </span>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              {data.exam_title} - Result
+              {data.exam_title} - {isPublished ? "Result Report" : "Attempt Recorded"}
             </h1>
             <p className="text-xs text-slate-400">
               Candidate: <span className="text-white font-semibold">{data.student_name}</span> &bull; Attempt ID:{" "}
@@ -154,8 +179,19 @@ export default function StudentExamResultPage() {
           </Link>
         </div>
 
-        {/* Pending Descriptive Evaluation Notice */}
-        {data.has_pending_descriptive && (
+        {/* Results Pending Publication Notice */}
+        {!isPublished && (
+          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 text-xs flex items-center gap-3">
+            <Clock className="h-5 w-5 text-indigo-400 shrink-0" />
+            <div>
+              <span className="font-bold text-white block mb-0.5">Scores Awaiting Examiner Publication</span>
+              Your exam responses have been securely submitted and recorded. Scores and answer solutions will become visible here once the examiner finalizes and publishes the results.
+            </div>
+          </div>
+        )}
+
+        {/* Pending Descriptive Evaluation Notice (If published but descriptive grading is pending) */}
+        {isPublished && data.has_pending_descriptive && (
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-3">
             <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
             <div>
@@ -167,79 +203,124 @@ export default function StudentExamResultPage() {
       </div>
 
       {/* Performance Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Score */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Score</span>
-            <Award className="h-4 w-4 text-amber-400" />
+      {isPublished ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Score */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Score</span>
+              <Award className="h-4 w-4 text-amber-400" />
+            </div>
+            <div className="text-3xl font-black text-white">
+              {data.score} <span className="text-sm font-normal text-slate-400">/ {data.total_marks}</span>
+            </div>
+            <div className="text-xs text-slate-500">
+              Auto: {data.auto_graded_score} | Manual: {data.manual_graded_score}
+            </div>
           </div>
-          <div className="text-3xl font-black text-white">
-            {data.score} <span className="text-sm font-normal text-slate-400">/ {data.total_marks}</span>
-          </div>
-          <div className="text-xs text-slate-500">
-            Auto: {data.auto_graded_score} | Manual: {data.manual_graded_score}
-          </div>
-        </div>
 
-        {/* Percentage & Status */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Performance Status</span>
-            {data.status === "EVALUATED" ? (
-              data.is_passed ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          {/* Percentage & Status */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Performance Status</span>
+              {data.status === "EVALUATED" ? (
+                data.is_passed ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-rose-400" />
+                )
               ) : (
-                <XCircle className="h-4 w-4 text-rose-400" />
-              )
-            ) : (
-              <Sparkles className="h-4 w-4 text-amber-400" />
-            )}
-          </div>
-          <div
-            className={`text-2xl font-extrabold ${
-              data.status === "EVALUATED"
+                <Sparkles className="h-4 w-4 text-amber-400" />
+              )}
+            </div>
+            <div
+              className={`text-2xl font-extrabold ${
+                data.status === "EVALUATED"
+                  ? data.is_passed
+                    ? "text-emerald-400"
+                    : "text-rose-400"
+                  : "text-amber-400"
+              }`}
+            >
+              {data.status === "EVALUATED"
                 ? data.is_passed
-                  ? "text-emerald-400"
-                  : "text-rose-400"
-                : "text-amber-400"
-            }`}
-          >
-            {data.status === "EVALUATED"
-              ? data.is_passed
-                ? `PASSED (${data.percentage}%)`
-                : `FAILED (${data.percentage}%)`
-              : `PENDING (${data.percentage}%)`}
+                  ? `PASSED (${data.percentage}%)`
+                  : `FAILED (${data.percentage}%)`
+                : `PENDING (${data.percentage}%)`}
+            </div>
+            <div className="text-xs text-slate-500">
+              {data.status === "EVALUATED" ? "Official result finalized" : "Awaiting examiner review"}
+            </div>
           </div>
-          <div className="text-xs text-slate-500">
-            {data.status === "EVALUATED" ? "Official result finalized" : "Awaiting examiner review"}
-          </div>
-        </div>
 
-        {/* Total Completion Time */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Time Taken</span>
-            <Clock className="h-4 w-4 text-indigo-400" />
+          {/* Total Completion Time */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Time Taken</span>
+              <Clock className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-2xl font-extrabold text-white">
+              {formatTime(data.total_time_seconds)}
+            </div>
+            <div className="text-xs text-slate-500">
+              Submitted at {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
+            </div>
           </div>
-          <div className="text-2xl font-extrabold text-white">
-            {formatTime(data.total_time_seconds)}
-          </div>
-          <div className="text-xs text-slate-500">Submitted at {new Date(data.submitted_at).toLocaleTimeString()}</div>
-        </div>
 
-        {/* Avg Time / Question */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Avg Time / Question</span>
-            <Sparkles className="h-4 w-4 text-violet-400" />
+          {/* Avg Time / Question */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Avg Time / Question</span>
+              <Sparkles className="h-4 w-4 text-violet-400" />
+            </div>
+            <div className="text-2xl font-extrabold text-indigo-400">
+              {data.average_time_per_question}s
+            </div>
+            <div className="text-xs text-slate-500">Stopwatch pacing average</div>
           </div>
-          <div className="text-2xl font-extrabold text-indigo-400">
-            {data.average_time_per_question}s
-          </div>
-          <div className="text-xs text-slate-500">Stopwatch pacing average</div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Submission Status */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Attempt Status</span>
+              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl font-extrabold text-emerald-400">
+              Submitted
+            </div>
+            <div className="text-xs text-slate-400">Awaiting score publication</div>
+          </div>
+
+          {/* Total Time Taken */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Time Taken</span>
+              <Clock className="h-4 w-4 text-indigo-400" />
+            </div>
+            <div className="text-2xl font-extrabold text-white">
+              {formatTime(data.total_time_seconds)}
+            </div>
+            <div className="text-xs text-slate-400">
+              Submitted at {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
+            </div>
+          </div>
+
+          {/* Questions Attempted */}
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wider">Questions Recorded</span>
+              <Layers className="h-4 w-4 text-violet-400" />
+            </div>
+            <div className="text-2xl font-extrabold text-white">
+              {data.answers.length} Questions
+            </div>
+            <div className="text-xs text-slate-400">Pacing: {data.average_time_per_question}s / question</div>
+          </div>
+        </div>
+      )}
+
 
       {/* Question Breakdown List */}
       <div className="space-y-4">
@@ -272,25 +353,38 @@ export default function StudentExamResultPage() {
                   </div>
 
                   <div className="flex items-center gap-2.5">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                        q.evaluation_status === "PENDING_REVIEW"
-                          ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                          : q.is_correct
-                          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                          : "bg-rose-500/15 text-rose-300 border-rose-500/30"
-                      }`}
-                    >
-                      {q.evaluation_status === "PENDING_REVIEW"
-                        ? "PENDING REVIEW"
-                        : q.is_correct
-                        ? "CORRECT"
-                        : "INCORRECT"}
-                    </span>
+                    {isPublished ? (
+                      <>
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                            q.evaluation_status === "PENDING_REVIEW"
+                              ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                              : q.is_correct
+                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                              : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                          }`}
+                        >
+                          {q.evaluation_status === "PENDING_REVIEW"
+                            ? "PENDING REVIEW"
+                            : q.is_correct
+                            ? "CORRECT"
+                            : "INCORRECT"}
+                        </span>
 
-                    <span className="text-xs font-extrabold text-white">
-                      {q.marks_obtained} / {q.marks} Marks
-                    </span>
+                        <span className="text-xs font-extrabold text-white">
+                          {q.marks_obtained} / {q.marks} Marks
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-slate-900 text-slate-400 border-slate-800">
+                          SUBMITTED
+                        </span>
+                        <span className="text-xs text-slate-400 font-medium">
+                          {q.marks} Marks Weight
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -309,12 +403,20 @@ export default function StudentExamResultPage() {
                       const isCorrect = opt.is_correct;
 
                       let style = "bg-slate-900/60 border-slate-800 text-slate-300";
-                      if (isSelected && isCorrect) {
-                        style = "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-bold";
-                      } else if (isSelected && !isCorrect) {
-                        style = "bg-rose-500/15 border-rose-500/40 text-rose-300 font-bold";
-                      } else if (!isSelected && isCorrect) {
-                        style = "bg-emerald-500/5 border-emerald-500/20 text-emerald-400/80";
+                      if (isPublished) {
+                        if (isSelected && isCorrect) {
+                          style = "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-bold";
+                        } else if (isSelected && !isCorrect) {
+                          style = "bg-rose-500/15 border-rose-500/40 text-rose-300 font-bold";
+                        } else if (!isSelected && isCorrect) {
+                          style = "bg-emerald-500/5 border-emerald-500/20 text-emerald-400/80";
+                        }
+                      } else {
+                        if (isSelected) {
+                          style = "bg-indigo-500/15 border-indigo-500/40 text-indigo-300 font-bold";
+                        } else {
+                          style = "bg-slate-900/40 border-slate-800/80 text-slate-400";
+                        }
                       }
 
                       return (
@@ -346,7 +448,7 @@ export default function StudentExamResultPage() {
                       )}
                     </div>
 
-                    {q.examiner_feedback && (
+                    {isPublished && q.examiner_feedback && (
                       <div className="p-3.5 rounded-2xl bg-violet-950/20 border border-violet-500/30 text-xs text-violet-200">
                         <span className="font-bold text-violet-300 block mb-0.5">
                           Examiner Qualitative Feedback:
@@ -364,7 +466,7 @@ export default function StudentExamResultPage() {
                       <span className="text-slate-400 font-bold uppercase tracking-wider">
                         Submitted Source Code ({q.code_language || "python"}):
                       </span>
-                      {q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
+                      {isPublished && q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
                         <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
                           {q.test_cases_passed} / {q.total_test_cases} Test Cases Passed
                         </span>
@@ -374,7 +476,7 @@ export default function StudentExamResultPage() {
                       {q.code_answer || "// No code submitted"}
                     </pre>
 
-                    {q.examiner_feedback && (
+                    {isPublished && q.examiner_feedback && (
                       <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs text-indigo-200 font-mono">
                         <span className="font-bold text-indigo-300 block mb-0.5 font-sans">
                           Test Case Evaluation Summary:
@@ -384,11 +486,20 @@ export default function StudentExamResultPage() {
                     )}
                   </div>
                 )}
+
               </div>
             );
           })}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StudentExamResultPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-slate-400">Loading your score report...</div>}>
+      <StudentExamResultContent />
+    </Suspense>
   );
 }

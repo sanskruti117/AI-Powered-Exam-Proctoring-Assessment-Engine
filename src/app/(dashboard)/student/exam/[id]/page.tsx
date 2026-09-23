@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Editor from "@monaco-editor/react";
 import {
   Clock,
   ShieldCheck,
+  ShieldAlert,
   Camera,
   AlertTriangle,
+  AlertOctagon,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -27,6 +29,12 @@ import {
   X,
   RefreshCw,
   Cpu,
+  Maximize,
+  Smartphone,
+  Users,
+  UserX,
+  Eye,
+  Lock,
 } from "lucide-react";
 
 interface OptionChoice {
@@ -150,10 +158,54 @@ export default function StudentExamChamberPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
-  // Proctoring States
+  // =========================================================================
+  // Proctoring, Fullscreen Gate & 3-Strike Warning Architecture
+  // =========================================================================
+  const [hasEnteredChamber, setHasEnteredChamber] = useState(false);
+  const [rulesAgreed, setRulesAgreed] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [strikesCount, setStrikesCount] = useState(0); // 0, 1, 2, 3, 4 (lockout on 4)
+  const [activeStrikeModal, setActiveStrikeModal] = useState<{
+    strikeNum: number;
+    reason: string;
+    details: string;
+    isFinal: boolean;
+  } | null>(null);
   const [proctorWarnings, setProctorWarnings] = useState<string[]>([]);
+  const [aiDetectionStatus, setAiDetectionStatus] = useState<string>("Initializing AI Monitor...");
+  const [detectedEntities, setDetectedEntities] = useState<string[]>([]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const activeQuestionStartTimeRef = useRef<number>(Date.now());
+  const cocoModelRef = useRef<any>(null);
+  const blazeFaceModelRef = useRef<any>(null);
+  const isAiLoopRunningRef = useRef<boolean>(false);
+  const consecutivePhoneSlotsRef = useRef<number>(0);
+  const consecutiveMultiPersonSlotsRef = useRef<number>(0);
+  const consecutiveNoPersonSlotsRef = useRef<number>(0);
+  const lastStrikeTimestampRef = useRef<number>(0);
+  const strikesCountRef = useRef<number>(0);
+  const hasEnteredChamberRef = useRef<boolean>(false);
+
+  // Keep ref synchronized
+  useEffect(() => {
+    strikesCountRef.current = strikesCount;
+  }, [strikesCount]);
+
+  useEffect(() => {
+    hasEnteredChamberRef.current = hasEnteredChamber;
+  }, [hasEnteredChamber]);
+
+  // Ensure webcam stream is reliably attached whenever chamber view transitions
+  useEffect(() => {
+    if (videoRef.current && mediaStreamRef.current) {
+      if (videoRef.current.srcObject !== mediaStreamRef.current) {
+        videoRef.current.srcObject = mediaStreamRef.current;
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [hasEnteredChamber, loading]);
 
   // Coding Question Workspace States
   const [activeLang, setActiveLang] = useState<string>("python");
@@ -166,8 +218,10 @@ export default function StudentExamChamberPage() {
   const [codeSubmitResult, setCodeSubmitResult] = useState<any>(null);
 
   // 1. Initialize or Resume Attempt
+  const hasStartedAttemptRef = useRef(false);
   useEffect(() => {
-    if (examId) {
+    if (examId && !hasStartedAttemptRef.current) {
+      hasStartedAttemptRef.current = true;
       startExamAttempt();
     }
   }, [examId]);
@@ -209,8 +263,9 @@ export default function StudentExamChamberPage() {
       setAnswers(loadedAnswers);
       activeQuestionStartTimeRef.current = Date.now();
 
-      // Start webcam preview
-      initWebcam();
+      // Start webcam preview & AI proctoring model
+      await initWebcam();
+      initAiProctorModel();
     } catch (err: any) {
       setErrorMessage(err.message);
     } finally {
@@ -221,9 +276,14 @@ export default function StudentExamChamberPage() {
   const initWebcam = async () => {
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+          audio: false,
+        });
+        mediaStreamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
         }
       }
     } catch (err) {
@@ -231,52 +291,329 @@ export default function StudentExamChamberPage() {
     }
   };
 
-  // 2. Countdown Timer
-  useEffect(() => {
-    if (remainingSeconds === null || remainingSeconds <= 0) return;
+  // Helper to dynamically load external CDN scripts
+  const loadScript = (src: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        resolve();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.body.appendChild(script);
+    });
+  };
 
-    const timer = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev === null || prev <= 1) {
-          clearInterval(timer);
-          handleAutoSubmitOnExpiry();
-          return 0;
+  // Initialize Dual AI Vision Networks (BlazeFace for ultra-sensitive face/person count + COCO-SSD for devices)
+  const initAiProctorModel = async () => {
+    try {
+      setAiDetectionStatus("Loading Dual AI Vision Networks...");
+      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js");
+      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js");
+
+      // Load BlazeFace (optimized face/multi-person detector)
+      if ((window as any).blazeface) {
+        try {
+          const bModel = await (window as any).blazeface.load();
+          blazeFaceModelRef.current = bModel;
+        } catch (bfErr) {
+          console.warn("BlazeFace load error:", bfErr);
         }
-        return prev - 1;
+      }
+
+      // Load COCO-SSD (device and object detector)
+      if ((window as any).cocoSsd) {
+        try {
+          const cModel = await (window as any).cocoSsd.load();
+          cocoModelRef.current = cModel;
+        } catch (cocoErr) {
+          console.warn("COCO-SSD load error:", cocoErr);
+        }
+      }
+
+      setAiDetectionStatus("Dual AI Vision Guard Active");
+    } catch (err) {
+      console.warn("AI Model load warning:", err);
+      setAiDetectionStatus("AI Monitor Active");
+    }
+  };
+
+  // Trigger strike violation with automatic lockout on 4th strike
+  const triggerStrikeViolation = useCallback(
+    async (eventType: string, reason: string, details: string) => {
+      if (!hasEnteredChamberRef.current || strikesCountRef.current >= 4) return;
+
+      const now = Date.now();
+      // Enforce 4-second cooldown between strikes to avoid double-penalizing the same continuous transition
+      if (now - lastStrikeTimestampRef.current < 4000) return;
+      lastStrikeTimestampRef.current = now;
+
+      const newStrikeNum = strikesCountRef.current + 1;
+      setStrikesCount(newStrikeNum);
+      strikesCountRef.current = newStrikeNum;
+
+      const isFinal = newStrikeNum >= 4;
+
+      // Log event to backend API
+      fetch(
+        `/api/exams/${examId}/proctor-event?event_type=${encodeURIComponent(
+          eventType
+        )}&severity=${isFinal ? "CRITICAL" : "HIGH"}&details=${encodeURIComponent(
+          `[STRIKE ${newStrikeNum}/3] ${reason}: ${details}`
+        )}`,
+        { method: "POST" }
+      ).catch(() => {});
+
+      const strikeMessage = `Strike ${newStrikeNum}/3: ${reason} (${new Date().toLocaleTimeString()})`;
+      setProctorWarnings((prev) => [...prev, strikeMessage]);
+
+      setActiveStrikeModal({
+        strikeNum: newStrikeNum,
+        reason,
+        details,
+        isFinal,
       });
-    }, 1000);
 
-    return () => clearInterval(timer);
-  }, [remainingSeconds]);
+      // Auto-submit quickly if 4th strike reached
+      if (isFinal) {
+        hasEnteredChamberRef.current = false;
+        if (mediaStreamRef.current) {
+          try {
+            mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+          } catch (_) {}
+        }
+        setTimeout(() => {
+          handleSubmitFinalExam(true);
+        }, 200);
+      }
+    },
+    [examId]
+  );
 
-  // 3. Periodic Heartbeat Sync (every 15s)
+  // Request Fullscreen & Enter Examination
+  const handleEnterChamberFullscreen = async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      console.warn("Fullscreen request warning:", err);
+    }
+    setIsFullscreen(true);
+    setHasEnteredChamber(true);
+    hasEnteredChamberRef.current = true;
+    activeQuestionStartTimeRef.current = Date.now();
+  };
+
+  const handleReEnterFullscreen = async () => {
+    try {
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      console.warn("Fullscreen restore warning:", err);
+    }
+    setIsFullscreen(true);
+  };
+
+  // Fullscreen Change & Escape Listener
   useEffect(() => {
-    if (!attemptId) return;
+    const handleFullscreenChange = () => {
+      const isNowFullscreen = !!document.fullscreenElement;
+      setIsFullscreen(isNowFullscreen);
 
-    const interval = setInterval(() => {
-      sendHeartbeat();
-    }, 15000);
+      if (!isNowFullscreen && hasEnteredChamberRef.current) {
+        triggerStrikeViolation(
+          "FULLSCREEN_EXIT",
+          "Fullscreen Chamber Exited",
+          "Candidate exited full-screen mode. Examination must remain in full-screen."
+        );
+      }
+    };
 
-    return () => clearInterval(interval);
-  }, [attemptId, currentIdx, answers]);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+    };
+  }, [triggerStrikeViolation]);
 
-  // 4. Tab Visibility Proctor Event Listener
+  // Tab Visibility & Focus Loss (Window Blur) Listeners
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.hidden && examId) {
-        fetch(`/api/exams/${examId}/proctor-event?event_type=TAB_SWITCH&severity=HIGH&details=Candidate switched tabs or minimized window`, {
-          method: "POST",
-        }).catch(() => {});
-        setProctorWarnings((prev) => [
-          ...prev,
-          `Tab switch detected at ${new Date().toLocaleTimeString()}. Incident logged.`,
-        ]);
+      if (document.hidden && hasEnteredChamberRef.current) {
+        triggerStrikeViolation(
+          "TAB_SWITCH",
+          "Tab Switch / Window Minimized",
+          "Candidate navigated away from the exam tab or minimized the browser."
+        );
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (hasEnteredChamberRef.current && !document.hidden) {
+        triggerStrikeViolation(
+          "WINDOW_BLUR",
+          "Window Focus Lost",
+          "Candidate clicked outside the examination chamber or switched application focus."
+        );
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
-  }, [examId]);
+    window.addEventListener("blur", handleWindowBlur);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+    };
+  }, [triggerStrikeViolation]);
+
+  // Continuous AI Vision Slot Monitoring Loop (every 1.0s)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!videoRef.current || isAiLoopRunningRef.current) return;
+      const video = videoRef.current;
+      if (video.readyState < 2 || video.videoWidth === 0) return;
+
+      try {
+        isAiLoopRunningRef.current = true;
+
+        let faceCount = 0;
+        let cocoPersonCount = 0;
+        const foundProhibited: Array<{ class: string; score: number }> = [];
+
+        // 1. Detect Faces with BlazeFace (High-Speed & Precision Face Detection)
+        if (blazeFaceModelRef.current) {
+          try {
+            const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
+            faceCount = faces ? faces.length : 0;
+          } catch (bfErr) {
+            console.warn("BlazeFace estimate error:", bfErr);
+          }
+        }
+
+        // 2. Detect Objects & Persons with COCO-SSD
+        if (cocoModelRef.current) {
+          try {
+            const predictions: Array<{ class: string; score: number }> = await cocoModelRef.current.detect(
+              video,
+              25,
+              0.20
+            );
+
+            const prohibitedClasses = [
+              "cell phone",
+              "phone",
+              "remote",
+              "laptop",
+              "tablet",
+              "book",
+              "electronic device",
+              "tv",
+            ];
+
+            predictions.forEach((p) => {
+              const className = p.class.toLowerCase();
+              if (className === "person" && p.score >= 0.35) {
+                cocoPersonCount += 1;
+              } else if (
+                prohibitedClasses.some((c) => className.includes(c)) &&
+                p.score >= 0.28
+              ) {
+                foundProhibited.push(p);
+              }
+            });
+          } catch (cocoErr) {
+            console.warn("COCO-SSD detect error:", cocoErr);
+          }
+        }
+
+        isAiLoopRunningRef.current = false;
+
+        // Determine effective candidate/person count (using maximum of BlazeFace face count and COCO person count)
+        const totalPersonCount = Math.max(faceCount, cocoPersonCount);
+
+        // Build live HUD tags
+        const currentTags: string[] = [];
+        if (foundProhibited.length > 0) {
+          foundProhibited.forEach((p) => {
+            currentTags.push(`🚨 ${p.class} (${Math.round(p.score * 100)}%)`);
+          });
+        }
+        if (totalPersonCount > 1) {
+          currentTags.push(`🚨 ${totalPersonCount} Persons Detected`);
+        } else if (totalPersonCount === 1) {
+          currentTags.push(`🟢 Candidate In Frame`);
+        } else {
+          currentTags.push(`⚠️ No Face Detected`);
+        }
+
+        setDetectedEntities(currentTags);
+
+        // Only enforce strikes once inside the exam chamber
+        if (!hasEnteredChamberRef.current) return;
+
+        // 1. Prohibited Device Detected across Consecutive Slots (2 slots = ~2s)
+        if (foundProhibited.length > 0) {
+          consecutivePhoneSlotsRef.current += 1;
+          if (consecutivePhoneSlotsRef.current >= 2) {
+            consecutivePhoneSlotsRef.current = 0;
+            const item = foundProhibited[0].class;
+            const scorePct = Math.round(foundProhibited[0].score * 100);
+            triggerStrikeViolation(
+              "PROHIBITED_DEVICE",
+              `Secondary Device Detected (${item})`,
+              `AI Vision identified unauthorized item: "${item}" (Confidence: ${scorePct}%) in camera view.`
+            );
+          }
+        } else {
+          consecutivePhoneSlotsRef.current = 0;
+        }
+
+        // 2. Multiple Persons in Frame (2 consecutive slots)
+        if (totalPersonCount > 1) {
+          consecutiveMultiPersonSlotsRef.current += 1;
+          if (consecutiveMultiPersonSlotsRef.current >= 2) {
+            consecutiveMultiPersonSlotsRef.current = 0;
+            triggerStrikeViolation(
+              "MULTIPLE_PERSONS",
+              "Multiple Persons Detected",
+              `AI Vision identified ${totalPersonCount} individuals simultaneously in the camera stream.`
+            );
+          }
+        } else {
+          consecutiveMultiPersonSlotsRef.current = 0;
+        }
+
+        // 3. Candidate Absent / No Face in Frame (4 consecutive slots = ~4s)
+        if (totalPersonCount === 0) {
+          consecutiveNoPersonSlotsRef.current += 1;
+          if (consecutiveNoPersonSlotsRef.current >= 4) {
+            consecutiveNoPersonSlotsRef.current = 0;
+            triggerStrikeViolation(
+              "CANDIDATE_ABSENT",
+              "Candidate Absent from Frame",
+              "No face or person detected in front of the camera stream."
+            );
+          }
+        } else {
+          consecutiveNoPersonSlotsRef.current = 0;
+        }
+      } catch (err) {
+        isAiLoopRunningRef.current = false;
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [triggerStrikeViolation]);
 
   const sendHeartbeat = async () => {
     if (!attemptId || questions.length === 0) return;
@@ -560,20 +897,38 @@ export default function StudentExamChamberPage() {
         };
       });
 
+      // Exit fullscreen mode if active
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+
       const res = await fetch(`/api/exams/${examId}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: payloadAnswers }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        if (
+          data.detail &&
+          typeof data.detail === "string" &&
+          (data.detail.includes("already been submitted") || data.detail.includes("No active"))
+        ) {
+          window.location.href = `/student/exam/${examId}/result`;
+          return;
+        }
         throw new Error(data.detail || data.message || "Failed to submit exam.");
       }
 
-      // Redirect to Result Page
-      router.push(`/student/exam/${examId}/result`);
+      // Redirect to Result Page instantly
+      window.location.href = `/student/exam/${examId}/result`;
     } catch (err: any) {
+      if (isAuto) {
+        // For automated violation lockout submissions, always route to result page immediately
+        window.location.href = `/student/exam/${examId}/result`;
+        return;
+      }
       setErrorMessage(err.message || "Failed to submit exam.");
       setSubmitting(false);
     }
@@ -617,16 +972,26 @@ export default function StudentExamChamberPage() {
 
   if (errorMessage && !questions.length) {
     return (
-      <div className="p-12 text-center space-y-4 max-w-lg mx-auto">
-        <AlertTriangle className="h-12 w-12 text-rose-400 mx-auto" />
-        <h2 className="text-xl font-bold text-white">Exam Chamber Access Notice</h2>
-        <p className="text-sm text-slate-300">{errorMessage}</p>
-        <Link
-          href="/student"
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500"
-        >
-          Return to Dashboard
-        </Link>
+      <div className="p-12 text-center space-y-5 max-w-lg mx-auto glass-card rounded-3xl border border-slate-800 my-12">
+        <AlertTriangle className="h-12 w-12 text-amber-400 mx-auto" />
+        <div className="space-y-1">
+          <h2 className="text-xl font-bold text-white">Exam Chamber Notice</h2>
+          <p className="text-sm text-slate-300">{errorMessage}</p>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Link
+            href={`/student/exam/${examId}/result`}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all"
+          >
+            <span>View Result Report</span>
+          </Link>
+          <Link
+            href="/student"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-all"
+          >
+            <span>Return to Dashboard</span>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -645,17 +1010,316 @@ export default function StudentExamChamberPage() {
   }).length;
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* Top Bar: Timer, Proctor Indicator, Submit CTA */}
+    <div className="space-y-6 pb-20 relative">
+      {/* ========================================================================= */}
+      {/* 1. MANDATORY INSTRUCTION & FULLSCREEN GATE (HACKEREARTH / UNSTOP STYLE)   */}
+      {/* ========================================================================= */}
+      {!hasEnteredChamber && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 max-w-2xl w-full space-y-6 shadow-2xl animate-scaleUp my-auto">
+            {/* Header */}
+            <div className="flex items-center gap-3.5 border-b border-slate-800 pb-5">
+              <div className="h-12 w-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Proctored Assessment Chamber Entrance</h2>
+                <p className="text-xs text-slate-400">
+                  Please review the examination code of conduct and authorize full-screen mode before beginning.
+                </p>
+              </div>
+            </div>
+
+            {/* Webcam Preview Check */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-44 h-32 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden relative shrink-0 flex items-center justify-center">
+                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror" />
+                
+                {/* Live HUD Tags */}
+                <div className="absolute top-1.5 left-1.5 flex flex-wrap gap-1 max-w-[90%]">
+                  {detectedEntities.map((tag, tIdx) => (
+                    <span
+                      key={tIdx}
+                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md ${
+                        tag.includes("🚨")
+                          ? "bg-rose-600 text-white animate-pulse"
+                          : "bg-slate-900/90 text-emerald-300 border border-emerald-500/30"
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">
+                  LIVE
+                </span>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <Camera className="h-4 w-4 text-emerald-400" />
+                  Dual AI Vision Guard (BlazeFace + COCO-SSD)
+                </div>
+                <p className="text-slate-400">
+                  Ensure your face is clearly visible, well-lit, and centered in front of the camera throughout the entire assessment. Secondary devices will be flagged automatically.
+                </p>
+                <div className="text-[11px] text-indigo-300 font-mono flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{aiDetectionStatus}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Protocols & Rules List */}
+            <div className="space-y-2.5 text-xs">
+              <div className="font-bold uppercase tracking-wider text-slate-400">
+                Mandatory Proctoring Protocols:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                  <div className="font-bold text-white flex items-center gap-1.5">
+                    <Maximize className="h-3.5 w-3.5 text-indigo-400" />
+                    Full-Screen Enforced
+                  </div>
+                  <p className="text-slate-400 text-[11px]">
+                    The exam runs strictly in full-screen. Exiting full-screen triggers an immediate strike.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                  <div className="font-bold text-white flex items-center gap-1.5">
+                    <Eye className="h-3.5 w-3.5 text-amber-400" />
+                    No Tab Switching / Blur
+                  </div>
+                  <p className="text-slate-400 text-[11px]">
+                    Navigating tabs, opening new windows, or losing window focus is strictly prohibited.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                  <div className="font-bold text-white flex items-center gap-1.5">
+                    <Smartphone className="h-3.5 w-3.5 text-rose-400" />
+                    No Secondary Devices
+                  </div>
+                  <p className="text-slate-400 text-[11px]">
+                    Smartphones, tablets, books, secondary screens, or notes in view will be flagged by AI.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
+                  <div className="font-bold text-white flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 text-cyan-400" />
+                    Single Candidate Only
+                  </div>
+                  <p className="text-slate-400 text-[11px]">
+                    Candidate absence or multiple persons in camera view across consecutive frames causes a violation.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 3-Strike Rule Banner */}
+            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-200">
+              <AlertOctagon className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold text-rose-300">Strict 3-Strike Warning Policy:</span> You will receive warnings for up to 3 violations. Upon committing a <span className="font-bold text-white underline">4th violation</span>, the examination chamber will immediately terminate and your answers will be <span className="font-bold text-white underline">automatically submitted</span>.
+              </div>
+            </div>
+
+            {/* Agreement Checkbox & Enter Button */}
+            <div className="space-y-4 pt-2 border-t border-slate-800">
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rulesAgreed}
+                  onChange={(e) => setRulesAgreed(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                />
+                <span className="text-xs text-slate-300 leading-relaxed">
+                  I confirm that I am in a quiet, isolated room, have closed all other applications, and agree to full-screen proctoring and the 3-strike violation policy.
+                </span>
+              </label>
+
+              <button
+                type="button"
+                onClick={handleEnterChamberFullscreen}
+                disabled={!rulesAgreed}
+                className="w-full py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all"
+              >
+                <Maximize className="h-4 w-4" />
+                <span>Enter Fullscreen & Start Exam</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 2. FULLSCREEN EXIT LOCKOUT OVERLAY                                        */}
+      {/* ========================================================================= */}
+      {hasEnteredChamber && !isFullscreen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4">
+          <div className="glass-card rounded-3xl p-8 border border-rose-500/50 max-w-md w-full text-center space-y-6 shadow-2xl animate-bounce">
+            <div className="h-16 w-16 rounded-3xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/40">
+              <Lock className="h-8 w-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-xl font-black text-white uppercase tracking-wider">
+                Full-Screen Mode Exited
+              </h3>
+              <p className="text-xs text-rose-300 leading-relaxed">
+                Examination access is temporarily locked because you exited full-screen mode. This incident has been recorded as a proctoring violation.
+              </p>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
+              Current Violations: <span className="font-bold text-rose-400">{strikesCount} / 3 Strikes</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleReEnterFullscreen}
+              className="w-full py-3 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all"
+            >
+              <Maximize className="h-4 w-4" />
+              <span>Restore Fullscreen & Resume</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. ACTIVE STRIKE VIOLATION MODAL (STRIKES 1, 2, 3, & 4 AUTO-SUBMISSION)    */}
+      {/* ========================================================================= */}
+      {activeStrikeModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div
+            className={`glass-card rounded-3xl p-6 sm:p-8 border max-w-lg w-full space-y-6 shadow-2xl animate-scaleUp ${
+              activeStrikeModal.isFinal
+                ? "border-rose-600 bg-rose-950/40"
+                : "border-amber-500/60 bg-slate-950/90"
+            }`}
+          >
+            {/* Header Icon */}
+            <div className="text-center space-y-3">
+              <div
+                className={`h-16 w-16 rounded-3xl flex items-center justify-center mx-auto border ${
+                  activeStrikeModal.isFinal
+                    ? "bg-rose-500/20 text-rose-400 border-rose-500/40 animate-pulse"
+                    : "bg-amber-500/20 text-amber-400 border-amber-500/40"
+                }`}
+              >
+                {activeStrikeModal.isFinal ? (
+                  <AlertOctagon className="h-8 w-8" />
+                ) : (
+                  <ShieldAlert className="h-8 w-8" />
+                )}
+              </div>
+
+              <div>
+                <span
+                  className={`text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
+                    activeStrikeModal.isFinal
+                      ? "bg-rose-500/30 text-rose-300 border-rose-500/50"
+                      : "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                  }`}
+                >
+                  {activeStrikeModal.isFinal
+                    ? "FINAL LOCKOUT • STRIKE 4 REACHED"
+                    : `PROCTOR WARNING • STRIKE ${activeStrikeModal.strikeNum} OF 3`}
+                </span>
+                <h3 className="text-lg font-bold text-white mt-2">{activeStrikeModal.reason}</h3>
+              </div>
+            </div>
+
+            {/* Violation Details */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
+              <div className="text-slate-400">Incident Details:</div>
+              <p className="text-slate-200 font-medium">{activeStrikeModal.details}</p>
+            </div>
+
+            {/* Strike Meter Visualization */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-[11px] font-bold text-slate-400">
+                <span>Violations Meter</span>
+                <span className={activeStrikeModal.isFinal ? "text-rose-400" : "text-amber-400"}>
+                  {Math.min(activeStrikeModal.strikeNum, 3)} / 3 Allowed Strikes
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((strikeIdx) => {
+                  const isHit = activeStrikeModal.strikeNum >= strikeIdx;
+                  return (
+                    <div
+                      key={strikeIdx}
+                      className={`h-3 rounded-lg transition-all ${
+                        isHit
+                          ? "bg-rose-500 shadow-md shadow-rose-500/50"
+                          : "bg-slate-800 border border-slate-700"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            {activeStrikeModal.isFinal ? (
+              <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-center space-y-2">
+                <div className="text-sm font-bold text-white flex items-center justify-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-rose-400" />
+                  <span>Exam Terminated. Auto-Submitting Assessment...</span>
+                </div>
+                <p className="text-[11px] text-rose-300">
+                  Your 4th violation strike was recorded. Answers saved up to this point are being submitted.
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setActiveStrikeModal(null)}
+                  className="w-full py-3 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
+                >
+                  I Understand & Return to Exam
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. MAIN EXAM CHAMBER INTERFACE                                            */}
+      {/* ========================================================================= */}
+
+      {/* Top Bar: Timer, Proctor Indicator, Strikes Counter, Submit CTA */}
       <div className="glass-card rounded-3xl p-4 sm:p-5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-4 z-40 shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
-            <ShieldCheck className="h-5 w-5" />
+          <div
+            className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${
+              strikesCount > 0
+                ? "bg-rose-500/20 text-rose-400"
+                : "bg-emerald-500/15 text-emerald-400"
+            }`}
+          >
+            {strikesCount > 0 ? <ShieldAlert className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
           </div>
           <div>
-            <div className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <div className="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>Proctored Session Active</span>
+              <span className="text-emerald-400">Proctored Session Active</span>
+              {/* Strike Warning Counter Pill */}
+              <span
+                className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                  strikesCount === 0
+                    ? "bg-slate-900 border-slate-800 text-slate-400"
+                    : "bg-rose-500/20 border-rose-500/40 text-rose-300 animate-pulse"
+                }`}
+              >
+                {strikesCount} / 3 Strikes
+              </span>
             </div>
             <div className="text-sm font-bold text-white">
               Progress: {answeredCount} / {questions.length} Questions Answered
@@ -663,25 +1327,25 @@ export default function StudentExamChamberPage() {
           </div>
         </div>
 
-        {/* Countdown Timer */}
-        <div className="flex items-center gap-4">
+        {/* Countdown Timer & Submit CTA */}
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
-            className={`px-5 py-2.5 rounded-2xl border flex items-center gap-2.5 ${
+            className={`px-4 sm:px-5 py-2.5 rounded-2xl border flex items-center gap-2.5 ${
               (remainingSeconds || 0) <= 300
                 ? "bg-rose-500/15 border-rose-500/40 text-rose-300 animate-pulse"
                 : "bg-slate-900/90 border-slate-800 text-white"
             }`}
           >
             <Clock className="h-4 w-4 text-indigo-400" />
-            <div className="text-xs text-slate-400 uppercase font-bold">Time Remaining:</div>
-            <div className="text-lg font-black tracking-widest font-mono">
+            <div className="text-xs text-slate-400 uppercase font-bold hidden sm:block">Time Remaining:</div>
+            <div className="text-base sm:text-lg font-black tracking-widest font-mono">
               {formatTimer(remainingSeconds)}
             </div>
           </div>
 
           <button
             onClick={() => setIsConfirmModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
           >
             <Send className="h-3.5 w-3.5" />
             <span>Finish & Submit</span>
@@ -689,14 +1353,14 @@ export default function StudentExamChamberPage() {
         </div>
       </div>
 
-      {/* Proctor Incident Warnings */}
+      {/* Proctor Incident Warnings Banner */}
       {proctorWarnings.length > 0 && (
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-rose-400 flex-shrink-0" />
             <span>{proctorWarnings[proctorWarnings.length - 1]}</span>
           </div>
-          <span className="font-bold">{proctorWarnings.length} Warnings Logged</span>
+          <span className="font-bold">{proctorWarnings.length} Incidents Logged ({strikesCount}/3 Strikes)</span>
         </div>
       )}
 
@@ -726,9 +1390,7 @@ export default function StudentExamChamberPage() {
                 </div>
               </div>
 
-              {/* ==================================================== */}
               {/* CODING PROBLEM WORKSPACE (LeetCode / HackerEarth UX) */}
-              {/* ==================================================== */}
               {currentQ.question_type === "CODING" ? (
                 <div className="space-y-6">
                   {/* Problem Description & Specifications */}
@@ -839,40 +1501,32 @@ export default function StudentExamChamberPage() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {/* Reset Code */}
+                        <button
+                          type="button"
+                          onClick={() => setEditorTheme((prev) => (prev === "vs-dark" ? "light" : "vs-dark"))}
+                          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                          title="Toggle Editor Theme"
+                        >
+                          {editorTheme === "vs-dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                        </button>
                         <button
                           type="button"
                           onClick={handleResetStarterCode}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors"
-                          title="Reset to boilerplate code"
+                          className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5"
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
-                          <span>Reset</span>
-                        </button>
-
-                        {/* Theme Switcher */}
-                        <button
-                          type="button"
-                          onClick={() => setEditorTheme(editorTheme === "vs-dark" ? "light" : "vs-dark")}
-                          className="p-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
-                          title="Toggle Editor Theme"
-                        >
-                          {editorTheme === "vs-dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                          <span>Reset Template</span>
                         </button>
                       </div>
                     </div>
 
                     {/* Monaco Editor Component */}
-                    <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl">
+                    <div className="rounded-2xl overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
                       <Editor
-                        height="380px"
+                        height="450px"
                         language={getMonacoLanguage(activeLang)}
                         theme={editorTheme}
-                        value={
-                          currentAnswer?.code_answer !== undefined
-                            ? currentAnswer.code_answer
-                            : getStarterCode(currentQ, activeLang)
-                        }
+                        value={answers[currentQ.id]?.code_answer || getStarterCode(currentQ, activeLang)}
                         onChange={(val) => handleCodeAnswerChange(val || "")}
                         options={{
                           minimap: { enabled: false },
@@ -881,35 +1535,66 @@ export default function StudentExamChamberPage() {
                           automaticLayout: true,
                           scrollBeyondLastLine: false,
                           tabSize: 4,
-                          wordWrap: "on",
                         }}
                       />
                     </div>
-                  </div>
 
-                  {/* Execution Console & Test Runner Tabs */}
-                  <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
-                    {/* Console Header Tabs */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                    {/* IDE Action Bar: Run Samples & Submit Hidden Test Cases */}
+                    <div className="flex items-center justify-between gap-3 pt-2">
+                      <div className="text-xs text-slate-400">
+                        {answers[currentQ.id]?.test_cases_passed !== undefined && answers[currentQ.id]?.total_test_cases ? (
+                          <span className="text-emerald-400 font-bold">
+                            ✓ Passed {answers[currentQ.id]?.test_cases_passed} / {answers[currentQ.id]?.total_test_cases} Test Cases
+                          </span>
+                        ) : (
+                          <span>Write your solution and test before saving.</span>
+                        )}
+                      </div>
+
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          onClick={handleRunSampleTests}
+                          disabled={runningCode || submittingTest}
+                          className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {runningCode ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
+                          <span>Run Sample Tests</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleSubmitHiddenTestCases}
+                          disabled={runningCode || submittingTest}
+                          className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 flex items-center gap-2 disabled:opacity-50"
+                        >
+                          {submittingTest ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-amber-300" />}
+                          <span>Submit & Evaluate Code</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Execution Console Tabs */}
+                    <div className="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden">
+                      <div className="flex items-center border-b border-slate-800 bg-slate-900/60 px-4 pt-2">
+                        <button
+                          type="button"
                           onClick={() => setActiveConsoleTab("sample_tests")}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          className={`px-4 py-2 text-xs font-bold border-b-2 transition-all ${
                             activeConsoleTab === "sample_tests"
-                              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                              : "bg-slate-900 text-slate-400 hover:text-white"
+                              ? "border-indigo-500 text-white"
+                              : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
-                          Sample Test Cases
+                          Sample Test Results
                         </button>
                         <button
                           type="button"
                           onClick={() => setActiveConsoleTab("custom_input")}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          className={`px-4 py-2 text-xs font-bold border-b-2 transition-all ${
                             activeConsoleTab === "custom_input"
-                              ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                              : "bg-slate-900 text-slate-400 hover:text-white"
+                              ? "border-indigo-500 text-white"
+                              : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
                           Custom Stdin
@@ -917,192 +1602,192 @@ export default function StudentExamChamberPage() {
                         <button
                           type="button"
                           onClick={() => setActiveConsoleTab("submission")}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                          className={`px-4 py-2 text-xs font-bold border-b-2 transition-all ${
                             activeConsoleTab === "submission"
-                              ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
-                              : "bg-slate-900 text-slate-400 hover:text-white"
+                              ? "border-indigo-500 text-white"
+                              : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
-                          Evaluate Hidden Suite
+                          Evaluation Result
                         </button>
                       </div>
 
-                      {/* Action Run Buttons */}
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={activeConsoleTab === "custom_input" ? handleRunCustomInput : handleRunSampleTests}
-                          disabled={runningCode || submittingTest}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all disabled:opacity-50"
-                        >
-                          {runningCode ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
-                          <span>{runningCode ? "Running..." : "Run Code (Sample)"}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleSubmitHiddenTestCases}
-                          disabled={runningCode || submittingTest}
-                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-md shadow-emerald-600/20 transition-all disabled:opacity-50"
-                        >
-                          {submittingTest ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                          <span>{submittingTest ? "Testing..." : "Submit Code"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Console Tab Content */}
-                    {activeConsoleTab === "sample_tests" && (
-                      <div className="space-y-3 font-mono text-xs">
-                        {codeRunResult ? (
+                      <div className="p-4">
+                        {activeConsoleTab === "sample_tests" && (
                           <div className="space-y-3">
-                            <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-900">
-                              <span className={`font-bold ${codeRunResult.verdict === "ACCEPTED" || codeRunResult.verdict === "SUCCESS" ? "text-emerald-400" : "text-rose-400"}`}>
-                                Verdict: {codeRunResult.verdict}
-                              </span>
-                              <span className="text-slate-400 font-sans">
-                                Exec Time: {codeRunResult.execution_time_ms}ms
-                              </span>
-                            </div>
+                            {runningCode && (
+                              <div className="flex items-center gap-2 text-xs text-indigo-400 py-4">
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <span>Running code against sample test cases in sandbox...</span>
+                              </div>
+                            )}
 
-                            {codeRunResult.sample_results && codeRunResult.sample_results.length > 0 ? (
-                              <div className="space-y-2">
-                                {codeRunResult.sample_results.map((r: any, idx: number) => (
-                                  <div key={idx} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-bold text-white">Sample Case #{idx + 1}</span>
-                                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${r.status === "PASSED" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-rose-500/20 text-rose-300 border border-rose-500/30"}`}>
-                                        {r.status} ({r.execution_time_ms}ms)
-                                      </span>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-                                      <div>
-                                        <span className="text-slate-500 text-[10px] uppercase font-bold block">Expected:</span>
-                                        <div className="text-emerald-400">{r.expected_output}</div>
-                                      </div>
-                                      <div>
-                                        <span className="text-slate-500 text-[10px] uppercase font-bold block">Your Output:</span>
-                                        <div className={r.status === "PASSED" ? "text-slate-200" : "text-rose-400"}>
-                                          {r.actual_output || r.error_message || "(no output)"}
+                            {!runningCode && !codeRunResult && (
+                              <div className="text-xs text-slate-500 py-4 text-center">
+                                Click &quot;Run Sample Tests&quot; to execute your code against visible examples.
+                              </div>
+                            )}
+
+                            {codeRunResult && (
+                              <div className="space-y-3 font-mono text-xs">
+                                <div className="flex items-center justify-between">
+                                  <span
+                                    className={`px-2.5 py-1 rounded-lg font-bold uppercase ${
+                                      codeRunResult.verdict === "PASSED" || codeRunResult.verdict === "SUCCESS"
+                                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                        : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                    }`}
+                                  >
+                                    Verdict: {codeRunResult.verdict}
+                                  </span>
+                                  {codeRunResult.execution_time_ms && (
+                                    <span className="text-slate-400">⏱️ {codeRunResult.execution_time_ms} ms</span>
+                                  )}
+                                </div>
+
+                                {codeRunResult.sample_results && codeRunResult.sample_results.length > 0 && (
+                                  <div className="space-y-2">
+                                    {codeRunResult.sample_results.map((sr: any, srIdx: number) => (
+                                      <div key={srIdx} className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px] font-bold">
+                                          <span className="text-slate-300">Test #{srIdx + 1}</span>
+                                          <span className={sr.passed ? "text-emerald-400" : "text-rose-400"}>
+                                            {sr.passed ? "✓ Passed" : "✗ Failed"}
+                                          </span>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                                          <div>
+                                            <span className="text-slate-500 block">Your Output:</span>
+                                            <div className="p-2 rounded bg-slate-950 text-slate-300 whitespace-pre-wrap">
+                                              {sr.actual_output || "(empty)"}
+                                            </div>
+                                          </div>
+                                          <div>
+                                            <span className="text-slate-500 block">Expected:</span>
+                                            <div className="p-2 rounded bg-slate-950 text-emerald-400 whitespace-pre-wrap">
+                                              {sr.expected_output}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
-                                    </div>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300">
-                                <div>Output:</div>
-                                <pre className="whitespace-pre-wrap text-emerald-400">{codeRunResult.stdout || "(no output)"}</pre>
-                                {codeRunResult.stderr && <pre className="text-rose-400 mt-2 whitespace-pre-wrap">{codeRunResult.stderr}</pre>}
+                                )}
+
+                                {codeRunResult.stdout && (
+                                  <div>
+                                    <span className="text-slate-500 text-[10px] uppercase font-bold block">Stdout:</span>
+                                    <pre className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 overflow-x-auto whitespace-pre-wrap">
+                                      {codeRunResult.stdout}
+                                    </pre>
+                                  </div>
+                                )}
+
+                                {codeRunResult.stderr && (
+                                  <div>
+                                    <span className="text-rose-400 text-[10px] uppercase font-bold block">Stderr:</span>
+                                    <pre className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 overflow-x-auto whitespace-pre-wrap">
+                                      {codeRunResult.stderr}
+                                    </pre>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
-                        ) : (
-                          <div className="text-slate-500 text-xs italic p-4 text-center">
-                            Click &quot;Run Code (Sample)&quot; to validate your solution against sample test cases.
+                        )}
+
+                        {activeConsoleTab === "custom_input" && (
+                          <div className="space-y-3 text-xs">
+                            <label className="block font-bold text-slate-400 uppercase tracking-wider">
+                              Custom Input (Stdin):
+                            </label>
+                            <textarea
+                              rows={3}
+                              value={customStdin}
+                              onChange={(e) => setCustomStdin(e.target.value)}
+                              placeholder="Enter custom inputs here..."
+                              className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs focus:outline-none focus:border-indigo-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleRunCustomInput}
+                              disabled={runningCode}
+                              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2"
+                            >
+                              <Play className="h-3.5 w-3.5" />
+                              <span>Execute with Custom Input</span>
+                            </button>
                           </div>
                         )}
-                      </div>
-                    )}
 
-                    {activeConsoleTab === "custom_input" && (
-                      <div className="space-y-3 font-mono text-xs">
-                        <textarea
-                          rows={3}
-                          value={customStdin}
-                          onChange={(e) => setCustomStdin(e.target.value)}
-                          placeholder="Type custom input values to pipe to stdin..."
-                          className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 focus:outline-none focus:border-indigo-500 font-mono"
-                        />
-                        {codeRunResult && (
-                          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
-                            <span className="text-slate-500 text-[10px] uppercase font-bold block">Console Output:</span>
-                            <pre className="text-emerald-400 whitespace-pre-wrap">{codeRunResult.stdout || "(no stdout)"}</pre>
-                            {codeRunResult.stderr && <pre className="text-rose-400 whitespace-pre-wrap">{codeRunResult.stderr}</pre>}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {activeConsoleTab === "submission" && (
-                      <div className="space-y-3 font-mono text-xs">
-                        {codeSubmitResult ? (
-                          <div className="space-y-3">
-                            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
-                              <div>
-                                <div className={`text-sm font-bold ${codeSubmitResult.verdict === "ACCEPTED" ? "text-emerald-400" : "text-amber-400"}`}>
-                                  Verdict: {codeSubmitResult.verdict}
-                                </div>
-                                <div className="text-slate-400 text-xs font-sans mt-0.5">
-                                  Test Cases Passed: {codeSubmitResult.test_cases_passed} / {codeSubmitResult.total_test_cases}
-                                </div>
+                        {activeConsoleTab === "submission" && (
+                          <div className="space-y-3 font-mono text-xs">
+                            {submittingTest && (
+                              <div className="flex items-center gap-2 text-xs text-indigo-400 py-4">
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                <span>Evaluating code against all hidden test suites...</span>
                               </div>
-                              <div className="text-right font-sans">
-                                <div className="text-base font-extrabold text-white">
-                                  {codeSubmitResult.score_earned} / {codeSubmitResult.max_marks} Marks
-                                </div>
-                                <div className="text-[11px] text-slate-500">{codeSubmitResult.execution_time_ms}ms total</div>
-                              </div>
-                            </div>
+                            )}
 
-                            {/* Summary Grid of Test Case Badges */}
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                              {codeSubmitResult.results?.map((r: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-                                    r.status === "PASSED"
-                                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-                                      : "bg-rose-500/10 border-rose-500/30 text-rose-300"
-                                  }`}
-                                >
-                                  <span>Case #{idx + 1}</span>
-                                  <span className="font-bold">{r.status}</span>
+                            {!submittingTest && !codeSubmitResult && (
+                              <div className="text-xs text-slate-500 py-4 text-center">
+                                Click &quot;Submit &amp; Evaluate Code&quot; to test hidden test cases.
+                              </div>
+                            )}
+
+                            {codeSubmitResult && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                                  <span
+                                    className={`px-3 py-1 rounded-lg font-bold uppercase ${
+                                      codeSubmitResult.verdict === "ACCEPTED" || codeSubmitResult.verdict === "PASSED"
+                                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                                        : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
+                                    }`}
+                                  >
+                                    Verdict: {codeSubmitResult.verdict}
+                                  </span>
+
+                                  <div className="text-sm font-bold text-white">
+                                    Passed:{" "}
+                                    <span className="text-emerald-400">{codeSubmitResult.test_cases_passed}</span> /{" "}
+                                    {codeSubmitResult.total_test_cases} Test Cases
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-slate-500 text-xs italic p-4 text-center">
-                            Click &quot;Submit Code&quot; to test against hidden test suite and save marks.
+
+                                {codeSubmitResult.error_detail && (
+                                  <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 whitespace-pre-wrap">
+                                    {codeSubmitResult.error_detail}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               ) : (
-                /* ==================================================== */
-                /* STANDARD MCQ / MULTI_SELECT / DESCRIPTIVE / IMAGE    */
-                /* ==================================================== */
+                /* STANDARD QUESTIONS (MCQ, MULTI_SELECT, SHORT/LONG ANSWER) */
                 <div className="space-y-6">
-                  {/* Question Text */}
-                  <div className="space-y-4">
-                    <p className="text-base sm:text-lg font-semibold text-white leading-relaxed whitespace-pre-wrap">
-                      {currentQ.question_text}
-                    </p>
+                  <p className="text-base font-semibold text-white leading-relaxed whitespace-pre-wrap">
+                    {currentQ.question_text}
+                  </p>
 
-                    {currentQ.image_url && (
-                      <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800 max-w-md">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={currentQ.image_url}
-                          alt="Question Context"
-                          className="rounded-xl object-contain max-h-64 w-auto mx-auto"
-                        />
-                      </div>
-                    )}
-                  </div>
+                  {currentQ.image_url && (
+                    <div className="rounded-2xl overflow-hidden border border-slate-800 max-w-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={currentQ.image_url} alt="Question Asset" className="w-full object-contain" />
+                    </div>
+                  )}
 
-                  {/* Input Choices based on Question Type */}
-                  <div className="pt-2 space-y-3">
-                    {currentQ.question_type === "MCQ" || currentQ.question_type === "IMAGE" ? (
-                      <div className="space-y-2.5">
-                        {currentQ.options.map((opt, oIdx) => {
+                  {/* Options / Text Input */}
+                  <div className="pt-2">
+                    {currentQ.question_type === "MCQ" ? (
+                      <div className="space-y-3">
+                        {currentQ.options.map((opt) => {
                           const isSelected = currentAnswer?.selected_option_id === opt.id;
-                          const letter = String.fromCharCode(65 + oIdx);
-
                           return (
                             <div
                               key={opt.id}
@@ -1114,13 +1799,13 @@ export default function StudentExamChamberPage() {
                               }`}
                             >
                               <div
-                                className={`h-7 w-7 rounded-xl text-xs font-bold flex items-center justify-center shrink-0 ${
+                                className={`h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${
                                   isSelected
-                                    ? "bg-indigo-600 text-white"
-                                    : "bg-slate-800 text-slate-400"
+                                    ? "bg-indigo-600 border-indigo-500 text-white"
+                                    : "border-slate-700 bg-slate-800"
                                 }`}
                               >
-                                {letter}
+                                {isSelected && <Check className="h-3 w-3 text-white stroke-[3]" />}
                               </div>
                               <span className="text-sm font-medium flex-1">{opt.option_text}</span>
                             </div>
@@ -1128,14 +1813,9 @@ export default function StudentExamChamberPage() {
                         })}
                       </div>
                     ) : currentQ.question_type === "MULTI_SELECT" ? (
-                      <div className="space-y-2.5">
-                        <div className="text-xs text-indigo-400 font-semibold mb-1">
-                          (Multiple options may be correct. Select all that apply.)
-                        </div>
-                        {currentQ.options.map((opt, oIdx) => {
+                      <div className="space-y-3">
+                        {currentQ.options.map((opt) => {
                           const isSelected = (currentAnswer?.selected_option_ids || []).includes(opt.id);
-                          const letter = String.fromCharCode(65 + oIdx);
-
                           return (
                             <div
                               key={opt.id}
@@ -1153,7 +1833,7 @@ export default function StudentExamChamberPage() {
                                     : "border-slate-700 bg-slate-800"
                                 }`}
                               >
-                                {isSelected && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                {isSelected && <Check className="h-3 w-3 text-white stroke-[3]" />}
                               </div>
                               <span className="text-sm font-medium flex-1">{opt.option_text}</span>
                             </div>
@@ -1163,14 +1843,14 @@ export default function StudentExamChamberPage() {
                     ) : (
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-                          Write your response below:
+                          Your Answer:
                         </label>
                         <textarea
-                          rows={currentQ.question_type === "LONG_ANSWER" ? 8 : 4}
+                          rows={6}
                           value={currentAnswer?.text_answer || ""}
                           onChange={(e) => handleTextAnswerChange(e.target.value)}
-                          placeholder="Type your explanation or calculations here..."
-                          className="w-full p-4 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500 leading-relaxed font-mono"
+                          placeholder="Type your detailed response here..."
+                          className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500 leading-relaxed font-mono"
                         />
                       </div>
                     )}
@@ -1178,23 +1858,27 @@ export default function StudentExamChamberPage() {
                 </div>
               )}
 
-              {/* Bottom Chamber Controls */}
+              {/* Bottom Navigation */}
               <div className="flex items-center justify-between pt-6 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => handleNavigateQuestion(currentIdx - 1)}
                   disabled={currentIdx === 0}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
                   <span>Previous</span>
                 </button>
 
+                <div className="text-xs text-slate-400">
+                  Question {currentIdx + 1} of {questions.length}
+                </div>
+
                 {currentIdx < questions.length - 1 ? (
                   <button
                     type="button"
                     onClick={() => handleNavigateQuestion(currentIdx + 1)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500"
+                    className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center gap-2 shadow-lg shadow-indigo-600/20"
                   >
                     <span>Save & Next</span>
                     <ChevronRight className="h-4 w-4" />
@@ -1203,7 +1887,7 @@ export default function StudentExamChamberPage() {
                   <button
                     type="button"
                     onClick={() => setIsConfirmModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20"
+                    className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2 shadow-lg shadow-emerald-600/20"
                   >
                     <Send className="h-3.5 w-3.5" />
                     <span>Review & Submit</span>
@@ -1216,15 +1900,22 @@ export default function StudentExamChamberPage() {
 
         {/* Right Sidebar: Webcam & Question Palette */}
         <div className="space-y-6">
-          {/* Webcam Live Feed Preview */}
-          <div className="glass-card rounded-3xl p-4 border border-slate-800 space-y-3">
+          {/* Webcam Live Feed Preview with AI Vision HUD */}
+          <div
+            className={`glass-card rounded-3xl p-4 border space-y-3 transition-all ${
+              detectedEntities.some((tag) => tag.includes("⚠️"))
+                ? "border-rose-500/60 ring-2 ring-rose-500/30"
+                : "border-slate-800"
+            }`}
+          >
             <div className="flex items-center justify-between text-xs font-bold text-slate-400">
               <span className="flex items-center gap-1.5 text-emerald-400">
                 <Camera className="h-3.5 w-3.5" />
                 Live Camera Feed
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold">
-                TRACKING
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                AI ACTIVE
               </span>
             </div>
 
@@ -1236,9 +1927,27 @@ export default function StudentExamChamberPage() {
                 muted
                 className="w-full h-full object-cover mirror"
               />
+
+              {/* HUD Tags Overlay */}
+              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+                {detectedEntities.map((tag, tIdx) => (
+                  <span
+                    key={tIdx}
+                    className={`text-[9px] font-bold px-2 py-0.5 rounded-md backdrop-blur-md shadow-md ${
+                      tag.includes("⚠️")
+                        ? "bg-rose-600/90 text-white animate-bounce"
+                        : "bg-slate-900/80 text-emerald-300 border border-emerald-500/30"
+                    }`}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="text-[10px] text-slate-500 text-center">
-              AI proctor monitors gaze, audio, and browser focus continuously.
+
+            <div className="text-[10px] text-slate-400 text-center flex flex-col gap-0.5">
+              <span className="font-semibold text-slate-300">Continuous AI Guard Active</span>
+              <span className="text-slate-500">Detects unauthorized devices, gaze, and multi-candidate presence.</span>
             </div>
           </div>
 
