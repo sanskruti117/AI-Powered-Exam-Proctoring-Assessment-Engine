@@ -1287,16 +1287,16 @@ export default function StudentExamChamberPage() {
                     </div>
 
                     <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">
-                      LIVE STREAM
+                      {t("student.liveStream", "LIVE STREAM")}
                     </span>
                   </div>
                   <div className="space-y-1.5 text-xs flex-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <Camera className="h-4 w-4 text-emerald-400" />
-                      Dual AI Vision Neural Guard Active
+                      {t("student.dualAiActive", "Dual AI Vision Neural Guard Active")}
                     </div>
                     <p className="text-slate-400 leading-relaxed">
-                      BlazeFace landmark detection and COCO-SSD neural models are running real-time frame analysis in your browser. Center your face in the feed.
+                      {t("student.aiVisionDescription", "BlazeFace landmark detection and COCO-SSD neural models are running real-time frame analysis in your browser. Center your face in the feed.")}
                     </p>
                     <div className="text-[11px] text-indigo-300 font-mono flex items-center gap-1.5 pt-0.5">
                       <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -1312,12 +1312,12 @@ export default function StudentExamChamberPage() {
                     <div className="flex items-center gap-2">
                       <Video className="h-4 w-4 text-indigo-400 shrink-0" />
                       <div>
-                        <div className="font-bold text-white">Video Feed</div>
+                        <div className="font-bold text-white">{t("student.videoFeed", "Video Feed")}</div>
                         <div className="text-[10px] text-slate-400">640x480 &bull; 30 FPS</div>
                       </div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      PASSED
+                      {t("student.passed", "PASSED")}
                     </span>
                   </div>
 
@@ -1326,12 +1326,12 @@ export default function StudentExamChamberPage() {
                     <div className="flex items-center gap-2">
                       <Cpu className="h-4 w-4 text-violet-400 shrink-0" />
                       <div>
-                        <div className="font-bold text-white">AI Vision Models</div>
+                        <div className="font-bold text-white">{t("student.aiVisionModels", "AI Vision Models")}</div>
                         <div className="text-[10px] text-slate-400">BlazeFace + COCO</div>
                       </div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      READY
+                      {t("student.ready", "READY")}
                     </span>
                   </div>
 
@@ -1340,12 +1340,12 @@ export default function StudentExamChamberPage() {
                     <div className="flex items-center gap-2">
                       <Maximize className="h-4 w-4 text-cyan-400 shrink-0" />
                       <div>
-                        <div className="font-bold text-white">Screen Lock API</div>
-                        <div className="text-[10px] text-slate-400">Fullscreen Enforced</div>
+                        <div className="font-bold text-white">{t("student.screenLockApi", "Screen Lock API")}</div>
+                        <div className="text-[10px] text-slate-400">{t("student.fullscreenEnforced", "Fullscreen Enforced")}</div>
                       </div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      SUPPORTED
+                      {t("student.supported", "SUPPORTED")}
                     </span>
                   </div>
 
@@ -1354,21 +1354,21 @@ export default function StudentExamChamberPage() {
                     <div className="flex items-center gap-2">
                       <Wifi className="h-4 w-4 text-amber-400 shrink-0" />
                       <div>
-                        <div className="font-bold text-white">Heartbeat Sync</div>
+                        <div className="font-bold text-white">{t("student.heartbeatSync", "Heartbeat Sync")}</div>
                         <div className="text-[10px] text-slate-400">
-                          {networkPingMs ? `Ping: ${networkPingMs}ms` : "Testing latency..."}
+                          {networkPingMs ? `Ping: ${networkPingMs}ms` : t("student.testingLatency", "Testing latency...")}
                         </div>
                       </div>
                     </div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      STABLE
+                      {t("student.stable", "STABLE")}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between pt-1 text-xs">
                   <span className="text-slate-400 text-[11px]">
-                    All hardware subsystems passed diagnostic check.
+                    {t("student.allHardwarePassed", "All hardware subsystems passed diagnostic check.")}
                   </span>
                   <button
                     type="button"
@@ -1377,7 +1377,7 @@ export default function StudentExamChamberPage() {
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all text-xs"
                   >
                     <RefreshCw className={`h-3 w-3 ${isRunningDiagnostics ? "animate-spin text-indigo-400" : ""}`} />
-                    <span>{isRunningDiagnostics ? "Checking..." : "Re-test Diagnostics"}</span>
+                    <span>{isRunningDiagnostics ? t("student.checking", "Checking...") : t("student.retestDiagnostics", "Re-test Diagnostics")}</span>
                   </button>
                 </div>
               </div>
@@ -1390,40 +1390,40 @@ export default function StudentExamChamberPage() {
                   <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <Maximize className="h-3.5 w-3.5 text-indigo-400" />
-                      Full-Screen Chamber
+                      {t("student.fullscreenChamber", "Full-Screen Chamber")}
                     </div>
                     <p className="text-slate-400 text-[11px]">
-                      The exam runs strictly in full-screen. Exiting full-screen triggers an immediate strike.
+                      {t("student.fullscreenChamberDesc", "The exam runs strictly in full-screen. Exiting full-screen triggers an immediate strike.")}
                     </p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <Eye className="h-3.5 w-3.5 text-amber-400" />
-                      No Tab Switching / Blur
+                      {t("student.noTabSwitch", "No Tab Switching / Blur")}
                     </div>
                     <p className="text-slate-400 text-[11px]">
-                      Navigating tabs, opening new windows, or losing window focus is strictly prohibited.
+                      {t("student.noTabSwitchDesc", "Navigating tabs, opening new windows, or losing window focus is strictly prohibited.")}
                     </p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <Smartphone className="h-3.5 w-3.5 text-rose-400" />
-                      No Secondary Devices
+                      {t("student.noSecondaryDevices", "No Secondary Devices")}
                     </div>
                     <p className="text-slate-400 text-[11px]">
-                      Smartphones, tablets, books, secondary screens, or notes in view will be flagged by AI.
+                      {t("student.noSecondaryDevicesDesc", "Smartphones, tablets, books, secondary screens, or notes in view will be flagged by AI.")}
                     </p>
                   </div>
 
                   <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1">
                     <div className="font-bold text-white flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5 text-cyan-400" />
-                      Single Candidate Only
+                      {t("student.singleCandidateOnly", "Single Candidate Only")}
                     </div>
                     <p className="text-slate-400 text-[11px]">
-                      Candidate absence or multiple persons in camera view across consecutive frames causes a violation.
+                      {t("student.singleCandidateOnlyDesc", "Candidate absence or multiple persons in camera view across consecutive frames causes a violation.")}
                     </p>
                   </div>
                 </div>
@@ -1432,7 +1432,7 @@ export default function StudentExamChamberPage() {
                 <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-200">
                   <AlertOctagon className="h-5 w-5 text-rose-400 shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-bold text-rose-300">Strict 3-Strike Warning Policy:</span> You will receive warnings for up to 3 violations. Upon committing a <span className="font-bold text-white underline">4th violation</span>, the examination chamber will immediately terminate and your answers will be <span className="font-bold text-white underline">automatically submitted</span>.
+                    <span className="font-bold text-rose-300">{t("student.strictStrikePolicy", "Strict 3-Strike Warning Policy:")}</span> {t("student.strictStrikePolicyDesc", "You will receive warnings for up to 3 violations. Upon committing a 4th violation, the examination chamber will immediately terminate and your answers will be automatically submitted.")}
                   </div>
                 </div>
               </div>
@@ -1448,7 +1448,7 @@ export default function StudentExamChamberPage() {
                   className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                 />
                 <span className="text-xs text-slate-300 leading-relaxed">
-                  I confirm that I am in a quiet room, have closed background applications, completed the hardware diagnostics check, and agree to full-screen proctoring and the 3-strike violation policy.
+                  {t("student.confirmRulesCheckbox", "I confirm that I am in a quiet room, have closed background applications, completed the hardware diagnostics check, and agree to full-screen proctoring and the 3-strike violation policy.")}
                 </span>
               </label>
 
@@ -1459,7 +1459,7 @@ export default function StudentExamChamberPage() {
                 className="w-full py-3.5 rounded-2xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all"
               >
                 <Maximize className="h-4 w-4" />
-                <span>Authorize Fullscreen & Begin Assessment</span>
+                <span>{t("student.authorizeFullscreenBtn", "Authorize Fullscreen & Begin Assessment")}</span>
               </button>
             </div>
           </div>
@@ -1479,15 +1479,15 @@ export default function StudentExamChamberPage() {
 
             <div className="space-y-2">
               <h3 className="text-xl font-black text-white uppercase tracking-wider">
-                Full-Screen Mode Exited
+                {t("student.fullscreenExitedTitle", "Full-Screen Mode Exited")}
               </h3>
               <p className="text-xs text-rose-300 leading-relaxed">
-                Examination access is temporarily locked because you exited full-screen mode. This incident has been recorded as a proctoring violation.
+                {t("student.fullscreenExitedDesc", "Examination access is temporarily locked because you exited full-screen mode. This incident has been recorded as a proctoring violation.")}
               </p>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              Current Violations: <span className="font-bold text-rose-400">{strikesCount} / 3 Strikes</span>
+              {t("student.currentViolations", "Current Violations:")} <span className="font-bold text-rose-400">{strikesCount} / 3 {t("student.strikes", "Strikes")}</span>
             </div>
 
             <button
@@ -1496,7 +1496,7 @@ export default function StudentExamChamberPage() {
               className="w-full py-3 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all"
             >
               <Maximize className="h-4 w-4" />
-              <span>Restore Fullscreen & Resume</span>
+              <span>{t("student.restoreFullscreenBtn", "Restore Fullscreen & Resume")}</span>
             </button>
           </div>
         </div>
@@ -1538,9 +1538,7 @@ export default function StudentExamChamberPage() {
                       : "bg-amber-500/20 text-amber-300 border-amber-500/40"
                   }`}
                 >
-                  {activeStrikeModal.isFinal
-                    ? "FINAL LOCKOUT • STRIKE 4 REACHED"
-                    : `PROCTOR WARNING • STRIKE ${activeStrikeModal.strikeNum} OF 3`}
+                  {activeStrikeModal.isFinal ? t("student.finalLockoutBadge", "FINAL LOCKOUT • STRIKE 4 REACHED") : `${t("student.proctorWarningBadge", "PROCTOR WARNING • STRIKE")} ${activeStrikeModal.strikeNum} ${t("student.of", "OF")} 3`}
                 </span>
                 <h3 className="text-lg font-bold text-white mt-2">{activeStrikeModal.reason}</h3>
               </div>
@@ -1548,16 +1546,16 @@ export default function StudentExamChamberPage() {
 
             {/* Violation Details */}
             <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 text-xs">
-              <div className="text-slate-400">Incident Details:</div>
+              <div className="text-slate-400">{t("student.incidentDetails", "Incident Details:")}</div>
               <p className="text-slate-200 font-medium">{activeStrikeModal.details}</p>
             </div>
 
             {/* Strike Meter Visualization */}
             <div className="space-y-2">
               <div className="flex justify-between text-[11px] font-bold text-slate-400">
-                <span>Violations Meter</span>
+                <span>{t("student.violationsMeter", "Violations Meter")}</span>
                 <span className={activeStrikeModal.isFinal ? "text-rose-400" : "text-amber-400"}>
-                  {Math.min(activeStrikeModal.strikeNum, 3)} / 3 Allowed Strikes
+                  {Math.min(activeStrikeModal.strikeNum, 3)} / 3 {t("student.allowedStrikes", "Allowed Strikes")}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -1582,7 +1580,7 @@ export default function StudentExamChamberPage() {
               <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-center space-y-2">
                 <div className="text-sm font-bold text-white flex items-center justify-center gap-2">
                   <RefreshCw className="h-4 w-4 animate-spin text-rose-400" />
-                  <span>Exam Terminated. Auto-Submitting Assessment...</span>
+                  <span>{t("student.examTerminatedAutoSubmitting", "Exam Terminated. Auto-Submitting Assessment...")}</span>
                 </div>
                 <p className="text-[11px] text-rose-300">
                   Your 4th violation strike was recorded. Answers saved up to this point are being submitted.
@@ -1595,7 +1593,7 @@ export default function StudentExamChamberPage() {
                   onClick={() => setActiveStrikeModal(null)}
                   className="w-full py-3 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
                 >
-                  I Understand & Return to Exam
+                  {t("student.understandAndReturnBtn", "I Understand & Return to Exam")}
                 </button>
               </div>
             )}
@@ -1675,7 +1673,7 @@ export default function StudentExamChamberPage() {
             <AlertTriangle className="h-4 w-4 text-rose-400 flex-shrink-0" />
             <span>{proctorWarnings[proctorWarnings.length - 1]}</span>
           </div>
-          <span className="font-bold">{proctorWarnings.length} Incidents Logged ({strikesCount}/3 Strikes)</span>
+          <span className="font-bold">{proctorWarnings.length} {t("student.incidentsLogged", "Incidents Logged")} ({strikesCount}/3 {t("student.strikes", "Strikes")})</span>
         </div>
       )}
 
@@ -1689,7 +1687,7 @@ export default function StudentExamChamberPage() {
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <span className="px-3 py-1 rounded-xl text-xs font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-                    Question {currentIdx + 1} of {questions.length}
+                    {t("student.question", "Question")} {currentIdx + 1} {t("student.of", "of")} {questions.length}
                   </span>
                   <span className="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300">
                     {currentQ.section_title}
@@ -1715,12 +1713,12 @@ export default function StudentExamChamberPage() {
                         reviewedQuestionIds[currentQ.id] ? "fill-purple-400 text-purple-400" : ""
                       }`}
                     />
-                    <span>{reviewedQuestionIds[currentQ.id] ? "Marked for Review" : "Mark for Review"}</span>
+                    <span>{reviewedQuestionIds[currentQ.id] ? t("student.markedForReview", "Marked for Review") : t("student.markForReview", "Mark for Review")}</span>
                   </button>
 
                   <div className="text-sm font-extrabold text-amber-400 flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-xl">
                     <Award className="h-4 w-4" />
-                    <span>{currentQ.marks} Marks</span>
+                    <span>{currentQ.marks} {t("student.marks", "Marks")}</span>
                   </div>
                 </div>
               </div>
@@ -1733,15 +1731,15 @@ export default function StudentExamChamberPage() {
                     {isTranslatingQuestion ? (
                       <span className="flex items-center gap-2 text-indigo-300 font-medium">
                         <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                        Translating question to {SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName || language}...
+                        {t("student.translatingQuestion", "Translating question to")} {SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName || language}...
                       </span>
                     ) : showOriginalLanguage ? (
                       <span className="text-slate-300 font-medium">
-                        Showing original English text
+                        {t("student.showingOriginal", "Showing original English text")}
                       </span>
                     ) : (
                       <span className="text-indigo-200 font-medium">
-                        Translated to <strong className="text-white font-bold">{SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName}</strong>
+                        {t("student.translatedTo", "Translated to")} <strong className="text-white font-bold">{SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName}</strong>
                       </span>
                     )}
                   </div>
@@ -1751,7 +1749,7 @@ export default function StudentExamChamberPage() {
                     onClick={() => setShowOriginalLanguage((prev) => !prev)}
                     className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600/25 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/40 transition-all shrink-0"
                   >
-                    {showOriginalLanguage ? "Show Translated" : "View Original (English)"}
+                    {showOriginalLanguage ? t("student.showTranslated", "Show Translated") : t("student.viewOriginal", "View Original (English)")}
                   </button>
                 </div>
               )}
@@ -1769,12 +1767,12 @@ export default function StudentExamChamberPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
                       {displayConstraints && (
                         <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
-                          <span className="font-bold text-slate-400 uppercase block mb-1">Constraints</span>
+                          <span className="font-bold text-slate-400 uppercase block mb-1">{t("student.constraints", "Constraints")}</span>
                           <span className="text-slate-300 font-mono whitespace-pre-wrap">{displayConstraints}</span>
                         </div>
                       )}
                       <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between">
-                        <span className="text-slate-400 font-bold uppercase">Limits</span>
+                        <span className="text-slate-400 font-bold uppercase">{t("student.limits", "Limits")}</span>
                         <div className="flex items-center gap-3 text-slate-300 font-mono">
                           <span>⏱️ {currentQ.time_limit_seconds || 2.0}s</span>
                           <span>💾 {currentQ.memory_limit_mb || 256}MB</span>
@@ -1787,13 +1785,13 @@ export default function StudentExamChamberPage() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
                         {displayInputFormat && (
                           <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
-                            <span className="font-bold text-slate-400 uppercase block mb-1">Input Format</span>
+                            <span className="font-bold text-slate-400 uppercase block mb-1">{t("student.inputFormat", "Input Format")}</span>
                             <span className="text-slate-300 whitespace-pre-wrap">{displayInputFormat}</span>
                           </div>
                         )}
                         {displayOutputFormat && (
                           <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
-                            <span className="font-bold text-slate-400 uppercase block mb-1">Output Format</span>
+                            <span className="font-bold text-slate-400 uppercase block mb-1">{t("student.outputFormat", "Output Format")}</span>
                             <span className="text-slate-300 whitespace-pre-wrap">{displayOutputFormat}</span>
                           </div>
                         )}
@@ -1806,25 +1804,25 @@ export default function StudentExamChamberPage() {
                     <div className="space-y-3">
                       <div className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                         <Terminal className="h-3.5 w-3.5 text-emerald-400" />
-                        Sample Test Cases
+                        {t("student.sampleTestCases", "Sample Test Cases")}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {currentQ.sample_test_cases.map((tc, sIdx) => (
                           <div key={tc.id || sIdx} className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
                             <div className="flex items-center justify-between text-[11px] font-bold text-emerald-400">
-                              <span>Example #{sIdx + 1}</span>
+                              <span>{t("student.example", "Example")} #{sIdx + 1}</span>
                               {tc.explanation && <span className="text-slate-500 font-normal italic">{tc.explanation}</span>}
                             </div>
                             <div className="space-y-1.5 font-mono text-xs">
                               <div>
-                                <span className="text-slate-500 text-[10px] uppercase font-bold block">Input:</span>
+                                <span className="text-slate-500 text-[10px] uppercase font-bold block">{t("student.input", "Input:")}</span>
                                 <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-200 whitespace-pre-wrap">
                                   {tc.input_data || "(empty)"}
                                 </div>
                               </div>
                               <div>
-                                <span className="text-slate-500 text-[10px] uppercase font-bold block">Expected Output:</span>
+                                <span className="text-slate-500 text-[10px] uppercase font-bold block">{t("student.expectedOutput", "Expected Output:")}</span>
                                 <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-emerald-400 whitespace-pre-wrap">
                                   {tc.expected_output}
                                 </div>
@@ -1844,7 +1842,7 @@ export default function StudentExamChamberPage() {
                         <div className="flex items-center gap-2">
                           <Code2 className="h-4 w-4 text-indigo-400" />
                           <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                            Language:
+                            {t("student.language", "Language:")}
                           </label>
                         </div>
                         <select
@@ -1881,7 +1879,7 @@ export default function StudentExamChamberPage() {
                           className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-slate-400 hover:text-white flex items-center gap-1.5"
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
-                          <span>Reset Template</span>
+                          <span>{t("student.resetTemplate", "Reset Template")}</span>
                         </button>
                       </div>
                     </div>
@@ -1910,10 +1908,10 @@ export default function StudentExamChamberPage() {
                       <div className="text-xs text-slate-400">
                         {answers[currentQ.id]?.test_cases_passed !== undefined && answers[currentQ.id]?.total_test_cases ? (
                           <span className="text-emerald-400 font-bold">
-                            ✓ Passed {answers[currentQ.id]?.test_cases_passed} / {answers[currentQ.id]?.total_test_cases} Test Cases
+                            ✓ {t("student.testCasesPassedSummary", "Passed {passed} / {total} Test Cases").replace("{passed}", String(answers[currentQ.id]?.test_cases_passed)).replace("{total}", String(answers[currentQ.id]?.total_test_cases))}
                           </span>
                         ) : (
-                          <span>Write your solution and test before saving.</span>
+                          <span>{t("student.writeSolutionPrompt", "Write your solution and test before saving.")}</span>
                         )}
                       </div>
 
@@ -1925,7 +1923,7 @@ export default function StudentExamChamberPage() {
                           className="px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center gap-2 disabled:opacity-50"
                         >
                           {runningCode ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
-                          <span>Run Sample Tests</span>
+                          <span>{t("student.runSampleTests", "Run Sample Tests")}</span>
                         </button>
 
                         <button
@@ -1935,7 +1933,7 @@ export default function StudentExamChamberPage() {
                           className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 flex items-center gap-2 disabled:opacity-50"
                         >
                           {submittingTest ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5 text-amber-300" />}
-                          <span>Submit & Evaluate Code</span>
+                          <span>{t("student.submitAndEvaluate", "Submit & Evaluate Code")}</span>
                         </button>
                       </div>
                     </div>
@@ -1952,7 +1950,7 @@ export default function StudentExamChamberPage() {
                               : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
-                          Sample Test Results
+                          {t("student.sampleTestResults", "Sample Test Results")}
                         </button>
                         <button
                           type="button"
@@ -1963,7 +1961,7 @@ export default function StudentExamChamberPage() {
                               : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
-                          Custom Stdin
+                          {t("student.customStdin", "Custom Stdin")}
                         </button>
                         <button
                           type="button"
@@ -1974,7 +1972,7 @@ export default function StudentExamChamberPage() {
                               : "border-transparent text-slate-400 hover:text-slate-200"
                           }`}
                         >
-                          Evaluation Result
+                          {t("student.evaluationResult", "Evaluation Result")}
                         </button>
                       </div>
 
@@ -1984,13 +1982,13 @@ export default function StudentExamChamberPage() {
                             {runningCode && (
                               <div className="flex items-center gap-2 text-xs text-indigo-400 py-4">
                                 <RefreshCw className="h-4 w-4 animate-spin" />
-                                <span>Running code against sample test cases in sandbox...</span>
+                                <span>{t("student.runningSampleTests", "Running code against sample test cases in sandbox...")}</span>
                               </div>
                             )}
 
                             {!runningCode && !codeRunResult && (
                               <div className="text-xs text-slate-500 py-4 text-center">
-                                Click &quot;Run Sample Tests&quot; to execute your code against visible examples.
+                                {t("student.clickRunSampleTests", "Click \"Run Sample Tests\" to execute your code against visible examples.")}
                               </div>
                             )}
 
@@ -2004,7 +2002,7 @@ export default function StudentExamChamberPage() {
                                         : "bg-rose-500/20 text-rose-300 border border-rose-500/40"
                                     }`}
                                   >
-                                    Verdict: {codeRunResult.verdict}
+                                    {t("student.verdict", "Verdict:")} {codeRunResult.verdict}
                                   </span>
                                   {codeRunResult.execution_time_ms && (
                                     <span className="text-slate-400">⏱️ {codeRunResult.execution_time_ms} ms</span>
@@ -2023,13 +2021,13 @@ export default function StudentExamChamberPage() {
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
                                           <div>
-                                            <span className="text-slate-500 block">Your Output:</span>
+                                            <span className="text-slate-500 block">{t("student.yourOutput", "Your Output:")}</span>
                                             <div className="p-2 rounded bg-slate-950 text-slate-300 whitespace-pre-wrap">
                                               {sr.actual_output || "(empty)"}
                                             </div>
                                           </div>
                                           <div>
-                                            <span className="text-slate-500 block">Expected:</span>
+                                            <span className="text-slate-500 block">{t("student.expected", "Expected:")}</span>
                                             <div className="p-2 rounded bg-slate-950 text-emerald-400 whitespace-pre-wrap">
                                               {sr.expected_output}
                                             </div>
@@ -2042,7 +2040,7 @@ export default function StudentExamChamberPage() {
 
                                 {codeRunResult.stdout && (
                                   <div>
-                                    <span className="text-slate-500 text-[10px] uppercase font-bold block">Stdout:</span>
+                                    <span className="text-slate-500 text-[10px] uppercase font-bold block">{t("student.stdout", "Stdout:")}</span>
                                     <pre className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-200 overflow-x-auto whitespace-pre-wrap">
                                       {codeRunResult.stdout}
                                     </pre>
@@ -2051,7 +2049,7 @@ export default function StudentExamChamberPage() {
 
                                 {codeRunResult.stderr && (
                                   <div>
-                                    <span className="text-rose-400 text-[10px] uppercase font-bold block">Stderr:</span>
+                                    <span className="text-rose-400 text-[10px] uppercase font-bold block">{t("student.stderr", "Stderr:")}</span>
                                     <pre className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-300 overflow-x-auto whitespace-pre-wrap">
                                       {codeRunResult.stderr}
                                     </pre>
@@ -2065,13 +2063,13 @@ export default function StudentExamChamberPage() {
                         {activeConsoleTab === "custom_input" && (
                           <div className="space-y-3 text-xs">
                             <label className="block font-bold text-slate-400 uppercase tracking-wider">
-                              Custom Input (Stdin):
+                              {t("student.customInputLabel", "Custom Input (Stdin):")}
                             </label>
                             <textarea
                               rows={3}
                               value={customStdin}
                               onChange={(e) => setCustomStdin(e.target.value)}
-                              placeholder="Enter custom inputs here..."
+                              placeholder={t("student.customInputPlaceholder", "Enter custom inputs here...")}
                               className="w-full p-3 rounded-xl bg-slate-900 border border-slate-800 text-white font-mono text-xs focus:outline-none focus:border-indigo-500"
                             />
                             <button
@@ -2081,7 +2079,7 @@ export default function StudentExamChamberPage() {
                               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center gap-2"
                             >
                               <Play className="h-3.5 w-3.5" />
-                              <span>Execute with Custom Input</span>
+                              <span>{t("student.executeCustomInput", "Execute with Custom Input")}</span>
                             </button>
                           </div>
                         )}
@@ -2091,13 +2089,13 @@ export default function StudentExamChamberPage() {
                             {submittingTest && (
                               <div className="flex items-center gap-2 text-xs text-indigo-400 py-4">
                                 <RefreshCw className="h-4 w-4 animate-spin" />
-                                <span>Evaluating code against all hidden test suites...</span>
+                                <span>{t("student.evaluatingCode", "Evaluating code against all hidden test suites...")}</span>
                               </div>
                             )}
 
                             {!submittingTest && !codeSubmitResult && (
                               <div className="text-xs text-slate-500 py-4 text-center">
-                                Click &quot;Submit &amp; Evaluate Code&quot; to test hidden test cases.
+                                {t("student.clickSubmitCode", "Click \"Submit & Evaluate Code\" to test hidden test cases.")}
                               </div>
                             )}
 
@@ -2209,13 +2207,13 @@ export default function StudentExamChamberPage() {
                     ) : (
                       <div className="space-y-2">
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
-                          Your Answer:
+                          {t("student.yourAnswer", "Your Answer:")}
                         </label>
                         <textarea
                           rows={6}
                           value={currentAnswer?.text_answer || ""}
                           onChange={(e) => handleTextAnswerChange(e.target.value)}
-                          placeholder="Type your detailed response here..."
+                          placeholder={t("student.typeResponsePlaceholder", "Type your detailed response here...")}
                           className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500 leading-relaxed font-mono"
                         />
                       </div>
@@ -2235,7 +2233,7 @@ export default function StudentExamChamberPage() {
                     className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 bg-slate-900 border border-slate-800 hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
                   >
                     <ChevronLeft className="h-4 w-4" />
-                    <span>Previous</span>
+                    <span>{t("student.previous", "Previous")}</span>
                   </button>
 
                   <button
@@ -2246,7 +2244,7 @@ export default function StudentExamChamberPage() {
                     title="Clear selected answer for this question"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Clear Response</span>
+                    <span className="hidden sm:inline">{t("student.clearResponse", "Clear Response")}</span>
                   </button>
                 </div>
 
@@ -2272,7 +2270,7 @@ export default function StudentExamChamberPage() {
                       }`}
                     />
                     <span>
-                      {reviewedQuestionIds[currentQ.id] ? "Marked • Next" : "Mark for Review & Next"}
+                      {reviewedQuestionIds[currentQ.id] ? t("student.markedNext", "Marked • Next") : t("student.markForReviewAndNext", "Mark for Review & Next")}
                     </span>
                   </button>
 
@@ -2282,7 +2280,7 @@ export default function StudentExamChamberPage() {
                       onClick={() => handleNavigateQuestion(currentIdx + 1)}
                       className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 flex items-center gap-2 shadow-lg shadow-indigo-600/20 transition-all"
                     >
-                      <span>Save & Next</span>
+                      <span>{t("student.saveAndNext", "Save & Next")}</span>
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   ) : (
@@ -2292,7 +2290,7 @@ export default function StudentExamChamberPage() {
                       className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all"
                     >
                       <Send className="h-3.5 w-3.5" />
-                      <span>Review & Submit</span>
+                      <span>{t("student.reviewAndSubmit", "Review & Submit")}</span>
                     </button>
                   )}
                 </div>
@@ -2314,11 +2312,11 @@ export default function StudentExamChamberPage() {
             <div className="flex items-center justify-between text-xs font-bold text-slate-400">
               <span className="flex items-center gap-1.5 text-emerald-400">
                 <Camera className="h-3.5 w-3.5" />
-                Live Camera Feed
+                {t("student.liveCameraFeed", "Live Camera Feed")}
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-bold flex items-center gap-1">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                AI ACTIVE
+                {t("student.aiActive", "AI ACTIVE")}
               </span>
             </div>
 
@@ -2349,16 +2347,16 @@ export default function StudentExamChamberPage() {
             </div>
 
             <div className="text-[10px] text-slate-400 text-center flex flex-col gap-0.5">
-              <span className="font-semibold text-slate-300">Continuous AI Guard Active</span>
-              <span className="text-slate-500">Detects unauthorized devices, gaze, and multi-candidate presence.</span>
+              <span className="font-semibold text-slate-300">{t("student.continuousAiGuard", "Continuous AI Guard Active")}</span>
+              <span className="text-slate-500">{t("student.continuousAiGuardDesc", "Detects unauthorized devices, gaze, and multi-candidate presence.")}</span>
             </div>
           </div>
 
           {/* Question Navigator Palette */}
           <div className="glass-card rounded-3xl p-5 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between text-xs font-bold text-slate-400">
-              <span>Question Palette</span>
-              <span className="text-indigo-400">{questions.length} Items</span>
+              <span>{t("student.questionPalette", "Question Palette")}</span>
+              <span className="text-indigo-400">{questions.length} {t("student.items", "Items")}</span>
             </div>
 
             <div className="grid grid-cols-5 gap-2">
@@ -2404,23 +2402,23 @@ export default function StudentExamChamberPage() {
             <div className="pt-2 border-t border-slate-800 grid grid-cols-2 gap-2 text-[10px] text-slate-400">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-emerald-500/30 border border-emerald-500" />
-                <span>Answered</span>
+                <span>{t("student.answered", "Answered")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-purple-950/70 border border-purple-500" />
-                <span>Marked for Review</span>
+                <span>{t("student.markedForReview", "Marked for Review")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-purple-600/30 border border-purple-400" />
-                <span>Answered & Marked</span>
+                <span>{t("student.answeredAndMarked", "Answered & Marked")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-slate-900 border border-slate-800" />
-                <span>Unattempted</span>
+                <span>{t("student.unattempted", "Unattempted")}</span>
               </div>
               <div className="flex items-center gap-2 col-span-2">
                 <span className="h-2.5 w-2.5 rounded-md bg-indigo-600" />
-                <span>Current Active</span>
+                <span>{t("student.currentActive", "Current Active")}</span>
               </div>
             </div>
           </div>
@@ -2435,30 +2433,28 @@ export default function StudentExamChamberPage() {
               <div className="h-12 w-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto">
                 <HelpCircle className="h-6 w-6" />
               </div>
-              <h3 className="text-lg font-bold text-white">Submit Examination?</h3>
+              <h3 className="text-lg font-bold text-white">{t("student.submitExamModalTitle", "Submit Examination?")}</h3>
               <p className="text-xs text-slate-400">
-                You have answered <span className="font-bold text-white">{answeredCount}</span> of{" "}
-                <span className="font-bold text-white">{questions.length}</span> questions. Once
-                submitted, your answers will be automatically graded and finalized.
+                {t("student.submitExamConfirmDesc", "You have answered {answered} of {total} questions. Once submitted, your answers will be automatically graded and finalized.").replace("{answered}", String(answeredCount)).replace("{total}", String(questions.length))}
               </p>
             </div>
 
             <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
               <div className="flex justify-between text-slate-400">
-                <span>Total Answered:</span>
+                <span>{t("student.totalAnswered", "Total Answered:")}</span>
                 <span className="font-bold text-emerald-400">{answeredCount}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Marked for Review:</span>
+                <span>{t("student.markedReviewCount", "Marked for Review:")}</span>
                 <span className="font-bold text-purple-400">{reviewedCount}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Unanswered:</span>
+                <span>{t("student.unansweredCount", "Unanswered:")}</span>
                 <span className="font-bold text-amber-400">{questions.length - answeredCount}</span>
               </div>
               <div className="flex justify-between text-slate-400">
-                <span>Total Assessment Marks:</span>
-                <span className="font-bold text-white">{totalMarks} Marks</span>
+                <span>{t("student.totalAssessmentMarks", "Total Assessment Marks:")}</span>
+                <span className="font-bold text-white">{totalMarks} {t("student.marks", "Marks")}</span>
               </div>
             </div>
 
@@ -2469,7 +2465,7 @@ export default function StudentExamChamberPage() {
                 disabled={submitting}
                 className="flex-1 py-3 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-700"
               >
-                Return to Exam
+                {t("student.returnToExam", "Return to Exam")}
               </button>
               <button
                 type="button"
@@ -2483,12 +2479,12 @@ export default function StudentExamChamberPage() {
                 {submitting ? (
                   <>
                     <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                    <span>Grading...</span>
+                    <span>{t("student.grading", "Grading...")}</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-3.5 w-3.5" />
-                    <span>Confirm Submit</span>
+                    <span>{t("student.confirmSubmit", "Confirm Submit")}</span>
                   </>
                 )}
               </button>

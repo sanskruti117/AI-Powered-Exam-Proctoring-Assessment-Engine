@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: #090d16;
+    --background: #060913;
     --foreground: #f1f5f9;
   }
 
@@ -17,26 +17,151 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    overflow-x: hidden;
   }
+}
+
+/* Background Cyber Grid */
+.bg-cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+}
+
+.bg-cyber-dots {
+  background-image: radial-gradient(rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Glowing text gradients */
+.text-glow {
+  text-shadow: 0 0 25px rgba(99, 102, 241, 0.45);
+}
+
+.text-gradient-shimmer {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #818cf8 25%,
+    #c084fc 50%,
+    #818cf8 75%,
+    #ffffff 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
 }
 
 /* Premium Enterprise Glass & Card Styles */
 .glass-card {
-  background: rgba(17, 24, 39, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(13, 20, 36, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
 }
 
-.glass-card-hover {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+.glass-card-interactive {
+  background: rgba(13, 20, 36, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-.glass-card-hover:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -5px rgba(99, 102, 241, 0.15), 0 4px 10px -2px rgba(0, 0, 0, 0.4);
+.glass-card-interactive:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.25), 0 0 20px -2px rgba(99, 102, 241, 0.2);
+}
+
+.glass-card-interactive::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.05),
+    transparent
+  );
+  transition: 0.6s;
+  pointer-events: none;
+}
+
+.glass-card-interactive:hover::before {
+  left: 100%;
+}
+
+/* Button Shimmer Effect */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent,
+    rgba(255, 255, 255, 0.18),
+    transparent
+  );
+  transform: rotate(30deg) translateX(-100%);
+  animation: btn-shine 4s infinite;
+  pointer-events: none;
+}
+
+@keyframes btn-shine {
+  0% { transform: rotate(30deg) translateX(-150%); }
+  25% { transform: rotate(30deg) translateX(150%); }
+  100% { transform: rotate(30deg) translateX(150%); }
+}
+
+/* Scanline animation for proctoring feeds */
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.8), transparent);
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.8);
+  animation: scan 3s linear infinite;
+  pointer-events: none;
+}
+
+/* Radar ping and sweep */
+.radar-sweep {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform-origin: top left;
+  background: conic-gradient(from 0deg at 50% 50%, rgba(99, 102, 241, 0.3) 0deg, transparent 60deg, transparent 360deg);
+  animation: radar 4s linear infinite;
+  pointer-events: none;
 }
 
 /* Custom Scrollbar */
@@ -46,14 +171,54 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #060913;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #273549;
+  background: #1e293b;
   border-radius: 6px;
+  border: 2px solid #060913;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4d66;
+  background: #334155;
 }
+
+/* Staggered entrance animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+.stagger-5 { animation-delay: 250ms; }
+
+/* Hazard alert pulse for anomalies */
+@keyframes hazardPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+    border-color: rgba(244, 63, 94, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 20px 4px rgba(244, 63, 94, 0.6);
+    border-color: rgba(244, 63, 94, 1);
+  }
+}
+
+.animate-hazard-pulse {
+  animation: hazardPulse 1.8s ease-in-out infinite;
+}
+

@@ -511,7 +511,7 @@ export default function ExamCandidatesPage() {
                   <ShieldCheck className="h-8 w-8 text-emerald-400 mx-auto" />
                   <div className="text-sm font-bold text-white">Clean Proctoring Record</div>
                   <p className="text-xs text-slate-400">
-                    No violations, tab switches, secondary devices, or absence events were detected during this candidate's attempt.
+                    No violations, tab switches, secondary devices, or absence events were detected during this candidate&apos;s attempt.
                   </p>
                 </div>
               ) : (

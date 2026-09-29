@@ -1,12 +1,17 @@
-import Link from "next/link";
-import { ShieldAlert, Home, LogIn } from "lucide-react";
+"use client";
 
-export default function UnauthorizedPage({
-  searchParams,
-}: {
-  searchParams?: { reason?: string };
-}) {
-  const reason = searchParams?.reason;
+import React, { Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { ShieldAlert, Home, LogIn } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
+
+function UnauthorizedContent() {
+  const searchParams = useSearchParams();
+  const { t } = useLanguage();
+  const reason = searchParams?.get("reason");
 
   let title = "Access Restricted";
   let message = "You do not have the required permissions or role to access this portal.";
@@ -23,6 +28,12 @@ export default function UnauthorizedPage({
     <div className="min-h-screen flex flex-col justify-center py-16 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100 relative overflow-hidden">
       {/* Rose Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-rose-500/10 blur-[140px] rounded-full pointer-events-none" />
+
+      {/* Floating Language Selector & Install Button in Top Right Corner */}
+      <div className="absolute top-6 right-6 z-50 flex items-center gap-2">
+        <LanguageSelector variant="compact" />
+        <PWAInstallButton variant="compact" />
+      </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <div className="h-16 w-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-rose-500/10">
@@ -56,11 +67,25 @@ export default function UnauthorizedPage({
               className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-semibold text-sm text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors"
             >
               <LogIn className="h-4 w-4" />
-              <span>Sign In with a Different Account</span>
+              <span>{t("common.signIn", "Sign In with a Different Account")}</span>
             </Link>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UnauthorizedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400">
+          Loading...
+        </div>
+      }
+    >
+      <UnauthorizedContent />
+    </Suspense>
   );
 }

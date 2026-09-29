@@ -4,9 +4,12 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock, Shield, RefreshCw, LogOut, CheckCircle2, Building, Mail } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function PendingApprovalPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [checking, setChecking] = useState(false);
   const [userData, setUserData] = useState<{
     fullName: string;
@@ -50,15 +53,20 @@ export default function PendingApprovalPage() {
       {/* Ambient Lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
 
+      {/* Floating Language Selector in Top Right Corner */}
+      <div className="absolute top-6 right-6 z-50">
+        <LanguageSelector variant="compact" />
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
         <div className="h-16 w-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-amber-500/10">
           <Clock className="h-9 w-9 animate-pulse" />
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-          Application Pending Review
+          {t("auth.pendingApprovalTitle", "Application Under Review")}
         </h2>
         <p className="mt-3 text-base text-slate-400">
-          Your Examiner application has been submitted to the Administrator
+          {t("auth.pendingApprovalSubtitle", "Your examiner account request is pending administrative verification.")}
         </p>
       </div>
 
@@ -115,7 +123,7 @@ export default function PendingApprovalPage() {
               className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-semibold text-sm text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer"
             >
               <LogOut className="h-4 w-4 text-slate-400" />
-              <span>Sign in as a Different User</span>
+              <span>{t("common.signOut", "Sign Out")}</span>
             </button>
           </div>
         </div>

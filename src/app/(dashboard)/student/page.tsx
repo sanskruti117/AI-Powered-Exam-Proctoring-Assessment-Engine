@@ -15,12 +15,14 @@ import {
   Clock,
   PlayCircle,
   FileSpreadsheet,
-  Trophy,
   RefreshCw,
-  ExternalLink,
 } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { AnimatedTypewriterText } from "@/components/AnimatedTypewriterText";
+import { AmbientAuroraBackground } from "@/components/AmbientAuroraBackground";
+import { SpotlightCard } from "@/components/SpotlightCard";
+import { Skeleton } from "@/components/SkeletonLoader";
 
 interface ExamItem {
   id: string;
@@ -50,7 +52,6 @@ interface ExamItem {
     email: string;
   };
 }
-
 
 export default function StudentDashboardPage() {
   const { t } = useLanguage();
@@ -91,48 +92,74 @@ export default function StudentDashboardPage() {
 
   const liveExams = exams.filter((e) => e.is_active && (e.student_can_attempt ?? true));
   const upcomingExams = exams.filter((e) => e.is_upcoming);
+  const welcomeText = `${t("student.welcome", "Welcome")}${user?.fullName ? `, ${user.fullName}` : ""}!`;
 
   return (
-    <div className="space-y-10 pb-16">
-      {/* Welcome Banner */}
-      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-800 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 blur-[110px] rounded-full pointer-events-none" />
+    <div className="space-y-10 pb-16 relative">
+      <AmbientAuroraBackground variant="emerald-indigo" intensity="subtle" />
+
+      {/* Welcome Banner with Living Emerald Glow */}
+      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-800 relative overflow-hidden shadow-2xl transition-all duration-300 hover:border-emerald-500/30 animate-fade-in-up">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/15 blur-[120px] rounded-full pointer-events-none animate-pulse-glow" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none animate-float" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                <CheckCircle2 className="h-4 w-4 mr-1.5 text-emerald-400" />
+              <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm">
+                <span className="flex h-2 w-2 relative mr-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
                 {t("student.activeCandidate", "Active Student Candidate")}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              {t("student.welcome", "Welcome")}{user?.fullName ? `, ${user.fullName}` : ""}!
+
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight min-h-[44px]">
+              <AnimatedTypewriterText
+                text={welcomeText}
+                speed={40}
+                cursorColor="text-emerald-400"
+              />
             </h1>
+
             <p className="text-sm text-slate-300">
-              {t("student.candidateEmail", "Candidate Email")}: <span className="font-semibold text-white">{user?.email || "candidate"}</span> &bull; {t("student.candidateId", "Candidate ID")}:{" "}
-              <span className="font-semibold text-white">{user?.userId?.slice(0, 8) || "..."}</span>
+              {t("student.candidateEmail", "Candidate Email")}:{" "}
+              <span className="font-semibold text-white">{user?.email || "candidate"}</span> &bull;{" "}
+              {t("student.candidateId", "Candidate ID")}:{" "}
+              <span className="font-semibold text-emerald-300 font-mono">
+                {user?.userId?.slice(0, 8) || "..."}
+              </span>
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-900 border border-slate-800">
-            <ShieldCheck className="h-7 w-7 text-emerald-400 shrink-0" />
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-emerald-500/40 transition-colors group">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
             <div>
-              <div className="font-bold text-base text-white">{t("student.systemIntegrityReady", "System Integrity Ready")}</div>
-              <div className="text-slate-400 text-xs mt-0.5">{t("student.aiProctoringVerified", "AI Proctoring Compatibility Verified")}</div>
+              <div className="font-bold text-base text-white flex items-center gap-2">
+                <span>{t("student.systemIntegrityReady", "System Integrity Ready")}</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              </div>
+              <div className="text-slate-400 text-xs mt-0.5">
+                {t("student.aiProctoringVerified", "AI Proctoring Compatibility Verified")}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         <StatCard
           title={t("student.liveAssessments", "Live Assessments")}
           value={liveExams.length.toString()}
           subtitle={t("student.openForAttempt", "Open for attempt right now")}
           icon={PlayCircle}
           color="emerald"
+          cyberCorners={true}
         />
         <StatCard
           title={t("student.scheduledTests", "Scheduled Tests")}
@@ -140,6 +167,7 @@ export default function StudentDashboardPage() {
           subtitle={t("student.upcomingSchedule", "Upcoming examination windows")}
           icon={Calendar}
           color="indigo"
+          cyberCorners={true}
         />
         <StatCard
           title={t("student.integrityRating", "Integrity Rating")}
@@ -147,50 +175,68 @@ export default function StudentDashboardPage() {
           subtitle={t("student.complianceSubtitle", "Proctored session compliance")}
           icon={ShieldCheck}
           color="cyan"
+          cyberCorners={true}
         />
       </div>
 
-      {/* Hardware Readiness Checklist */}
-      <div className="glass-card rounded-3xl p-8 border border-slate-800 shadow-xl space-y-4">
+      {/* Hardware Readiness Checklist with Hover Elevation */}
+      <SpotlightCard
+        glowColor="rgba(16, 185, 129, 0.18)"
+        cyberCorners={true}
+        className="rounded-3xl p-8 border border-slate-800 shadow-xl space-y-4 animate-fade-in-up stagger-2"
+      >
         <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
           <Camera className="h-5 w-5 text-emerald-400" />
           {t("student.hardwareChecklist", "Proctoring Hardware Readiness Checklist")}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm">
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Camera className="h-5 w-5" />
             </div>
             <div>
               <div className="font-bold text-white">{t("student.webcamCheck", "Webcam Check")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5">{t("student.faceTrackingReady", "Face Tracking Ready")}</div>
+              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>{t("student.faceTrackingReady", "Face Tracking Ready")}</span>
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Mic className="h-5 w-5" />
             </div>
             <div>
               <div className="font-bold text-white">{t("student.microphoneCheck", "Microphone Check")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5">{t("student.audioStreamReady", "VAD Audio Stream Ready")}</div>
+              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>{t("student.audioStreamReady", "VAD Audio Stream Ready")}</span>
+              </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-3.5">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Monitor className="h-5 w-5" />
             </div>
             <div>
               <div className="font-bold text-white">{t("student.browserGuard", "Browser Guard")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5">{t("student.fullscreenTabGuard", "Fullscreen & Tab Guard Active")}</div>
+              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>{t("student.fullscreenTabGuard", "Fullscreen & Tab Guard Active")}</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </SpotlightCard>
 
       {/* Available Examinations List */}
-      <div className="glass-card rounded-3xl border border-slate-800 overflow-hidden shadow-2xl space-y-0">
+      <SpotlightCard
+        glowColor="rgba(99, 102, 241, 0.15)"
+        cyberCorners={true}
+        className="rounded-3xl border border-slate-800 shadow-2xl space-y-0 animate-fade-in-up stagger-3"
+      >
         <div className="p-8 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
@@ -204,15 +250,19 @@ export default function StudentDashboardPage() {
 
           <button
             onClick={fetchSessionAndExams}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors cursor-pointer"
             title="Refresh"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
           </button>
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-slate-400">{t("common.loading", "Loading...")}</div>
+          <div className="p-8 space-y-4">
+            <Skeleton variant="table-row" />
+            <Skeleton variant="table-row" />
+            <Skeleton variant="table-row" />
+          </div>
         ) : exams.length === 0 ? (
           <div className="p-12 text-center space-y-2">
             <FileSpreadsheet className="h-10 w-10 text-slate-600 mx-auto" />
@@ -234,11 +284,13 @@ export default function StudentDashboardPage() {
               return (
                 <div
                   key={exam.id}
-                  className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-900/40 transition-colors"
+                  className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-900/50 transition-all duration-200 group/row"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-lg font-bold text-white">{exam.title}</span>
+                      <span className="text-lg font-bold text-white group-hover/row:text-indigo-300 transition-colors">
+                        {exam.title}
+                      </span>
                       
                       {/* Status Tag */}
                       {hasExhaustedAttempts ? (
@@ -256,7 +308,7 @@ export default function StudentDashboardPage() {
                           {t("student.inProgressResume", "In Progress (Resume Available)")}
                         </span>
                       ) : exam.is_active ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-emerald-500/15 text-emerald-300 border-emerald-500/30">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-sm">
                           ● {t("student.openForAttempt", "Open for Attempt")} ({t("student.attempt", "Attempt")} {attemptsCount + 1} {t("student.of", "of")} {maxAttempts})
                         </span>
                       ) : exam.is_upcoming ? (
@@ -304,7 +356,7 @@ export default function StudentDashboardPage() {
                         href={`/student/exam/${exam.id}/result`}
                         className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:scale-105 ${
                           exam.results_published
-                            ? "bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25"
+                            ? "bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25 btn-shimmer"
                             : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
                         }`}
                       >
@@ -314,17 +366,17 @@ export default function StudentDashboardPage() {
                     ) : hasActiveInProgress ? (
                       <Link
                         href={`/student/exam/${exam.id}`}
-                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-amber-600 hover:bg-amber-500 shadow-xl shadow-amber-600/25 transition-all hover:scale-105"
+                        className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-amber-600 hover:bg-amber-500 shadow-xl shadow-amber-600/30 transition-all hover:scale-105 btn-shimmer group"
                       >
                         <span>{t("student.resumeAttempt", "Resume Attempt")}</span>
-                        <ArrowRight className="h-5 w-5" />
+                        <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </Link>
                     ) : canAttempt ? (
                       <div className="flex items-center gap-3">
                         {exam.student_has_submitted && (
                           <Link
                             href={`/student/exam/${exam.id}/result`}
-                            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 transition-all"
+                            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 hover:scale-105 transition-all"
                           >
                             <Award className="h-4 w-4" />
                             <span>{exam.results_published ? t("student.previousScore", "Previous Score") : t("student.previousAttempt", "Previous Attempt")}</span>
@@ -332,10 +384,10 @@ export default function StudentDashboardPage() {
                         )}
                         <Link
                           href={`/student/exam/${exam.id}`}
-                          className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/25 transition-all hover:scale-105"
+                          className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-xl shadow-emerald-600/30 transition-all hover:scale-105 btn-shimmer group"
                         >
                           <span>{t("student.enterExamChamber", "Enter Exam Chamber")}</span>
-                          <ArrowRight className="h-5 w-5" />
+                          <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
                       </div>
                     ) : exam.is_upcoming ? (
@@ -356,15 +408,12 @@ export default function StudentDashboardPage() {
                       </div>
                     )}
                   </div>
-
                 </div>
               );
             })}
           </div>
         )}
-      </div>
+      </SpotlightCard>
     </div>
   );
 }
-
-

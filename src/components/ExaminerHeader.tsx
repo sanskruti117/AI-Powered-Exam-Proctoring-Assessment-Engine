@@ -6,6 +6,7 @@ import { LogOut, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 
 interface ExaminerHeaderProps {
   user?: {
@@ -48,8 +49,9 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* Language Selector */}
+          {/* Language Selector & PWA Install Button */}
           <LanguageSelector variant="compact" />
+          <PWAInstallButton variant="compact" />
 
           {isAdmin && (
             <Link

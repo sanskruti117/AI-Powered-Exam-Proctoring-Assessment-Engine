@@ -11,7 +11,7 @@ interface LanguageSelectorProps {
 }
 
 export function LanguageSelector({ className = "", variant = "default" }: LanguageSelectorProps) {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,7 +39,7 @@ export function LanguageSelector({ className = "", variant = "default" }: Langua
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/80 border border-slate-700/60 text-xs font-semibold text-slate-200 hover:text-white hover:border-indigo-500/50 hover:bg-slate-800 transition-all shadow-sm"
-          title="Select Language"
+          title={t("nav.language", "Select Language")}
         >
           <Globe className="h-3.5 w-3.5 text-indigo-400" />
           <span>{currentLang.nativeName}</span>
@@ -49,7 +49,7 @@ export function LanguageSelector({ className = "", variant = "default" }: Langua
         {isOpen && (
           <div className="absolute right-0 mt-1.5 w-48 rounded-xl bg-slate-900 border border-slate-700/80 shadow-2xl shadow-black/80 py-1.5 z-50 backdrop-blur-xl">
             <div className="px-3 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-slate-800">
-              Select Language
+              {t("nav.language", "Select Language")}
             </div>
             <div className="max-h-60 overflow-y-auto divide-y divide-slate-800/40">
               {SUPPORTED_LANGUAGES.map((lang) => (
@@ -96,7 +96,7 @@ export function LanguageSelector({ className = "", variant = "default" }: Langua
       {isOpen && (
         <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900/95 border border-slate-700/80 shadow-2xl shadow-black/80 py-2 z-50 backdrop-blur-xl">
           <div className="px-3.5 py-1.5 text-[11px] uppercase font-bold tracking-wider text-slate-400 border-b border-slate-800/80 mb-1">
-            Regional Language / भाषा
+            {t("nav.language", "Select Language")}
           </div>
           <div className="max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 divide-y divide-slate-800/30">
             {SUPPORTED_LANGUAGES.map((lang) => (

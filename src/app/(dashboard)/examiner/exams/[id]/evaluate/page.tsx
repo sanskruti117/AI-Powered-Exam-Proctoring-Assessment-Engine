@@ -433,22 +433,6 @@ function ExamEvaluationStudioContent() {
             <Sparkles className={`h-3.5 w-3.5 ${aiEvaluating ? "animate-spin" : "text-amber-300"}`} />
             <span>{aiEvaluating ? "Evaluating with AI..." : "⚡ Auto-Evaluate All with AI"}</span>
           </button>
-
-          <Link
-            href={`/examiner/exams/${examId}/candidates`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all"
-          >
-            <User className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Candidates List</span>
-          </Link>
-
-          <Link
-            href={`/examiner/exams/${examId}/leaderboard`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all"
-          >
-            <Trophy className="h-3.5 w-3.5 text-amber-400" />
-            <span>Leaderboard</span>
-          </Link>
         </div>
 
       </div>
@@ -995,13 +979,6 @@ function ExamEvaluationStudioContent() {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <Link
-                      href={`/examiner/exams/${examId}/candidates`}
-                      className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all"
-                    >
-                      Back to Candidates
-                    </Link>
-
                     <button
                       type="submit"
                       disabled={submitting}

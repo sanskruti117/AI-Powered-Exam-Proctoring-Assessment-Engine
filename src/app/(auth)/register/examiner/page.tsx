@@ -4,9 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserCheck, Building, Briefcase, Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Clock } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function ExaminerRegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -67,6 +70,11 @@ export default function ExaminerRegisterPage() {
       {/* Background Glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-600/15 blur-[140px] rounded-full pointer-events-none" />
 
+      {/* Floating Language Selector in Top Right Corner */}
+      <div className="absolute top-6 right-6 z-50">
+        <LanguageSelector variant="compact" />
+      </div>
+
       <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
         <Link href="/" className="inline-flex items-center gap-3 mb-6 group">
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform">
@@ -77,10 +85,10 @@ export default function ExaminerRegisterPage() {
           </span>
         </Link>
         <h2 className="text-3xl font-extrabold tracking-tight text-white">
-          Examiner Access Application
+          {t("auth.examinerRegistrationTitle", "Examiner Access Application")}
         </h2>
         <p className="mt-2.5 text-base text-slate-400">
-          Apply for instructor privileges to create and manage proctored exams
+          {t("auth.examinerRegistrationSubtitle", "Apply for instructor privileges to create and manage proctored exams")}
         </p>
       </div>
 
@@ -106,7 +114,7 @@ export default function ExaminerRegisterPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="sm:col-span-2">
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Full Name & Title
+                  {t("auth.fullName", "Full Name & Title")}
                 </label>
                 <input
                   type="text"
@@ -121,7 +129,7 @@ export default function ExaminerRegisterPage() {
 
               <div className="sm:col-span-2">
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Official / Academic Email
+                  {t("auth.emailAddress", "Official / Academic Email")}
                 </label>
                 <div className="relative rounded-xl">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -141,7 +149,7 @@ export default function ExaminerRegisterPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Institution / University
+                  {t("auth.institution", "Institution / University")}
                 </label>
                 <div className="relative rounded-xl">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -161,7 +169,7 @@ export default function ExaminerRegisterPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Department
+                  {t("auth.department", "Department")}
                 </label>
                 <div className="relative rounded-xl">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -181,7 +189,7 @@ export default function ExaminerRegisterPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Password
+                  {t("auth.password", "Password")}
                 </label>
                 <div className="relative rounded-xl">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -208,7 +216,7 @@ export default function ExaminerRegisterPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-200 mb-2">
-                  Confirm Password
+                  {t("auth.password", "Confirm Password")}
                 </label>
                 <div className="relative rounded-xl">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -232,16 +240,16 @@ export default function ExaminerRegisterPage() {
               disabled={loading}
               className="w-full mt-4 flex items-center justify-center gap-2.5 py-4 px-5 rounded-xl font-semibold text-base text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <span>{loading ? "Submitting Application..." : "Submit Examiner Application"}</span>
+              <span>{loading ? "Submitting Application..." : t("auth.registerExaminerBtn", "Submit Examiner Application")}</span>
               <ArrowRight className="h-5 w-5" />
             </button>
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-800 text-center space-y-3">
             <p className="text-sm text-slate-400">
-              Already approved?{" "}
+              {t("auth.alreadyHaveAccount", "Already approved?")}{" "}
               <Link href="/login" className="font-semibold text-indigo-400 hover:text-indigo-300 hover:underline">
-                Sign in to your portal
+                {t("common.signIn", "Sign in to your portal")}
               </Link>
             </p>
           </div>

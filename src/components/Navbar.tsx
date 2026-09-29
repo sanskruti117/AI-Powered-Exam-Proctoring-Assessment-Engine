@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Shield, User, LogOut, Menu, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
 
 interface NavbarProps {
   user?: {
@@ -47,19 +48,19 @@ export function Navbar({ user }: NavbarProps) {
       case "ADMIN":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/15 text-rose-400 border border-rose-500/30">
-            Administrator
+            {t("common.admin", "Administrator")}
           </span>
         );
       case "EXAMINER":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-            Examiner
+            {t("common.examiner", "Examiner")}
           </span>
         );
       case "STUDENT":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-            Student
+            {t("common.student", "Student")}
           </span>
         );
       default:
@@ -90,8 +91,9 @@ export function Navbar({ user }: NavbarProps) {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-4">
-            {/* Multilingual Selector */}
+            {/* Multilingual Selector & PWA Install Button */}
             <LanguageSelector />
+            <PWAInstallButton variant="default" />
 
             {user ? (
               <>
@@ -171,9 +173,10 @@ export function Navbar({ user }: NavbarProps) {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Menu Button & Controls */}
           <div className="flex items-center gap-2 md:hidden">
             <LanguageSelector variant="compact" />
+            <PWAInstallButton variant="compact" />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-900 focus:outline-none"

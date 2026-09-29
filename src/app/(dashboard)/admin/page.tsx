@@ -35,6 +35,10 @@ import {
 import { StatCard } from "@/components/StatCard";
 import { ExaminerApprovalModal } from "@/components/ExaminerApprovalModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
+import { AnimatedTypewriterText } from "@/components/AnimatedTypewriterText";
+import { AmbientAuroraBackground } from "@/components/AmbientAuroraBackground";
+import { SpotlightCard } from "@/components/SpotlightCard";
+import { Skeleton } from "@/components/SkeletonLoader";
 
 interface ExaminerItem {
   id: string;
@@ -255,16 +259,26 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <div className="space-y-10 pb-12">
+    <div className="space-y-10 pb-12 relative">
+      <AmbientAuroraBackground variant="rose-indigo" intensity="subtle" />
+
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-800 pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-800 pb-8 relative z-10">
         <div>
           <div className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-rose-400">
+            <span className="flex h-2 w-2 relative">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
             <Shield className="h-4 w-4" />
             <span>{t("admin.dashboardTitle", "Master Administrator Control")}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2">
-            {t("nav.adminPortal", "System Administration")}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2 min-h-[44px]">
+            <AnimatedTypewriterText
+              text={t("nav.adminPortal", "System Administration")}
+              speed={40}
+              cursorColor="text-rose-400"
+            />
           </h1>
           <p className="text-base text-slate-400 mt-2 max-w-3xl leading-relaxed">
             Full oversight of academic institutions, verified examiners, question banks, candidate leaderboards, and cohort proctoring analytics.

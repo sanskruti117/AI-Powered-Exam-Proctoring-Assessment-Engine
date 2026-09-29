@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -75,6 +76,7 @@ interface ResultData {
 }
 
 function StudentExamResultContent() {
+  const { t } = useLanguage();
   const params = useParams();
   const searchParams = useSearchParams();
   const examId = params?.id as string;
@@ -488,7 +490,7 @@ function StudentExamResultContent() {
                 {["SHORT_ANSWER", "LONG_ANSWER"].includes(q.question_type) && (
                   <div className="space-y-2">
                     <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">
-                      Your Submitted Answer:
+                      {t("result.yourSubmittedAnswer", "Your Submitted Answer:")}
                     </div>
                     <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
                       {q.text_answer || (
@@ -587,10 +589,10 @@ function StudentExamResultContent() {
                   <span>AI Proctor Verified &bull; Official Assessment Record</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-serif font-black tracking-tight text-slate-950">
-                  Certificate of Assessment
+                  {t("scorecard.certificateTitle", "Certificate of Assessment")}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 uppercase tracking-widest font-semibold">
-                  This is to certify that
+                  {t("scorecard.certifyThat", "This is to certify that")}
                 </p>
               </div>
 
@@ -604,7 +606,7 @@ function StudentExamResultContent() {
 
               {/* Assessment Description */}
               <div className="text-center text-xs sm:text-sm text-slate-700 max-w-xl mx-auto leading-relaxed">
-                has successfully completed the proctored examination for{" "}
+                {t("scorecard.completedExam", "has successfully completed the proctored examination")} for{" "}
                 <span className="font-bold text-slate-900">&ldquo;{data.exam_title}&rdquo;</span>{" "}
                 under strict automated dual-model biometric and behavioral monitoring.
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -68,6 +69,7 @@ interface ExamItem {
 }
 
 export default function ExaminerExamsPage() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const [exams, setExams] = useState<ExamItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -364,13 +366,13 @@ export default function ExaminerExamsPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
             <FileSpreadsheet className="h-4 w-4" />
-            <span>Examiner Studio</span>
+            <span>{t("examiner.assessmentWorkspace", "Examiner Studio")}</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
-            Examinations & Assessments
+            {t("examiner.examsTitle", "Examinations & Assessments")}
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Create structured exams with subject sections, configure randomized delivery, and monitor real-time candidate leaderboards.
+            {t("examiner.examsSubtitle", "Create structured exams with subject sections, configure randomized delivery, and monitor real-time candidate leaderboards.")}
           </p>
         </div>
 
@@ -379,7 +381,7 @@ export default function ExaminerExamsPage() {
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25 transition-all self-start md:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Create New Exam</span>
+          <span>{t("examiner.createNewExam", "Create New Exam")}</span>
         </button>
       </div>
 
@@ -413,38 +415,38 @@ export default function ExaminerExamsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Drafts</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.drafts", "Drafts")}</span>
             <FileText className="h-4 w-4 text-amber-400" />
           </div>
           <div className="text-2xl font-extrabold text-amber-400">{draftExamsCount}</div>
-          <div className="text-xs text-slate-500">In authoring / staging</div>
+          <div className="text-xs text-slate-500">{t("examiner.draftsSubtitle", "In authoring / staging")}</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Scheduled</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.scheduled", "Scheduled")}</span>
             <Clock className="h-4 w-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-extrabold text-indigo-400">{scheduledExamsCount}</div>
-          <div className="text-xs text-slate-500">Upcoming test windows</div>
+          <div className="text-xs text-slate-500">{t("examiner.scheduledSubtitle", "Upcoming test windows")}</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Live Now</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.liveNow", "Live Now")}</span>
             <PlayCircle className="h-4 w-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-extrabold text-emerald-400">{liveExamsCount}</div>
-          <div className="text-xs text-slate-500">Currently accepting attempts</div>
+          <div className="text-xs text-slate-500">{t("examiner.liveNowSubtitle", "Currently accepting attempts")}</div>
         </div>
 
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Closed / Ended</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.closedEnded", "Closed / Ended")}</span>
             <ShieldCheck className="h-4 w-4 text-slate-400" />
           </div>
           <div className="text-2xl font-extrabold text-slate-300">{closedExamsCount}</div>
-          <div className="text-xs text-slate-500">Completed examinations</div>
+          <div className="text-xs text-slate-500">{t("examiner.closedEndedSubtitle", "Completed examinations")}</div>
         </div>
       </div>
 
@@ -494,7 +496,7 @@ export default function ExaminerExamsPage() {
             <FileSpreadsheet className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">No Examinations Found</h3>
+            <h3 className="text-lg font-bold text-white">{t("examiner.noExamsFound", "No Examinations Found")}</h3>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
               Create your first examination to define subject sections, populate randomized question pools, and schedule assessments.
             </p>
