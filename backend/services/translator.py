@@ -28,6 +28,17 @@ def _compute_cache_key(target_lang: str, question_text: str, options: List[Dict[
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
+def _is_pure_ascii(text: str) -> bool:
+    """Returns True if the text contains only standard ASCII characters (pure English)."""
+    if not text:
+        return True
+    try:
+        text.encode("ascii")
+        return True
+    except UnicodeEncodeError:
+        return False
+
+
 def translate_question_content(
     target_language: str,
     question_text: str,
@@ -38,15 +49,28 @@ def translate_question_content(
     question_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    Translates question text, choices, and coding specifications into the specified Indian regional language or English.
-    Uses the configured Gemini API for dynamic exam content; UI labels use local i18next catalogs.
+    Translates question text, choices, and coding specifications into the specified target language (English or Indian regional languages).
+    Seamlessly translates from any source language (e.g. Hindi -> English, Hindi -> Marathi, English -> Hindi).
     """
     norm_lang = target_language.lower().strip()
     lang_name = LANGUAGE_NAMES.get(norm_lang, norm_lang)
     safe_options = options or []
 
-    # If target is English or text is empty, return original
-    if norm_lang == "en" or not question_text or not question_text.strip():
+    if not question_text or not question_text.strip():
+        return {
+            "success": True,
+            "target_language": norm_lang,
+            "target_language_name": lang_name,
+            "question_id": question_id,
+            "translated_question_text": question_text,
+            "translated_options": safe_options,
+            "translated_constraints": constraints,
+            "translated_input_format": input_format,
+            "translated_output_format": output_format,
+        }
+
+    # If target is English and source is already pure English, return immediately without API call
+    if norm_lang == "en" and _is_pure_ascii(question_text):
         return {
             "success": True,
             "target_language": norm_lang,
@@ -76,13 +100,14 @@ def translate_question_content(
             client = genai.Client(api_key=gemini_key)
 
             prompt = f"""You are an expert multilingual academic examiner and translator.
-Translate the following examination question and its choices/specifications accurately into {lang_name} ({norm_lang}).
+Translate the following examination question and its choices/specifications accurately from its source language into {lang_name} ({norm_lang}).
 
 Strict Translation Guidelines:
-1. Maintain academic and technical precision in {lang_name}.
-2. Keep programming keywords, mathematical expressions, variable names, and code syntax intact (e.g. O(log n), print, int, Python, Java, x, y, n).
-3. Translate the question statement and option statements naturally so students can comprehend the problem clearly in their native language.
-4. Return ONLY a valid JSON object matching this schema:
+1. Maintain academic, mathematical, and technical precision in {lang_name}.
+2. Keep programming keywords, mathematical expressions, variable names, and code syntax intact (e.g. O(log n), print, int, Python, Java, x, y, n, def, return).
+3. If the content is already in {lang_name}, return it clearly as-is.
+4. Translate question statement and option statements naturally so students can comprehend the problem clearly in their selected language.
+5. Return ONLY a valid JSON object matching this schema:
 {{
   "translated_question_text": "Translated question text in {lang_name}",
   "translated_options": [

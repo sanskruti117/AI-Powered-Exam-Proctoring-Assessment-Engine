@@ -21,6 +21,28 @@ class AIEvaluationResult(BaseModel):
     missing_concepts: List[str] = Field(default_factory=list, description="Important points missing or inaccurate")
 
 
+DEVANAGARI_DIGITS: Dict[str, str] = {
+    '०': '0', '१': '1', '२': '2', '३': '3', '४': '4',
+    '५': '5', '६': '6', '७': '7', '८': '8', '९': '9'
+}
+
+HINDI_OPTION_MAP: Dict[str, int] = {
+    'क': 0, 'ख': 1, 'ग': 2, 'घ': 3, 'ङ': 4,
+    'अ': 0, 'ब': 1, 'स': 2, 'द': 3,
+    'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5,
+    '1': 0, '2': 1, '3': 2, '4': 3, '5': 4,
+    '१': 0, '२': 1, '३': 2, '४': 3, '५': 4,
+}
+
+
+def convert_devanagari_to_ascii(text: str) -> str:
+    if not text:
+        return ""
+    for d, a in DEVANAGARI_DIGITS.items():
+        text = text.replace(d, a)
+    return text
+
+
 class ImportedOption(BaseModel):
     option_text: str
     is_correct: bool = False
@@ -32,11 +54,14 @@ class ImportedOption(BaseModel):
         if isinstance(v, int):
             return v
         if isinstance(v, str):
-            v_upper = v.strip().upper()
-            if v_upper in ("A", "B", "C", "D", "E", "F"):
-                return ord(v_upper) - ord("A")
+            v_clean = v.strip().upper()
+            if v_clean in HINDI_OPTION_MAP:
+                return HINDI_OPTION_MAP[v_clean]
+            v_ascii = convert_devanagari_to_ascii(v_clean)
+            if v_ascii in HINDI_OPTION_MAP:
+                return HINDI_OPTION_MAP[v_ascii]
             try:
-                return int(v_upper)
+                return max(0, int(v_ascii))
             except ValueError:
                 return 0
         return 0
@@ -54,6 +79,8 @@ class ImportedQuestion(BaseModel):
     @classmethod
     def normalize_marks(cls, v):
         try:
+            if isinstance(v, str):
+                v = convert_devanagari_to_ascii(v)
             return max(1, int(float(v)))
         except (ValueError, TypeError):
             return 1
@@ -64,7 +91,7 @@ class ImportedQuestion(BaseModel):
         if v is None:
             return None
         if isinstance(v, (dict, list)):
-            return json.dumps(v)
+            return json.dumps(v, ensure_ascii=False)
         return str(v)
 
 
@@ -73,33 +100,47 @@ class ImportedQuestionSet(BaseModel):
 
 
 def extract_standard_mcq_question_set(source_text: str) -> List[Dict[str, Any]]:
-    """Parse conventional MCQ documents supporting both inline answers and separate answer keys."""
+    """Parse conventional MCQ documents in English, Hindi, and regional formats supporting both inline answers and separate answer keys."""
     if not source_text or not source_text.strip():
         return []
 
     cleaned = re.sub(r"^.*?Question Bank.*?Page \d+\s*$", "", source_text, flags=re.MULTILINE | re.IGNORECASE)
 
-    # Check for trailing answer section
+    # Check for trailing answer section (supports Hindi उत्तर कुंजी, उत्तर, Solutions, etc.)
     trailing_answers: Dict[int, str] = {}
-    answer_split = re.split(r"\b(?:ANSWER\s*KEY|ANSWERS|SOLUTIONS)\b", cleaned, maxsplit=1, flags=re.IGNORECASE)
+    answer_split = re.split(
+        r"\b(?:ANSWER\s*KEY|ANSWERS|SOLUTIONS|उत्तर\s*कुंजी|उत्तरमाला|उत्तर\s*सूची)\b",
+        cleaned,
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )
     question_source = cleaned
     if len(answer_split) == 2:
         question_source, answer_source = answer_split
-        # Extract pairs like Q1: A, 1. B, 1) C, 1 - D, Q.1 A
-        for match in re.finditer(r"(?:Q\.?\s*)?(\d+)\s*[\.:\)-]?\s*\(?([A-Da-d])\)?", answer_source):
-            trailing_answers[int(match.group(1))] = match.group(2).upper()
+        # Extract pairs like Q1: A, 1. B, 1) C, प्रश्न 1: क, प्र. १: ख
+        for match in re.finditer(
+            r"(?:(?:Q(?:uestion)?|प्रश्न|प्र)\.?\s*)?([0-9०-९]+)\s*[\.:\)-]?\s*\(?([A-Za-z0-9अ-ह१-९०])\)?",
+            answer_source,
+            flags=re.IGNORECASE,
+        ):
+            q_num_str = convert_devanagari_to_ascii(match.group(1))
+            ans_key = match.group(2).strip().upper()
+            try:
+                trailing_answers[int(q_num_str)] = ans_key
+            except ValueError:
+                pass
 
-    # Match questions starting with 1., Q1., Question 1:, 1), etc.
+    # Match questions starting with 1., Q1., Question 1:, प्रश्न 1., प्र. १:, etc.
     question_pattern = re.compile(
-        r"(?:^|\n)\s*(?:Q(?:uestion)?\.?\s*)?(\d+)[\.:\)]\s*(.*?)(?=(?:\n\s*(?:Q(?:uestion)?\.?\s*)?\d+[\.:\)])|\Z)",
-        flags=re.DOTALL,
+        r"(?:^|\n)\s*(?:(?:Q(?:uestion)?|प्रश्न|प्र)\.?\s*)?([0-9०-९]+)[\.:\)]\s*(.*?)(?=(?:\n\s*(?:(?:Q(?:uestion)?|प्रश्न|प्र)\.?\s*)?[0-9०-९]+[\.:\)])|\Z)",
+        flags=re.DOTALL | re.IGNORECASE,
     )
     option_pattern = re.compile(
-        r"(?:^|\n)\s*(?:\(?([A-Da-d])\)|\(?([A-Da-d])\.)\s*(.*?)(?=(?:\n\s*(?:\(?[A-Da-d]\)|\(?[A-Da-d]\.))|\Z)",
+        r"(?:^|\n)\s*(?:\(?([A-Za-z0-9अ-ह१-९०])\)|\(?([A-Za-z0-9अ-ह१-९०])\.)\s*(.*?)(?=(?:\n\s*(?:\(?[A-Za-z0-9अ-ह१-९०]\)|\(?[A-Za-z0-9अ-ह१-९०]\.))|\Z)",
         flags=re.DOTALL,
     )
     inline_ans_pattern = re.compile(
-        r"\b(?:Ans(?:wer)?|Correct(?:\s*Option)?)\s*[:=-]?\s*\(?([A-Da-d])\)?",
+        r"\b(?:Ans(?:wer)?|Correct(?:\s*Option)?|उत्तर|सही\s*उत्तर)\s*[:=-]?\s*\(?([A-Za-z0-9अ-ह१-९०])\)?",
         flags=re.IGNORECASE,
     )
 
@@ -107,7 +148,11 @@ def extract_standard_mcq_question_set(source_text: str) -> List[Dict[str, Any]]:
     blocks = list(question_pattern.finditer(question_source))
 
     for block_match in blocks:
-        num = int(block_match.group(1))
+        num_str = convert_devanagari_to_ascii(block_match.group(1))
+        try:
+            num = int(num_str)
+        except ValueError:
+            num = 0
         content = block_match.group(2).strip()
 
         # Check inline answer
@@ -129,12 +174,16 @@ def extract_standard_mcq_question_set(source_text: str) -> List[Dict[str, Any]]:
 
         options = []
         for idx, om in enumerate(opt_matches):
-            label = (om.group(1) or om.group(2)).upper()
+            label = (om.group(1) or om.group(2)).strip().upper()
             opt_text = re.sub(r"\s+", " ", om.group(3)).strip()
             # Remove any trailing inline answer if attached to last option
             opt_text = inline_ans_pattern.sub("", opt_text).strip()
             if opt_text:
-                is_correct = (label == correct_letter) if correct_letter else (idx == 0)
+                is_correct = False
+                if correct_letter:
+                    is_correct = (label == correct_letter) or (HINDI_OPTION_MAP.get(label) == HINDI_OPTION_MAP.get(correct_letter))
+                else:
+                    is_correct = (idx == 0)
                 options.append({"option_text": opt_text, "is_correct": is_correct, "order": idx})
 
         if len(options) >= 2:
@@ -150,7 +199,7 @@ def extract_standard_mcq_question_set(source_text: str) -> List[Dict[str, Any]]:
 
 
 def extract_question_set(source_text: str = "", pdf_bytes: Optional[bytes] = None) -> List[Dict[str, Any]]:
-    """Use Gemini to turn a source document or PDF bytes into reviewable question records."""
+    """Use Gemini to turn a source document or PDF bytes in Hindi, English, or any language into reviewable question records."""
     api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError(
@@ -159,20 +208,25 @@ def extract_question_set(source_text: str = "", pdf_bytes: Optional[bytes] = Non
     from google import genai
     from google.genai import types
 
-    prompt = """You are an expert assessment parser. Extract every examination question and its choices/answers from the provided document.
+    prompt = """You are an expert multilingual academic assessment parser supporting English, Hindi (हिन्दी / Devanagari script), Marathi, Tamil, Telugu, Malayalam, and other languages.
+
+Extract EVERY examination question, its options/choices, question types, and answers accurately from the provided document or PDF.
+
 Return a valid JSON array where each object has:
-- "question_text": string (the complete question statement)
+- "question_text": string (the complete question statement in its ORIGINAL language and script, e.g. Devanagari for Hindi)
 - "question_type": "MCQ" | "MULTI_SELECT" | "SHORT_ANSWER" | "LONG_ANSWER"
 - "difficulty": "EASY" | "MEDIUM" | "HARD"
 - "marks": integer (default to 1 or 2)
-- "expected_answer": string or null (rubric or expected response for descriptive questions)
-- "options": array of objects with "option_text" (string), "is_correct" (boolean), and "order" (integer).
+- "expected_answer": string or null (rubric or expected response in original language for descriptive questions)
+- "options": array of objects with "option_text" (string in original language), "is_correct" (boolean), and "order" (integer 0, 1, 2, 3...).
 
-Extraction Rules:
-1. For MCQ questions, identify the correct answer if provided in the text or answer key. If no answer key is provided, infer and set "is_correct": true for the single best/correct option so it is complete.
-2. For MULTI_SELECT, set "is_correct": true for all correct options.
-3. For descriptive questions (SHORT_ANSWER, LONG_ANSWER), options should be empty [].
-4. Output strictly a JSON array without markdown backticks or commentary."""
+Multilingual & Extraction Rules:
+1. PRESERVE ORIGINAL SCRIPT & LANGUAGE: Do NOT translate Hindi or regional text to English. Preserve Hindi in natural Devanagari script.
+2. For MCQ questions, identify the correct answer if provided in the text or answer key (e.g. उत्तर / Ans). If no answer key is provided, infer and set "is_correct": true for the single best/correct option.
+3. Map options sequentially: A/क/अ -> order 0, B/ख/ब -> order 1, C/ग/स -> order 2, D/घ/द -> order 3.
+4. For MULTI_SELECT, set "is_correct": true for all correct options.
+5. For descriptive questions (SHORT_ANSWER, LONG_ANSWER), options must be empty [].
+6. Output strictly a JSON array without markdown backticks or commentary."""
 
     contents: List[Any] = [prompt]
     if pdf_bytes and len(pdf_bytes) > 0:

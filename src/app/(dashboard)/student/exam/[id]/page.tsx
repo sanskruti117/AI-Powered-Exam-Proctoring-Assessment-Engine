@@ -1280,7 +1280,10 @@ export default function StudentExamChamberPage() {
 
   // Dynamic Multilingual Question Translation Hook
   useEffect(() => {
-    if (!currentQ || language === "en") return;
+    if (!currentQ) return;
+    const isPureAscii = /^[\x00-\x7F]*$/.test(currentQ.question_text || "");
+    // If target is English and source question is already standard English, no translation needed
+    if (language === "en" && isPureAscii) return;
 
     const cacheKey = `${language}::${currentQ.id}`;
     if (questionTranslations[cacheKey]) return;
@@ -1331,7 +1334,7 @@ export default function StudentExamChamberPage() {
   }, [language, currentIdx, currentQ?.id]);
 
   const activeTranslation =
-    language !== "en" && !showOriginalLanguage && currentQ
+    !showOriginalLanguage && currentQ
       ? questionTranslations[`${language}::${currentQ.id}`]
       : null;
 
@@ -2006,7 +2009,7 @@ export default function StudentExamChamberPage() {
               </div>
 
               {/* Multilingual Question Translation Banner */}
-              {language !== "en" && (
+              {(language !== "en" || Boolean(activeTranslation) || isTranslatingQuestion) && (
                 <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-indigo-950/40 border border-indigo-500/30 text-xs">
                   <div className="flex items-center gap-2.5">
                     <Globe className="h-4 w-4 text-indigo-400 shrink-0" />
@@ -2017,11 +2020,11 @@ export default function StudentExamChamberPage() {
                       </span>
                     ) : showOriginalLanguage ? (
                       <span className="text-slate-300 font-medium">
-                        {t("student.showingOriginal", "Showing original English text")}
+                        {t("student.showingOriginal", "Showing original source text")}
                       </span>
                     ) : (
                       <span className="text-indigo-200 font-medium">
-                        {t("student.translatedTo", "Translated to")} <strong className="text-white font-bold">{SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName}</strong>
+                        {t("student.translatedTo", "Translated to")} <strong className="text-white font-bold">{SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName || "English"}</strong>
                       </span>
                     )}
                   </div>
@@ -2031,7 +2034,7 @@ export default function StudentExamChamberPage() {
                     onClick={() => setShowOriginalLanguage((prev) => !prev)}
                     className="px-3 py-1.5 rounded-xl text-[11px] font-bold bg-indigo-600/25 hover:bg-indigo-600/40 text-indigo-200 border border-indigo-500/40 transition-all shrink-0"
                   >
-                    {showOriginalLanguage ? t("student.showTranslated", "Show Translated") : t("student.viewOriginal", "View Original (English)")}
+                    {showOriginalLanguage ? t("student.showTranslated", "Show Translated") : t("student.viewOriginal", "View Original")}
                   </button>
                 </div>
               )}
