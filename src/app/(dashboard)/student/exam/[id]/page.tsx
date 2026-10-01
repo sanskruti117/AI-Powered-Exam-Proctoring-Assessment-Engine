@@ -650,32 +650,51 @@ export default function StudentExamChamberPage() {
     };
   }, [triggerStrikeViolation]);
 
+  // Ensure webcam stream is attached whenever video element mounts or state changes
+  useEffect(() => {
+    if (videoRef.current && mediaStreamRef.current) {
+      if (videoRef.current.srcObject !== mediaStreamRef.current) {
+        videoRef.current.srcObject = mediaStreamRef.current;
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [hasEnteredChamber, entranceTab]);
+
   // Continuous AI Vision Slot Monitoring Loop (every 1.2s)
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!videoRef.current || isAiLoopRunningRef.current) return;
       const video = videoRef.current;
+
+      // Ensure stream is attached
+      if (mediaStreamRef.current && video.srcObject !== mediaStreamRef.current) {
+        video.srcObject = mediaStreamRef.current;
+        video.play().catch(() => {});
+      }
+
       if (video.readyState < 2 || video.videoWidth === 0) return;
 
       try {
         isAiLoopRunningRef.current = true;
 
-        // Ensure high-resolution canvas normalization for sharp neural tensor analysis
+        const vw = video.videoWidth || 640;
+        const vh = video.videoHeight || 480;
+
         if (!offscreenCanvasRef.current) {
           offscreenCanvasRef.current = document.createElement("canvas");
-          offscreenCanvasRef.current.width = 640;
-          offscreenCanvasRef.current.height = 480;
         }
         const canvas = offscreenCanvasRef.current;
+        canvas.width = vw;
+        canvas.height = vh;
         const ctx = canvas.getContext("2d");
         if (ctx) {
-          ctx.drawImage(video, 0, 0, 640, 480);
+          ctx.drawImage(video, 0, 0, vw, vh);
         }
 
-        const frameBase64 = canvas.toDataURL("image/jpeg", 0.60);
+        const frameBase64 = canvas.toDataURL("image/jpeg", 0.65);
         let handledViaServer = false;
 
-        // 1. Try Backend Ultra-Accurate YOLOv8 + OpenCV Neural Detector
+        // 1. Try Backend Ultra-Accurate OpenCV YuNet + YOLO Neural Detector
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 1200);
@@ -759,15 +778,20 @@ export default function StudentExamChamberPage() {
 
           if (blazeFaceModelRef.current) {
             try {
-              const faces = await blazeFaceModelRef.current.estimateFaces(canvas, false);
+              const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
               faceCount = faces ? faces.length : 0;
-            } catch (_) {}
+            } catch (_) {
+              try {
+                const faces = await blazeFaceModelRef.current.estimateFaces(canvas, false);
+                faceCount = faces ? faces.length : 0;
+              } catch (_) {}
+            }
           }
 
           if (cocoModelRef.current) {
             try {
               const predictions: Array<{ class: string; score: number }> = await cocoModelRef.current.detect(
-                canvas,
+                video,
                 20,
                 0.20
               );
