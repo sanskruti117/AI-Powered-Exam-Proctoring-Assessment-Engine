@@ -708,6 +708,13 @@
       "requested": "Requested",
       "rejectionReasonPlaceholder": "e.g. Unverified academic affiliation, invalid department details, etc.",
       "academicExaminer": "Academic Examiner"
+    },
+    "pwa": {
+      "install": "Install App",
+      "installApp": "Install App",
+      "installed": "Installed",
+      "title": "Install AI Proctor",
+      "desc": "Install the app directly to your home screen or desktop for a fullscreen, low-latency examination environment."
     }
   },
   "hi": {
@@ -1419,6 +1426,13 @@
       "requested": "अनुरोध किया गया",
       "rejectionReasonPlaceholder": "उदा. असत्यापित शैक्षणिक संबद्धता, अमान्य विभाग विवरण आदि।",
       "academicExaminer": "शैक्षणिक परीक्षक"
+    },
+    "pwa": {
+      "install": "ऐप इंस्टॉल करें",
+      "installApp": "ऐप इंस्टॉल करें",
+      "installed": "इंस्टॉल हो गया",
+      "title": "एआई प्रॉक्टर इंस्टॉल करें",
+      "desc": "पूर्ण-स्क्रीन, कम-विलंबता परीक्षा परिवेश के लिए सीधे अपनी होम स्क्रीन या डेस्कटॉप पर ऐप इंस्टॉल करें।"
     }
   },
   "mr": {
@@ -2123,6 +2137,13 @@
       "requested": "विनंती केली",
       "rejectionReasonPlaceholder": "उदा. असत्यापित संस्था, अवैध विभाग तपशील, इ.",
       "academicExaminer": "शैक्षणिक परीक्षक"
+    },
+    "pwa": {
+      "install": "अॅप इंस्टॉल करा",
+      "installApp": "अॅप इंस्टॉल करा",
+      "installed": "स्थापित झाले",
+      "title": "एआय प्रॉक्टर स्थापित करा",
+      "desc": "फुलस्क्रीन परीक्षेसाठी थेट तुमच्या होम स्क्रीनवर अॅप स्थापित करा."
     }
   },
   "ml": {
@@ -2827,6 +2848,13 @@
       "requested": "അഭ്യർത്ഥിച്ചത്",
       "rejectionReasonPlaceholder": "ഉദാ. തെറ്റായ സ്ഥാപന വിവരങ്ങൾ മുതലായവ.",
       "academicExaminer": "അക്കാദമിക് പരീക്ഷകൻ"
+    },
+    "pwa": {
+      "install": "ആപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുക",
+      "installApp": "ആപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുക",
+      "installed": "ഇൻസ്റ്റാൾ ചെയ്തു",
+      "title": "AI പ്രോക്ടർ ഇൻസ്റ്റാൾ ചെയ്യുക",
+      "desc": "പൂർണ്ണ സ്ക്രീൻ പരീക്ഷാ അന്തരീക്ഷത്തിനായി ആപ്പ് ഇൻസ്റ്റാൾ ചെയ്യുക."
     }
   },
   "te": {
@@ -3531,6 +3559,13 @@
       "requested": "అభ్యర్థించబడింది",
       "rejectionReasonPlaceholder": "ఉదా. ధృవీకరించని సంస్థ, చెల్లని విభాగం వివరాలు మొదలైనవి.",
       "academicExaminer": "అకడమిక్ పరీక్షకుడు"
+    },
+    "pwa": {
+      "install": "యాప్‌ను ఇన్‌స్టాల్ చేయండి",
+      "installApp": "యాప్‌ను ఇన్‌స్టాల్ చేయండి",
+      "installed": "ఇన్‌స్టాల్ చేయబడింది",
+      "title": "AI ప్రాక్టర్ ఇన్‌స్టాల్ చేయండి",
+      "desc": "పూర్తి స్క్రీన్ పరీక్ష వాతావరణం కోసం యాప్‌ను మీ హోమ్ స్క్రీన్‌కు ఇన్‌స్టాల్ చేయండి."
     }
   },
   "ta": {
@@ -4235,6 +4270,13 @@
       "requested": "கோரப்பட்டது",
       "rejectionReasonPlaceholder": "எ.கா. தவறான நிறுவனம், தவறான துறை விவரங்கள் போன்றவை.",
       "academicExaminer": "கல்வித் தேர்வாளர்"
+    },
+    "pwa": {
+      "install": "பயன்பாட்டை நிறுவுக",
+      "installApp": "பயன்பாட்டை நிறுவுக",
+      "installed": "நிறுவப்பட்டது",
+      "title": "AI ப்ரூக்டரை நிறுவுக",
+      "desc": "முழுத்திரை தேர்வு சூழலுக்கு உங்கள் முகப்புத் திரையில் பயன்பாட்டை நிறுவுக."
     }
   },
   "kn": {
@@ -4939,6 +4981,13 @@
       "requested": "ವಿನಂತಿಸಲಾಗಿದೆ",
       "rejectionReasonPlaceholder": "ಉದಾ. ಅಮಾನ್ಯ ಸಂಸ್ಥೆ, ತಪ್ಪಾದ ವಿಭಾಗದ ವಿವರಗಳು ಇತ್ಯಾದಿ.",
       "academicExaminer": "ಶೈಕ್ಷಣಿಕ ಪರೀಕ್ಷಕರು"
+    },
+    "pwa": {
+      "install": "ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ",
+      "installApp": "ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ",
+      "installed": "ಸ್ಥಾಪಿಸಲಾಗಿದೆ",
+      "title": "AI ಪ್ರೊಕ್ಟರ್ ಸ್ಥಾಪಿಸಿ",
+      "desc": "ಪೂರ್ಣ-ಪರದೆ ಪರೀಕ್ಷಾ ಪರಿಸರಕ್ಕಾಗಿ ನಿಮ್ಮ ಮುಖಪುಟಕ್ಕೆ ಅಪ್ಲಿಕೇಶನ್ ಸ್ಥಾಪಿಸಿ."
     }
   },
   "bn": {
@@ -5643,6 +5692,13 @@
       "requested": "অনুরোধ করা হয়েছে",
       "rejectionReasonPlaceholder": "যেমন: অযাচাইকৃত প্রতিষ্ঠান, ভুল বিভাগের তথ্য ইত্যাদি।",
       "academicExaminer": "একাডেমিক পরীক্ষক"
+    },
+    "pwa": {
+      "install": "অ্যাপ ইনস্টল করুন",
+      "installApp": "অ্যাপ ইনস্টল করুন",
+      "installed": "ইনস্টল হয়েছে",
+      "title": "এআই প্রক্টর ইনস্টল করুন",
+      "desc": "ফুলস্ক্রিন পরীক্ষার জন্য সরাসরি অ্যাপ ইনস্টল করুন।"
     }
   },
   "gu": {
@@ -6347,6 +6403,13 @@
       "requested": "વિનંતી કરેલ",
       "rejectionReasonPlaceholder": "દા.ત. અચકાસાયેલ સંસ્થા, અમાન્ય વિભાગ વિગતો વગેરે.",
       "academicExaminer": "શૈક્ષણિક પરીક્ષક"
+    },
+    "pwa": {
+      "install": "એપ ઇન્સ્ટોલ કરો",
+      "installApp": "એપ ઇન્સ્ટોલ કરો",
+      "installed": "ઇન્સ્ટોલ કરેલ",
+      "title": "AI પ્રોક્ટર ઇન્સ્ટોલ કરો",
+      "desc": "સંપૂર્ણ સ્ક્રીન પરીક્ષા વાતાવરણ માટે સીધા તમારા હોમ સ્ક્રીન પર એપ ઇન્સ્ટોલ કરો."
     }
   }
 }

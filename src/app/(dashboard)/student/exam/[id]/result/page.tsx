@@ -168,13 +168,13 @@ function StudentExamResultContent() {
       <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 no-print">
         <Link href="/student" className="hover:text-white flex items-center gap-1">
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Dashboard</span>
+          <span>{t("common.dashboard", "Dashboard")}</span>
         </Link>
         <ChevronRight className="h-3 w-3 text-slate-600" />
         <span className="text-white font-bold">{data.exam_title}</span>
         <ChevronRight className="h-3 w-3 text-slate-600" />
         <span className="text-indigo-400">
-          {isPublished ? "Official Score Report" : "Submission Receipt"}
+          {isPublished ? t("result.officialScoreReport", "Official Score Report") : t("result.submissionReceipt", "Submission Receipt")}
         </span>
       </div>
 
@@ -192,20 +192,20 @@ function StudentExamResultContent() {
               {isPublished ? (
                 <>
                   <Award className="h-4 w-4" />
-                  <span>Certified Candidate Performance Record</span>
+                  <span>{t("result.certifiedRecord", "Certified Candidate Performance Record")}</span>
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="h-4 w-4" />
-                  <span>Exam Attempt Submitted Successfully</span>
+                  <span>{t("result.attemptSubmittedSuccess", "Exam Attempt Submitted Successfully")}</span>
                 </>
               )}
             </span>
             <h1 className="text-3xl font-extrabold text-white tracking-tight">
-              {data.exam_title} - {isPublished ? "Result Report" : "Attempt Recorded"}
+              {data.exam_title} - {isPublished ? t("result.resultReport", "Result Report") : t("result.attemptRecorded", "Attempt Recorded")}
             </h1>
             <p className="text-xs text-slate-400">
-              Candidate: <span className="text-white font-semibold">{data.student_name}</span> &bull; Attempt ID:{" "}
+              {t("result.candidate", "Candidate")}: <span className="text-white font-semibold">{data.student_name}</span> &bull; {t("result.attemptId", "Attempt ID")}:{" "}
               <code className="text-slate-300">{data.attempt_id.slice(0, 8)}</code>
             </p>
           </div>
@@ -217,7 +217,7 @@ function StudentExamResultContent() {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
               >
                 <Award className="h-4 w-4 text-amber-300" />
-                <span>Certificate & Scorecard</span>
+                <span>{t("result.certificateAndScorecard", "Certificate & Scorecard")}</span>
               </button>
             )}
 
@@ -225,7 +225,7 @@ function StudentExamResultContent() {
               href="/student"
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-all"
             >
-              <span>Back to Assessments</span>
+              <span>{t("result.backToAssessments", "Back to Assessments")}</span>
             </Link>
           </div>
         </div>
@@ -235,8 +235,8 @@ function StudentExamResultContent() {
           <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 text-xs flex items-center gap-3">
             <Clock className="h-5 w-5 text-indigo-400 shrink-0" />
             <div>
-              <span className="font-bold text-white block mb-0.5">Scores Awaiting Examiner Publication</span>
-              Your exam responses have been securely submitted and recorded. Scores and answer solutions will become visible here once the examiner finalizes and publishes the results.
+              <span className="font-bold text-white block mb-0.5">{t("result.scoresAwaitingPublication", "Scores Awaiting Examiner Publication")}</span>
+              {t("result.scoresAwaitingDesc", "Your exam responses have been securely submitted and recorded. Scores and answer solutions will become visible here once the examiner finalizes and publishes the results.")}
             </div>
           </div>
         )}
@@ -246,8 +246,8 @@ function StudentExamResultContent() {
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-3">
             <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
             <div>
-              <span className="font-bold block">Descriptive Evaluation Pending</span>
-              Your multiple-choice questions have been auto-evaluated. Subjective answers are awaiting examiner review. Final score and rank will update once graded.
+              <span className="font-bold block">{t("result.descriptivePendingTitle", "Descriptive Evaluation Pending")}</span>
+              {t("result.descriptivePendingDesc", "Your multiple-choice questions have been auto-evaluated. Subjective answers are awaiting examiner review. Final score and rank will update once graded.")}
             </div>
           </div>
         )}
@@ -259,21 +259,21 @@ function StudentExamResultContent() {
           {/* Total Score */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Total Score</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalScore", "Total Score")}</span>
               <Award className="h-4 w-4 text-amber-400" />
             </div>
             <div className="text-3xl font-black text-white">
               {data.score} <span className="text-sm font-normal text-slate-400">/ {data.total_marks}</span>
             </div>
             <div className="text-xs text-slate-500">
-              Auto: {data.auto_graded_score} | Manual: {data.manual_graded_score}
+              {t("result.auto", "Auto")}: {data.auto_graded_score} | {t("result.manual", "Manual")}: {data.manual_graded_score}
             </div>
           </div>
 
           {/* Percentage & Status */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Performance Status</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.performanceStatus", "Performance Status")}</span>
               {data.status === "EVALUATED" ? (
                 data.is_passed ? (
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" />
@@ -295,39 +295,39 @@ function StudentExamResultContent() {
             >
               {data.status === "EVALUATED"
                 ? data.is_passed
-                  ? `PASSED (${data.percentage}%)`
-                  : `FAILED (${data.percentage}%)`
-                : `PENDING (${data.percentage}%)`}
+                  ? `${t("result.passed", "PASSED")} (${data.percentage}%)`
+                  : `${t("result.failed", "FAILED")} (${data.percentage}%)`
+                : `${t("result.pending", "PENDING")} (${data.percentage}%)`}
             </div>
             <div className="text-xs text-slate-500">
-              {data.status === "EVALUATED" ? "Official result finalized" : "Awaiting examiner review"}
+              {data.status === "EVALUATED" ? t("result.officialFinalized", "Official result finalized") : t("result.awaitingReview", "Awaiting examiner review")}
             </div>
           </div>
 
           {/* Total Completion Time */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Total Time Taken</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalTimeTaken", "Total Time Taken")}</span>
               <Clock className="h-4 w-4 text-indigo-400" />
             </div>
             <div className="text-2xl font-extrabold text-white">
               {formatTime(data.total_time_seconds)}
             </div>
             <div className="text-xs text-slate-500">
-              Submitted at {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
+              {t("result.submittedAt", "Submitted at")} {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
             </div>
           </div>
 
           {/* Avg Time / Question */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Avg Time / Question</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.avgTimePerQuestion", "Avg Time / Question")}</span>
               <Sparkles className="h-4 w-4 text-violet-400" />
             </div>
             <div className="text-2xl font-extrabold text-indigo-400">
               {data.average_time_per_question}s
             </div>
-            <div className="text-xs text-slate-500">Stopwatch pacing average</div>
+            <div className="text-xs text-slate-500">{t("result.stopwatchPacing", "Stopwatch pacing average")}</div>
           </div>
         </div>
       ) : (
@@ -335,39 +335,39 @@ function StudentExamResultContent() {
           {/* Submission Status */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Attempt Status</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.attemptStatus", "Attempt Status")}</span>
               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-extrabold text-emerald-400">
-              Submitted
+              {t("result.submitted", "Submitted")}
             </div>
-            <div className="text-xs text-slate-400">Awaiting score publication</div>
+            <div className="text-xs text-slate-400">{t("result.awaitingScorePublication", "Awaiting score publication")}</div>
           </div>
 
           {/* Total Time Taken */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Total Time Taken</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalTimeTaken", "Total Time Taken")}</span>
               <Clock className="h-4 w-4 text-indigo-400" />
             </div>
             <div className="text-2xl font-extrabold text-white">
               {formatTime(data.total_time_seconds)}
             </div>
             <div className="text-xs text-slate-400">
-              Submitted at {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
+              {t("result.submittedAt", "Submitted at")} {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
             </div>
           </div>
 
           {/* Questions Attempted */}
           <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">Questions Recorded</span>
+              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.questionsRecorded", "Questions Recorded")}</span>
               <Layers className="h-4 w-4 text-violet-400" />
             </div>
             <div className="text-2xl font-extrabold text-white">
-              {data.answers.length} Questions
+              {data.answers.length} {t("result.questions", "Questions")}
             </div>
-            <div className="text-xs text-slate-400">Pacing: {data.average_time_per_question}s / question</div>
+            <div className="text-xs text-slate-400">{t("result.pacing", "Pacing")}: {data.average_time_per_question}s / {t("common.question", "question")}</div>
           </div>
         </div>
       )}
@@ -376,7 +376,7 @@ function StudentExamResultContent() {
       <div className="space-y-4 no-print">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <Layers className="h-5 w-5 text-indigo-400" />
-          Question-by-Question Breakdown
+          {t("result.questionBreakdown", "Question-by-Question Breakdown")}
         </h2>
 
         <div className="space-y-4">
@@ -398,7 +398,7 @@ function StudentExamResultContent() {
                       {q.question_type.replace("_", " ")}
                     </span>
                     <span className="text-xs text-slate-500 font-mono">
-                      Stopwatch: {q.time_spent_seconds}s
+                      {t("result.stopwatch", "Stopwatch")}: {q.time_spent_seconds}s
                     </span>
                   </div>
 
@@ -415,23 +415,23 @@ function StudentExamResultContent() {
                           }`}
                         >
                           {q.evaluation_status === "PENDING_REVIEW"
-                            ? "PENDING REVIEW"
+                            ? t("result.pendingReview", "PENDING REVIEW")
                             : q.is_correct
-                            ? "CORRECT"
-                            : "INCORRECT"}
+                            ? t("result.correct", "CORRECT")
+                            : t("result.incorrect", "INCORRECT")}
                         </span>
 
                         <span className="text-xs font-extrabold text-white">
-                          {q.marks_obtained} / {q.marks} Marks
+                          {q.marks_obtained} / {q.marks} {t("common.marks", "Marks")}
                         </span>
                       </>
                     ) : (
                       <>
                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-slate-900 text-slate-400 border-slate-800">
-                          SUBMITTED
+                          {t("result.submitted", "SUBMITTED")}
                         </span>
                         <span className="text-xs text-slate-400 font-medium">
-                          {q.marks} Marks Weight
+                          {q.marks} {t("result.marksWeight", "Marks Weight")}
                         </span>
                       </>
                     )}
@@ -477,7 +477,7 @@ function StudentExamResultContent() {
                           <span className="truncate pr-2">{opt.option_text}</span>
                           {isSelected && (
                             <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-black/40">
-                              Your Answer
+                              {t("result.yourAnswerBadge", "Your Answer")}
                             </span>
                           )}
                         </div>
@@ -494,14 +494,14 @@ function StudentExamResultContent() {
                     </div>
                     <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
                       {q.text_answer || (
-                        <span className="text-slate-500 italic">No answer submitted.</span>
+                        <span className="text-slate-500 italic">{t("result.noAnswerSubmitted", "No answer submitted.")}</span>
                       )}
                     </div>
 
                     {isPublished && q.examiner_feedback && (
                       <div className="p-3.5 rounded-2xl bg-violet-950/20 border border-violet-500/30 text-xs text-violet-200">
                         <span className="font-bold text-violet-300 block mb-0.5">
-                          Examiner Qualitative Feedback:
+                          {t("result.examinerFeedback", "Examiner Qualitative Feedback:")}
                         </span>
                         <span>{q.examiner_feedback}</span>
                       </div>
@@ -514,11 +514,11 @@ function StudentExamResultContent() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-slate-400 font-bold uppercase tracking-wider">
-                        Submitted Source Code ({q.code_language || "python"}):
+                        {t("result.submittedSourceCode", "Submitted Source Code")} ({q.code_language || "python"}):
                       </span>
                       {isPublished && q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
                         <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
-                          {q.test_cases_passed} / {q.total_test_cases} Test Cases Passed
+                          {q.test_cases_passed} / {q.total_test_cases} {t("result.testCasesPassed", "Test Cases Passed")}
                         </span>
                       )}
                     </div>
@@ -529,7 +529,7 @@ function StudentExamResultContent() {
                     {isPublished && q.examiner_feedback && (
                       <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs text-indigo-200 font-mono">
                         <span className="font-bold text-indigo-300 block mb-0.5 font-sans">
-                          Test Case Evaluation Summary:
+                          {t("result.testCaseEvalSummary", "Test Case Evaluation Summary:")}
                         </span>
                         <span>{q.examiner_feedback}</span>
                       </div>
@@ -553,7 +553,7 @@ function StudentExamResultContent() {
             <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl p-3 px-4 shadow-xl no-print">
               <div className="flex items-center gap-2 text-xs text-slate-300 font-bold">
                 <Award className="h-4 w-4 text-amber-400" />
-                <span>Verified Assessment Scorecard & Certificate</span>
+                <span>{t("scorecard.modalTitle", "Verified Assessment Scorecard & Certificate")}</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -561,7 +561,7 @@ function StudentExamResultContent() {
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md transition-all"
                 >
                   <Printer className="h-3.5 w-3.5" />
-                  <span>Print / Save as PDF</span>
+                  <span>{t("scorecard.printCertificate", "Print / Save as PDF")}</span>
                 </button>
                 <button
                   onClick={() => setShowCertificateModal(false)}
@@ -586,7 +586,7 @@ function StudentExamResultContent() {
               <div className="text-center space-y-2 border-b-2 border-slate-200 pb-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 font-bold text-[11px] tracking-widest uppercase mb-1">
                   <ShieldCheck className="h-4 w-4 text-indigo-600" />
-                  <span>AI Proctor Verified &bull; Official Assessment Record</span>
+                  <span>{t("scorecard.aiProctorVerified", "AI Proctor Verified • Official Assessment Record")}</span>
                 </div>
                 <h1 className="text-3xl sm:text-4xl font-serif font-black tracking-tight text-slate-950">
                   {t("scorecard.certificateTitle", "Certificate of Assessment")}
@@ -608,36 +608,36 @@ function StudentExamResultContent() {
               <div className="text-center text-xs sm:text-sm text-slate-700 max-w-xl mx-auto leading-relaxed">
                 {t("scorecard.completedExam", "has successfully completed the proctored examination")} for{" "}
                 <span className="font-bold text-slate-900">&ldquo;{data.exam_title}&rdquo;</span>{" "}
-                under strict automated dual-model biometric and behavioral monitoring.
+                {t("scorecard.underMonitoring", "under strict automated dual-model biometric and behavioral monitoring.")}
               </div>
 
               {/* Scores & Performance Box */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
                 <div className="p-2">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Score Awarded</div>
+                  <div className="text-[10px] uppercase font-bold text-slate-500">{t("scorecard.scoreAwarded", "Score Awarded")}</div>
                   <div className="text-lg font-black text-indigo-950">
                     {data.score} / {data.total_marks}
                   </div>
                 </div>
 
                 <div className="p-2">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Percentage</div>
+                  <div className="text-[10px] uppercase font-bold text-slate-500">{t("scorecard.percentage", "Percentage")}</div>
                   <div className="text-lg font-black text-indigo-950">{data.percentage}%</div>
                 </div>
 
                 <div className="p-2">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Outcome</div>
+                  <div className="text-[10px] uppercase font-bold text-slate-500">{t("scorecard.outcome", "Outcome")}</div>
                   <div
                     className={`text-lg font-black ${
                       data.is_passed ? "text-emerald-700" : "text-rose-700"
                     }`}
                   >
-                    {data.is_passed ? "PASSED" : "FAILED"}
+                    {data.is_passed ? t("common.passed", "PASSED") : t("common.failed", "FAILED")}
                   </div>
                 </div>
 
                 <div className="p-2">
-                  <div className="text-[10px] uppercase font-bold text-slate-500">Total Duration</div>
+                  <div className="text-[10px] uppercase font-bold text-slate-500">{t("scorecard.totalDuration", "Total Duration")}</div>
                   <div className="text-lg font-black text-indigo-950">
                     {formatTime(data.total_time_seconds)}
                   </div>
@@ -648,7 +648,7 @@ function StudentExamResultContent() {
               <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
                 <div className="space-y-1 text-center sm:text-left">
                   <div className="font-semibold text-slate-800">
-                    Issued On:{" "}
+                    {t("scorecard.issuedOn", "Issued On:")}{" "}
                     {data.submitted_at
                       ? new Date(data.submitted_at).toLocaleDateString("en-US", {
                           year: "numeric",
@@ -658,14 +658,14 @@ function StudentExamResultContent() {
                       : "—"}
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
-                    Verification ID: {data.attempt_id.toUpperCase()}
+                    {t("scorecard.verificationId", "Verification ID:")} {data.attempt_id.toUpperCase()}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <div className="text-right hidden sm:block">
-                    <div className="font-bold text-indigo-950">Proctoring Assessment Engine</div>
-                    <div className="text-[10px] text-slate-400">Cryptographically Signed</div>
+                    <div className="font-bold text-indigo-950">{t("scorecard.assessmentEngine", "Proctoring Assessment Engine")}</div>
+                    <div className="text-[10px] text-slate-400">{t("scorecard.cryptographicallySigned", "Cryptographically Signed")}</div>
                   </div>
                   <div className="h-12 w-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs shadow-md">
                     <QrCode className="h-7 w-7 text-indigo-300" />
