@@ -18,6 +18,7 @@ import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { InteractiveProctorSimulator } from "@/components/InteractiveProctorSimulator";
 import { InteractiveRoleShowcase } from "@/components/InteractiveRoleShowcase";
 import { InteractiveStatsSection } from "@/components/InteractiveStatsSection";
+import { AnimatedTypewriterText } from "@/components/AnimatedTypewriterText";
 
 interface LandingViewProps {
   session: {
@@ -55,11 +56,14 @@ export function LandingView({ session }: LandingViewProps) {
                 <span>{t("landing.pillBadge", "Next-Gen Online Exam Integrity Engine")}</span>
               </div>
 
-              {/* Main Headline with Shimmer Animation */}
+              {/* Main Headline with Shimmer & Typewriter Animation */}
               <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
-                <span className="text-gradient-shimmer">
-                  {t("landing.heroTitle", "AI-Powered Exam Proctoring & Assessment Engine")}
-                </span>
+                <AnimatedTypewriterText
+                  text={t("landing.heroTitle", "AI-Powered Exam Proctoring & Assessment Engine")}
+                  speed={35}
+                  className="text-gradient-shimmer"
+                  cursorColor="text-indigo-400"
+                />
               </h1>
 
               {/* Subheadline */}

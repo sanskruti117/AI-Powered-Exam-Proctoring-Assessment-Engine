@@ -31,12 +31,14 @@ import {
   QuestionData,
 } from "@/components/QuestionDetailModal";
 import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface AssessmentSection { id: string; title: string; }
 interface Assessment { id: string; title: string; sections: AssessmentSection[]; }
 interface ImportedQuestion { question_text: string; question_type: string; difficulty: string; marks: number; expected_answer?: string | null; options?: { option_text: string; is_correct: boolean; order: number }[]; }
 
 export default function QuestionBankPage() {
+  const { t } = useLanguage();
   const [questions, setQuestions] = useState<QuestionData[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,19 +264,19 @@ export default function QuestionBankPage() {
       case "EASY":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-            Easy
+            {t("examiner.difficultyEasy", "Easy")}
           </span>
         );
       case "MEDIUM":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
-            Medium
+            {t("examiner.difficultyMedium", "Medium")}
           </span>
         );
       case "HARD":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
-            Hard
+            {t("examiner.difficultyHard", "Hard")}
           </span>
         );
       default:
@@ -284,11 +286,12 @@ export default function QuestionBankPage() {
 
   const getTypeBadge = (type: string) => {
     const labels: Record<string, string> = {
-      MCQ: "MCQ",
-      MULTI_SELECT: "Multi Select",
-      SHORT_ANSWER: "Short Answer",
-      LONG_ANSWER: "Essay",
-      IMAGE: "Image Diagram",
+      MCQ: t("examiner.formatMcq", "MCQ"),
+      MULTI_SELECT: t("examiner.formatMultiSelect", "Multi Select"),
+      SHORT_ANSWER: t("examiner.formatShortAnswer", "Short Answer"),
+      LONG_ANSWER: t("examiner.formatLongAnswer", "Essay"),
+      IMAGE: t("examiner.imageDiagram", "Image Diagram"),
+      CODING: t("examiner.formatCoding", "Coding"),
     };
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -304,13 +307,13 @@ export default function QuestionBankPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
             <FolderKanban className="h-4 w-4" />
-            <span>Repository & Curriculum</span>
+            <span>{t("examiner.repositoryCurriculum", "Repository & Curriculum")}</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
-            Examiner Question Bank
+            {t("examiner.questionsBankTitle", "Examiner Question Bank")}
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Author, organize, filter, and maintain your repository of assessment questions.
+            {t("examiner.questionsBankSubtitle", "Author, organize, filter, and maintain your repository of assessment questions.")}
           </p>
         </div>
 
@@ -321,14 +324,14 @@ export default function QuestionBankPage() {
             className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all disabled:opacity-60"
           >
             <Upload className="h-4 w-4" />
-            <span>{batchImporting ? "Extracting PDF…" : "Import Question PDF"}</span>
+            <span>{batchImporting ? t("examiner.extractingPdf", "Extracting PDF…") : t("examiner.importQuestionPdf", "Import Question PDF")}</span>
           </button>
           <input ref={batchImportRef} type="file" accept="application/pdf,.pdf" onChange={handleBatchPdfImport} className="hidden" />
           <button
             onClick={() => fetchQuestions()}
             disabled={loading}
             className="p-3 rounded-2xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
-            title="Refresh Questions"
+            title={t("common.refresh", "Refresh")}
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
           </button>
@@ -338,7 +341,7 @@ export default function QuestionBankPage() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25 transition-all cursor-pointer hover:scale-105"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>Create Question</span>
+            <span>{t("examiner.createQuestion", "Create Question")}</span>
           </Link>
         </div>
       </div>
@@ -364,7 +367,7 @@ export default function QuestionBankPage() {
             onClick={() => setNotification(null)}
             className="text-xs font-bold uppercase tracking-wider opacity-80 hover:opacity-100"
           >
-            Dismiss
+            {t("common.close", "Dismiss")}
           </button>
         </div>
       )}
@@ -372,10 +375,33 @@ export default function QuestionBankPage() {
       {importedQuestions.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
           <div className="glass-card flex max-h-[85vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4"><div><h2 className="text-xl font-bold text-white">Review imported questions</h2><p className="mt-1 text-sm text-slate-400">Check the extracted questions before they are saved. You can remove any item.</p></div><button onClick={() => setImportedQuestions([])} className="text-sm font-bold text-slate-400 hover:text-white">Cancel</button></div>
-            <div className="mt-4 flex flex-wrap gap-3"><input value={importSubject} onChange={(event) => setImportSubject(event.target.value)} placeholder="Question bank name, e.g. DSA or DBMS" className="min-w-[250px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500" /><span className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-slate-300">{importedQuestions.length} questions</span></div>
-            <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">{importedQuestions.map((question, index) => <div key={`${question.question_text}-${index}`} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"><div className="flex justify-between gap-3"><p className="font-semibold text-white">{index + 1}. {question.question_text}</p><button onClick={() => setImportedQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="shrink-0 text-xs font-bold text-rose-400 hover:text-rose-300">Remove</button></div><p className="mt-2 text-xs font-bold text-indigo-300">{question.question_type.replace("_", " ")} · {question.difficulty} · {question.marks} mark(s)</p>{question.options?.length ? <p className="mt-2 text-xs text-slate-400">{question.options.length} options extracted</p> : null}</div>)}</div>
-            <div className="mt-5 flex justify-end gap-3 border-t border-slate-800 pt-4"><button onClick={() => setImportedQuestions([])} className="rounded-xl px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">Cancel</button><button onClick={confirmBatchImport} disabled={!importSubject.trim() || !importedQuestions.length || committingImport} className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{committingImport ? "Saving..." : "Approve & add questions"}</button></div>
+            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+              <div>
+                <h2 className="text-xl font-bold text-white">{t("examiner.reviewImportedQuestions", "Review imported questions")}</h2>
+                <p className="mt-1 text-sm text-slate-400">{t("examiner.reviewImportedDesc", "Check the extracted questions before they are saved. You can remove any item.")}</p>
+              </div>
+              <button onClick={() => setImportedQuestions([])} className="text-sm font-bold text-slate-400 hover:text-white">{t("common.cancel", "Cancel")}</button>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <input value={importSubject} onChange={(event) => setImportSubject(event.target.value)} placeholder="Question bank name, e.g. DSA or DBMS" className="min-w-[250px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500" />
+              <span className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-slate-300">{importedQuestions.length} {t("examiner.questionsInPool", "questions")}</span>
+            </div>
+            <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+              {importedQuestions.map((question, index) => (
+                <div key={`${question.question_text}-${index}`} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                  <div className="flex justify-between gap-3">
+                    <p className="font-semibold text-white">{index + 1}. {question.question_text}</p>
+                    <button onClick={() => setImportedQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="shrink-0 text-xs font-bold text-rose-400 hover:text-rose-300">{t("common.delete", "Remove")}</button>
+                  </div>
+                  <p className="mt-2 text-xs font-bold text-indigo-300">{question.question_type.replace("_", " ")} · {question.difficulty} · {question.marks} {question.marks === 1 ? t("examiner.mark", "mark") : t("examiner.marks", "marks")}</p>
+                  {question.options?.length ? <p className="mt-2 text-xs text-slate-400">{question.options.length} {t("examiner.optionsCount", "options extracted")}</p> : null}
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 flex justify-end gap-3 border-t border-slate-800 pt-4">
+              <button onClick={() => setImportedQuestions([])} className="rounded-xl px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">{t("common.cancel", "Cancel")}</button>
+              <button onClick={confirmBatchImport} disabled={!importSubject.trim() || !importedQuestions.length || committingImport} className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{committingImport ? t("examiner.saving", "Saving...") : t("examiner.approveAndAdd", "Approve & add questions")}</button>
+            </div>
           </div>
         </div>
       )}
@@ -388,7 +414,7 @@ export default function QuestionBankPage() {
             <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search question statement, subject, or keywords..."
+              placeholder={t("examiner.searchQuestionsPlaceholder", "Search question statement, subject, or keywords...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
@@ -430,7 +456,7 @@ export default function QuestionBankPage() {
         <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800/80 text-xs">
           <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider">
             <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Filters:</span>
+            <span>{t("examiner.filters", "Filters:")}</span>
           </div>
 
           {/* Subject Filter */}
@@ -439,7 +465,7 @@ export default function QuestionBankPage() {
             onChange={(e) => setSelectedSubject(e.target.value)}
             className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
-            <option value="ALL">All Subjects</option>
+            <option value="ALL">{t("examiner.allSubjects", "All Subjects")}</option>
             {subjects.map((sub) => (
               <option key={sub} value={sub}>
                 {sub}
@@ -453,10 +479,10 @@ export default function QuestionBankPage() {
             onChange={(e) => setSelectedDifficulty(e.target.value)}
             className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
-            <option value="ALL">All Difficulties</option>
-            <option value="EASY">Easy</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HARD">Hard</option>
+            <option value="ALL">{t("examiner.allDifficulties", "All Difficulties")}</option>
+            <option value="EASY">{t("examiner.difficultyEasy", "Easy")}</option>
+            <option value="MEDIUM">{t("examiner.difficultyMedium", "Medium")}</option>
+            <option value="HARD">{t("examiner.difficultyHard", "Hard")}</option>
           </select>
 
           {/* Type Filter */}
@@ -465,12 +491,12 @@ export default function QuestionBankPage() {
             onChange={(e) => setSelectedType(e.target.value)}
             className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
-            <option value="ALL">All Formats</option>
-            <option value="MCQ">Single Choice (MCQ)</option>
-            <option value="MULTI_SELECT">Multiple Select</option>
-            <option value="SHORT_ANSWER">Short Answer</option>
-            <option value="LONG_ANSWER">Long Essay</option>
-            <option value="IMAGE">Image / Diagram</option>
+            <option value="ALL">{t("examiner.allFormats", "All Formats")}</option>
+            <option value="MCQ">{t("examiner.formatMcq", "Single Choice (MCQ)")}</option>
+            <option value="MULTI_SELECT">{t("examiner.formatMultiSelect", "Multiple Select")}</option>
+            <option value="SHORT_ANSWER">{t("examiner.formatShortAnswer", "Short Answer")}</option>
+            <option value="LONG_ANSWER">{t("examiner.formatLongAnswer", "Long Essay")}</option>
+            <option value="CODING">{t("examiner.formatCoding", "Coding Problem")}</option>
           </select>
 
           {(selectedSubject !== "ALL" ||
@@ -486,7 +512,7 @@ export default function QuestionBankPage() {
               }}
               className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 ml-auto"
             >
-              Reset Filters
+              {t("common.refresh", "Reset Filters")}
             </button>
           )}
         </div>
@@ -494,15 +520,15 @@ export default function QuestionBankPage() {
 
       {selectedQuestionIds.length > 0 && (
         <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4">
-          <span className="text-sm font-bold text-white">{selectedQuestionIds.length} selected</span>
+          <span className="text-sm font-bold text-white">{selectedQuestionIds.length} {t("examiner.selectedQuestions", "questions selected")}</span>
           <select value={targetAssessmentId} onChange={(event) => { setTargetAssessmentId(event.target.value); setTargetSectionId(""); }} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
-            <option value="">Choose assessment…</option>{assessments.map((assessment) => <option key={assessment.id} value={assessment.id}>{assessment.title}</option>)}
+            <option value="">{t("examiner.selectAssessment", "Choose assessment…")}</option>{assessments.map((assessment) => <option key={assessment.id} value={assessment.id}>{assessment.title}</option>)}
           </select>
           <select value={targetSectionId} onChange={(event) => setTargetSectionId(event.target.value)} disabled={!targetAssessmentId} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-50">
-            <option value="">Choose section…</option>{assessments.find((assessment) => assessment.id === targetAssessmentId)?.sections.map((section) => <option key={section.id} value={section.id}>{section.title}</option>)}
+            <option value="">{t("examiner.selectSection", "Choose section…")}</option>{assessments.find((assessment) => assessment.id === targetAssessmentId)?.sections.map((section) => <option key={section.id} value={section.id}>{section.title}</option>)}
           </select>
-          <button onClick={addQuestionsToAssessment} disabled={!targetAssessmentId || !targetSectionId || movingQuestions} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{movingQuestions ? "Adding…" : "Add to assessment"}</button>
-          <button onClick={() => setSelectedQuestionIds([])} className="text-xs font-bold text-slate-400 hover:text-white">Clear selection</button>
+          <button onClick={addQuestionsToAssessment} disabled={!targetAssessmentId || !targetSectionId || movingQuestions} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{movingQuestions ? t("examiner.saving", "Adding…") : t("examiner.addToAssessment", "Add to assessment")}</button>
+          <button onClick={() => setSelectedQuestionIds([])} className="text-xs font-bold text-slate-400 hover:text-white">{t("common.cancel", "Clear selection")}</button>
         </section>
       )}
 
@@ -511,7 +537,7 @@ export default function QuestionBankPage() {
         <div className="glass-card rounded-3xl p-16 border border-slate-800 text-center space-y-3">
           <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400" />
           <p className="text-sm font-medium text-slate-300">
-            Loading Question Bank repository...
+            {t("common.loading", "Loading Question Bank repository...")}
           </p>
         </div>
       ) : questions.length === 0 ? (
@@ -520,11 +546,11 @@ export default function QuestionBankPage() {
             <HelpCircle className="h-8 w-8" />
           </div>
           <div className="space-y-1 max-w-md mx-auto">
-            <h3 className="text-lg font-bold text-white">No Questions Found</h3>
+            <h3 className="text-lg font-bold text-white">{t("examiner.noQuestionsTitle", "No Questions Found")}</h3>
             <p className="text-sm text-slate-400">
               {searchTerm || selectedSubject !== "ALL" || selectedDifficulty !== "ALL" || selectedType !== "ALL"
-                ? "No questions match your current search and filter combination."
-                : "Your Question Bank is currently empty. Start building questions for your examinations."}
+                ? t("examiner.noQuestionsFound", "No questions match your current search and filter combination.")
+                : t("examiner.noQuestionsDesc", "Your Question Bank is currently empty. Start building questions for your examinations.")}
             </p>
           </div>
           <Link
@@ -532,7 +558,7 @@ export default function QuestionBankPage() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>Create First Question</span>
+            <span>{t("examiner.createNewQuestion", "Create Question")}</span>
           </Link>
         </div>
       ) : viewMode === "grid" ? (
@@ -553,7 +579,7 @@ export default function QuestionBankPage() {
                   </div>
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/80">
                     <Award className="h-3.5 w-3.5 text-indigo-400" />
-                    {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
+                    {question.marks} {question.marks === 1 ? t("examiner.mark", "Mark") : t("examiner.marks", "Marks")}
                   </span>
                 </div>
 
@@ -572,14 +598,14 @@ export default function QuestionBankPage() {
                   {question.image_url && (
                     <span className="flex items-center gap-1 text-violet-300 bg-violet-950/40 px-2.5 py-1 rounded-lg border border-violet-900/40">
                       <ImageIcon className="h-3.5 w-3.5 text-violet-400" />
-                      Has Diagram
+                      {t("examiner.attachedDiagram", "Has Diagram")}
                     </span>
                   )}
 
                   {question.options && question.options.length > 0 && (
                     <span className="flex items-center gap-1 text-slate-400">
                       <Layers className="h-3.5 w-3.5" />
-                      {question.options.length} Options
+                      {question.options.length} {t("examiner.optionsCount", "Options")}
                     </span>
                   )}
                 </div>
@@ -600,7 +626,7 @@ export default function QuestionBankPage() {
                       setIsDetailModalOpen(true);
                     }}
                     className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
-                    title="View Details"
+                    title={t("examiner.previewQuestion", "View Details")}
                   >
                     <Eye className="h-4 w-4" />
                   </button>
@@ -608,7 +634,7 @@ export default function QuestionBankPage() {
                   <Link
                     href={`/examiner/questions/${question.id}/edit`}
                     className="p-2 rounded-xl text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
-                    title="Edit Question"
+                    title={t("examiner.editQuestion", "Edit Question")}
                   >
                     <Edit className="h-4 w-4" />
                   </Link>
@@ -619,7 +645,7 @@ export default function QuestionBankPage() {
                       setIsDeleteModalOpen(true);
                     }}
                     className="p-2 rounded-xl text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
-                    title="Delete Question"
+                    title={t("examiner.deleteQuestion", "Delete Question")}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -635,13 +661,13 @@ export default function QuestionBankPage() {
             <table className="w-full text-left text-sm text-slate-200">
               <thead className="bg-slate-900/80 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
                 <tr>
-                  <th className="px-6 py-4">Question Statement</th>
-                  <th className="px-6 py-4">Subject</th>
-                  <th className="px-6 py-4">Format</th>
-                  <th className="px-6 py-4">Difficulty</th>
-                  <th className="px-6 py-4">Marks</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-6 py-4">{t("examiner.questionStatement", "Question Statement")}</th>
+                  <th className="px-6 py-4">{t("examiner.filterSubject", "Subject")}</th>
+                  <th className="px-6 py-4">{t("examiner.questionType", "Format")}</th>
+                  <th className="px-6 py-4">{t("examiner.difficultyLevel", "Difficulty")}</th>
+                  <th className="px-6 py-4">{t("examiner.marks", "Marks")}</th>
+                  <th className="px-6 py-4">{t("examiner.scheduleWindow", "Date")}</th>
+                  <th className="px-6 py-4 text-right">{t("common.actions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -654,7 +680,7 @@ export default function QuestionBankPage() {
                       {question.image_url && (
                         <div className="flex items-center gap-1 text-xs text-indigo-400 mt-1">
                           <ImageIcon className="h-3.5 w-3.5" />
-                          <span>Attached image</span>
+                          <span>{t("examiner.attachedDiagram", "Attached image")}</span>
                         </div>
                       )}
                     </td>
@@ -679,7 +705,7 @@ export default function QuestionBankPage() {
                             setIsDetailModalOpen(true);
                           }}
                           className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
-                          title="View Details"
+                          title={t("examiner.previewQuestion", "View Details")}
                         >
                           <Eye className="h-4 w-4" />
                         </button>
@@ -687,7 +713,7 @@ export default function QuestionBankPage() {
                         <Link
                           href={`/examiner/questions/${question.id}/edit`}
                           className="p-2 rounded-xl text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
-                          title="Edit Question"
+                          title={t("examiner.editQuestion", "Edit Question")}
                         >
                           <Edit className="h-4 w-4" />
                         </Link>
@@ -698,7 +724,7 @@ export default function QuestionBankPage() {
                             setIsDeleteModalOpen(true);
                           }}
                           className="p-2 rounded-xl text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
-                          title="Delete Question"
+                          title={t("examiner.deleteQuestion", "Delete Question")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

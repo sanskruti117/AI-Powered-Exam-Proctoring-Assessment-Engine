@@ -790,3 +790,29 @@ class BatchQuestionTranslationResponse(BaseModel):
     target_language_name: str
     translations: List[QuestionTranslationResponse]
 
+
+# ==========================================
+# Proctor Vision Frame Analysis Schemas
+# ==========================================
+
+class ProctorVisionFrameRequest(BaseModel):
+    frame_base64: str = Field(description="Base64 encoded JPEG/PNG frame from student camera")
+
+
+class ProctorBoundingBoxItem(BaseModel):
+    label: str
+    type: str = "FACE"  # FACE, PROHIBITED, PERSON
+    confidence: float
+    box: List[float] = Field(description="[x1, y1, x2, y2] normalized between 0.0 and 1.0")
+
+
+class ProctorVisionFrameResponse(BaseModel):
+    success: bool = True
+    candidate_present: bool = True
+    face_count: int = 1
+    person_count: int = 1
+    multiple_persons: bool = False
+    prohibited_items: List[Dict[str, Any]] = Field(default_factory=list)
+    hud_tags: List[str] = Field(default_factory=list)
+    bounding_boxes: List[ProctorBoundingBoxItem] = Field(default_factory=list)
+

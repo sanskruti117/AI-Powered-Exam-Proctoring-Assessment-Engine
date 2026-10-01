@@ -12,7 +12,6 @@ import {
   XCircle,
   Building,
   Briefcase,
-  Mail,
   RefreshCw,
   Search,
   Check,
@@ -23,22 +22,15 @@ import {
   Trophy,
   BarChart3,
   Layers,
-  Award,
   ExternalLink,
-  Trash2,
-  PlayCircle,
   BookOpen,
-  Filter,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { ExaminerApprovalModal } from "@/components/ExaminerApprovalModal";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { AnimatedTypewriterText } from "@/components/AnimatedTypewriterText";
 import { AmbientAuroraBackground } from "@/components/AmbientAuroraBackground";
-import { SpotlightCard } from "@/components/SpotlightCard";
-import { Skeleton } from "@/components/SkeletonLoader";
 
 interface ExaminerItem {
   id: string;
@@ -258,6 +250,28 @@ export default function AdminDashboardPage() {
     );
   });
 
+  const getStatusLabel = (status: string) => {
+    if (status === "PENDING") return t("admin.pending", "Pending");
+    if (status === "ACTIVE") return t("admin.active", "Active");
+    if (status === "REJECTED") return t("admin.rejected", "Rejected");
+    if (status === "SUSPENDED") return t("admin.suspended", "Suspended");
+    return status;
+  };
+
+  const getExamStatusLabel = (status: string) => {
+    if (status === "DRAFT") return t("admin.draft", "Draft");
+    if (status === "PUBLISHED") return t("admin.published", "Published");
+    if (status === "CLOSED") return t("admin.closed", "Closed");
+    return status;
+  };
+
+  const getDifficultyLabel = (diff: string) => {
+    if (diff === "EASY") return t("admin.easy", "Easy");
+    if (diff === "MEDIUM") return t("admin.medium", "Medium");
+    if (diff === "HARD") return t("admin.hard", "Hard");
+    return diff;
+  };
+
   return (
     <div className="space-y-10 pb-12 relative">
       <AmbientAuroraBackground variant="rose-indigo" intensity="subtle" />
@@ -275,13 +289,16 @@ export default function AdminDashboardPage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-2 min-h-[44px]">
             <AnimatedTypewriterText
-              text={t("nav.adminPortal", "System Administration")}
+              text={t("admin.portalTitle", "System Administration")}
               speed={40}
               cursorColor="text-rose-400"
             />
           </h1>
           <p className="text-base text-slate-400 mt-2 max-w-3xl leading-relaxed">
-            Full oversight of academic institutions, verified examiners, question banks, candidate leaderboards, and cohort proctoring analytics.
+            {t(
+              "admin.portalDescription",
+              "Full oversight of academic institutions, verified examiners, question banks, candidate leaderboards, and cohort proctoring analytics."
+            )}
           </p>
         </div>
 
@@ -296,7 +313,7 @@ export default function AdminDashboardPage() {
             className="inline-flex items-center gap-2.5 px-5 py-3 rounded-xl text-sm font-semibold text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors disabled:opacity-50 cursor-pointer"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
-            <span>Refresh Data</span>
+            <span>{t("admin.refreshData", "Refresh Data")}</span>
           </button>
         </div>
       </div>
@@ -320,9 +337,9 @@ export default function AdminDashboardPage() {
           </div>
           <button
             onClick={() => setActionMessage(null)}
-            className="text-sm opacity-80 hover:opacity-100 font-bold uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-slate-900/50"
+            className="text-sm opacity-80 hover:opacity-100 font-bold uppercase tracking-wider px-3 py-1 rounded-lg hover:bg-slate-900/50 cursor-pointer"
           >
-            Dismiss
+            {t("admin.dismiss", "Dismiss")}
           </button>
         </div>
       )}
@@ -330,30 +347,30 @@ export default function AdminDashboardPage() {
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Pending Approvals"
+          title={t("admin.pendingApprovals", "Pending Approvals")}
           value={stats.pendingApprovals}
-          subtitle="Examiner requests awaiting review"
+          subtitle={t("admin.pendingApprovalsSubtitle", "Examiner requests awaiting review")}
           icon={Clock}
           color="amber"
         />
         <StatCard
-          title={t("examiner.examinerPortal", "Active Examiners")}
+          title={t("admin.activeExaminers", "Active Examiners")}
           value={stats.activeExaminers}
-          subtitle="Verified instructors & proctors"
+          subtitle={t("admin.activeExaminersSubtitle", "Verified instructors & proctors")}
           icon={UserCheck}
           color="indigo"
         />
         <StatCard
-          title="Registered Students"
+          title={t("admin.registeredStudents", "Registered Students")}
           value={stats.totalStudents}
-          subtitle="Active examination candidates"
+          subtitle={t("admin.registeredStudentsSubtitle", "Active examination candidates")}
           icon={GraduationCap}
           color="emerald"
         />
         <StatCard
-          title={t("examiner.examinations", "Global Assessments")}
+          title={t("admin.globalAssessments", "Global Assessments")}
           value={exams.length}
-          subtitle="Examinations across system"
+          subtitle={t("admin.globalAssessmentsSubtitle", "Examinations across system")}
           icon={FileSpreadsheet}
           color="cyan"
         />
@@ -373,7 +390,10 @@ export default function AdminDashboardPage() {
           }`}
         >
           <UserCheck className="h-4 w-4" />
-          <span>{t("admin.userManagement", "Examiner Approvals")} ({stats.pendingApprovals} Pending)</span>
+          <span>
+            {t("admin.examinerApprovalsTab", "Examiner Approvals")} ({stats.pendingApprovals}{" "}
+            {t("admin.pending", "Pending")})
+          </span>
         </button>
 
         <button
@@ -388,7 +408,9 @@ export default function AdminDashboardPage() {
           }`}
         >
           <FileSpreadsheet className="h-4 w-4" />
-          <span>{t("examiner.manageAssessments", "Global Examinations Oversight")} ({exams.length})</span>
+          <span>
+            {t("admin.globalExamsTab", "Global Examinations Oversight")} ({exams.length})
+          </span>
         </button>
 
         <button
@@ -403,7 +425,9 @@ export default function AdminDashboardPage() {
           }`}
         >
           <Layers className="h-4 w-4" />
-          <span>{t("admin.questionPool", "Master Question Pool")} ({totalQuestionsCount || "All"})</span>
+          <span>
+            {t("admin.masterQuestionPoolTab", "Master Question Pool")} ({totalQuestionsCount || t("admin.all", "All")})
+          </span>
         </button>
       </div>
 
@@ -415,10 +439,13 @@ export default function AdminDashboardPage() {
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
                 <UserCheck className="h-6 w-6 text-indigo-400" />
-                Examiner Management & Approvals
+                {t("admin.examinerManagementTitle", "Examiner Management & Approvals")}
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                Review credential verification requests before granting exam creation authority.
+                {t(
+                  "admin.examinerManagementSubtitle",
+                  "Review credential verification requests before granting exam creation authority."
+                )}
               </p>
             </div>
 
@@ -428,7 +455,7 @@ export default function AdminDashboardPage() {
                 <Search className="h-5 w-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search name, institution..."
+                  placeholder={t("admin.searchExaminerPlaceholder", "Search name, institution...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-11 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-full sm:w-64 transition-colors"
@@ -445,7 +472,7 @@ export default function AdminDashboardPage() {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Pending ({stats.pendingApprovals})
+                  {t("admin.pending", "Pending")} ({stats.pendingApprovals})
                 </button>
                 <button
                   onClick={() => setFilterStatus("ACTIVE")}
@@ -455,7 +482,7 @@ export default function AdminDashboardPage() {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Active ({stats.activeExaminers})
+                  {t("admin.active", "Active")} ({stats.activeExaminers})
                 </button>
                 <button
                   onClick={() => setFilterStatus("REJECTED")}
@@ -465,7 +492,7 @@ export default function AdminDashboardPage() {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  Rejected ({stats.rejectedExaminers})
+                  {t("admin.rejected", "Rejected")} ({stats.rejectedExaminers})
                 </button>
                 <button
                   onClick={() => setFilterStatus("ALL")}
@@ -475,7 +502,7 @@ export default function AdminDashboardPage() {
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  All ({stats.totalExaminers})
+                  {t("admin.all", "All")} ({stats.totalExaminers})
                 </button>
               </div>
             </div>
@@ -486,11 +513,11 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-800/80 bg-slate-900/50 text-xs font-bold uppercase tracking-wider text-slate-400">
-                  <th className="px-7 py-4">Examiner Info</th>
-                  <th className="px-7 py-4">Institution & Dept</th>
-                  <th className="px-7 py-4">Status</th>
-                  <th className="px-7 py-4">Applied Date</th>
-                  <th className="px-7 py-4 text-right">Actions</th>
+                  <th className="px-7 py-4">{t("admin.examinerInfo", "Examiner Info")}</th>
+                  <th className="px-7 py-4">{t("admin.institutionAndDept", "Institution & Dept")}</th>
+                  <th className="px-7 py-4">{t("admin.status", "Status")}</th>
+                  <th className="px-7 py-4">{t("admin.appliedDate", "Applied Date")}</th>
+                  <th className="px-7 py-4 text-right">{t("admin.actions", "Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -498,15 +525,21 @@ export default function AdminDashboardPage() {
                   <tr>
                     <td colSpan={5} className="px-7 py-16 text-center text-slate-400">
                       <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400 mb-3" />
-                      <p className="text-base font-medium text-slate-300">Loading examiners...</p>
+                      <p className="text-base font-medium text-slate-300">
+                        {t("admin.loadingExaminers", "Loading examiners...")}
+                      </p>
                     </td>
                   </tr>
                 ) : filteredExaminers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-7 py-16 text-center text-slate-400">
                       <Users className="h-10 w-10 mx-auto text-slate-600 mb-3" />
-                      <p className="text-base font-semibold text-slate-300">No examiners found matching this filter.</p>
-                      <p className="text-sm text-slate-500 mt-1">When instructors submit applications, they will appear in this list.</p>
+                      <p className="text-base font-semibold text-slate-300">
+                        {t("admin.noExaminersFound", "No examiners found matching this filter.")}
+                      </p>
+                      <p className="text-sm text-slate-500 mt-1">
+                        {t("admin.noExaminersSubtext", "When instructors submit applications, they will appear in this list.")}
+                      </p>
                     </td>
                   </tr>
                 ) : (
@@ -539,7 +572,7 @@ export default function AdminDashboardPage() {
                           {examiner.status === "PENDING" && <Clock className="h-3.5 w-3.5 mr-1.5" />}
                           {examiner.status === "ACTIVE" && <CheckCircle className="h-3.5 w-3.5 mr-1.5" />}
                           {examiner.status === "REJECTED" && <XCircle className="h-3.5 w-3.5 mr-1.5" />}
-                          {examiner.status}
+                          {getStatusLabel(examiner.status)}
                         </span>
                       </td>
                       <td className="px-7 py-5 text-sm text-slate-400">
@@ -559,12 +592,12 @@ export default function AdminDashboardPage() {
                                 }}
                                 className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
                               >
-                                Review
+                                {t("admin.review", "Review")}
                               </button>
                               <button
                                 onClick={() => handleApprove(examiner.id)}
                                 className="p-2 rounded-xl text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 transition-colors cursor-pointer"
-                                title="Approve Examiner"
+                                title={t("admin.approveExaminer", "Approve Examiner")}
                               >
                                 <Check className="h-5 w-5" />
                               </button>
@@ -574,7 +607,7 @@ export default function AdminDashboardPage() {
                                   setIsModalOpen(true);
                                 }}
                                 className="p-2 rounded-xl text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-colors cursor-pointer"
-                                title="Reject Examiner"
+                                title={t("admin.rejectExaminer", "Reject Examiner")}
                               >
                                 <X className="h-5 w-5" />
                               </button>
@@ -588,7 +621,7 @@ export default function AdminDashboardPage() {
                               className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-colors flex items-center gap-2 cursor-pointer"
                             >
                               <Eye className="h-4 w-4" />
-                              <span>Details</span>
+                              <span>{t("admin.details", "Details")}</span>
                             </button>
                           )}
                         </div>
@@ -607,10 +640,13 @@ export default function AdminDashboardPage() {
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
                 <FileSpreadsheet className="h-6 w-6 text-indigo-400" />
-                Global Examinations Oversight
+                {t("admin.globalExamsTitle", "Global Examinations Oversight")}
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                Direct administrative access to question blueprints, live candidate rosters, student rankings, and AI proctoring analytics.
+                {t(
+                  "admin.globalExamsSubtitle",
+                  "Direct administrative access to question blueprints, live candidate rosters, student rankings, and AI proctoring analytics."
+                )}
               </p>
             </div>
 
@@ -619,7 +655,7 @@ export default function AdminDashboardPage() {
                 <Search className="h-5 w-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search exam title, examiner..."
+                  placeholder={t("admin.searchExamsPlaceholder", "Search exam title, examiner...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-11 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-full sm:w-64 transition-colors"
@@ -637,7 +673,7 @@ export default function AdminDashboardPage() {
                         : "text-slate-400 hover:text-white"
                     }`}
                   >
-                    {st}
+                    {st === "ALL" ? t("admin.all", "All") : getExamStatusLabel(st)}
                   </button>
                 ))}
               </div>
@@ -648,13 +684,13 @@ export default function AdminDashboardPage() {
             <table className="w-full text-left border-collapse text-xs">
               <thead>
                 <tr className="border-b border-slate-800/80 bg-slate-900/50 uppercase font-bold text-slate-400 tracking-wider">
-                  <th className="px-6 py-4">Examination</th>
-                  <th className="px-6 py-4">Examiner Attribution</th>
-                  <th className="px-6 py-4 text-center">Sections / Pool</th>
-                  <th className="px-6 py-4 text-center">Marks / Duration</th>
-                  <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-center">Attempts</th>
-                  <th className="px-6 py-4 text-right">Oversight Actions</th>
+                  <th className="px-6 py-4">{t("admin.examination", "Examination")}</th>
+                  <th className="px-6 py-4">{t("admin.examinerAttribution", "Examiner Attribution")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.sectionsPool", "Sections / Pool")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.marksDuration", "Marks / Duration")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.status", "Status")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.attempts", "Attempts")}</th>
+                  <th className="px-6 py-4 text-right">{t("admin.oversightActions", "Oversight Actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
@@ -662,14 +698,16 @@ export default function AdminDashboardPage() {
                   <tr>
                     <td colSpan={7} className="px-6 py-16 text-center text-slate-400">
                       <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400 mb-3" />
-                      <span>Loading examinations...</span>
+                      <span>{t("admin.loadingExams", "Loading examinations...")}</span>
                     </td>
                   </tr>
                 ) : exams.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-16 text-center text-slate-400">
                       <FileSpreadsheet className="h-10 w-10 mx-auto text-slate-600 mb-3" />
-                      <p className="text-sm font-semibold text-slate-300">No examinations found.</p>
+                      <p className="text-sm font-semibold text-slate-300">
+                        {t("admin.noExamsFound", "No examinations found.")}
+                      </p>
                     </td>
                   </tr>
                 ) : (
@@ -678,14 +716,14 @@ export default function AdminDashboardPage() {
                       <td className="px-6 py-4">
                         <div className="font-bold text-sm text-white">{exam.title}</div>
                         <div className="text-[11px] text-slate-400 mt-0.5">
-                          Window: {new Date(exam.start_time).toLocaleDateString()} -{" "}
+                          {t("admin.window", "Window")}: {new Date(exam.start_time).toLocaleDateString()} -{" "}
                           {new Date(exam.end_time).toLocaleDateString()}
                         </div>
                       </td>
 
                       <td className="px-6 py-4">
                         <div className="font-semibold text-indigo-300">
-                          {exam.examiner?.full_name || "Academic Examiner"}
+                          {exam.examiner?.full_name || t("admin.academicExaminer", "Academic Examiner")}
                         </div>
                         <div className="text-slate-400 text-[11px]">
                           {exam.examiner?.email || exam.examiner?.institution || "—"}
@@ -694,18 +732,20 @@ export default function AdminDashboardPage() {
 
                       <td className="px-6 py-4 text-center">
                         <span className="font-bold text-white">
-                          {exam.sections.length} Sections
+                          {exam.sections.length} {t("admin.sections", "Sections")}
                         </span>
                         <div className="text-[11px] text-slate-400">
-                          {exam.total_questions} Questions in pool
+                          {exam.total_questions} {t("admin.questionsInPool", "Questions in pool")}
                         </div>
                       </td>
 
                       <td className="px-6 py-4 text-center">
                         <span className="font-extrabold text-amber-400">
-                          {exam.total_marks} Marks
+                          {exam.total_marks} {t("admin.marks", "Marks")}
                         </span>
-                        <div className="text-[11px] text-slate-400">{exam.duration_minutes} Mins</div>
+                        <div className="text-[11px] text-slate-400">
+                          {exam.duration_minutes} {t("admin.mins", "Mins")}
+                        </div>
                       </td>
 
                       <td className="px-6 py-4 text-center">
@@ -718,7 +758,7 @@ export default function AdminDashboardPage() {
                               : "bg-rose-500/15 text-rose-300 border-rose-500/30"
                           }`}
                         >
-                          {exam.status}
+                          {getExamStatusLabel(exam.status)}
                         </span>
                       </td>
 
@@ -734,7 +774,9 @@ export default function AdminDashboardPage() {
                             title="Inspect Question Pools & Blueprint"
                           >
                             <Layers className="h-3.5 w-3.5 text-indigo-400" />
-                            <span className="text-[11px] font-semibold hidden xl:inline">Pools</span>
+                            <span className="text-[11px] font-semibold hidden xl:inline">
+                              {t("admin.pools", "Pools")}
+                            </span>
                           </Link>
 
                           <Link
@@ -743,7 +785,9 @@ export default function AdminDashboardPage() {
                             title="Candidate Submissions & Grading"
                           >
                             <Users className="h-3.5 w-3.5 text-sky-400" />
-                            <span className="text-[11px] font-semibold hidden xl:inline">Candidates</span>
+                            <span className="text-[11px] font-semibold hidden xl:inline">
+                              {t("admin.candidates", "Candidates")}
+                            </span>
                           </Link>
 
                           <Link
@@ -752,7 +796,9 @@ export default function AdminDashboardPage() {
                             title="Student Leaderboard & Rankings"
                           >
                             <Trophy className="h-3.5 w-3.5" />
-                            <span className="text-[11px] font-semibold hidden xl:inline">Leaderboard</span>
+                            <span className="text-[11px] font-semibold hidden xl:inline">
+                              {t("admin.leaderboard", "Leaderboard")}
+                            </span>
                           </Link>
 
                           <Link
@@ -761,7 +807,9 @@ export default function AdminDashboardPage() {
                             title="Proctoring & Score Analytics"
                           >
                             <BarChart3 className="h-3.5 w-3.5" />
-                            <span className="text-[11px] font-semibold hidden xl:inline">Analytics</span>
+                            <span className="text-[11px] font-semibold hidden xl:inline">
+                              {t("admin.analytics", "Analytics")}
+                            </span>
                           </Link>
                         </div>
                       </td>
@@ -779,10 +827,13 @@ export default function AdminDashboardPage() {
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
                 <Layers className="h-6 w-6 text-indigo-400" />
-                Master Question Pool & Bank
+                {t("admin.masterQuestionPoolTitle", "Master Question Pool & Bank")}
               </h2>
               <p className="text-sm text-slate-400 mt-1">
-                Browse, search, and verify questions created by examiners across all subjects and difficulty levels.
+                {t(
+                  "admin.masterQuestionPoolSubtitle",
+                  "Browse, search, and verify questions created by examiners across all subjects and difficulty levels."
+                )}
               </p>
             </div>
 
@@ -791,7 +842,7 @@ export default function AdminDashboardPage() {
                 <Search className="h-5 w-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search question text or subject..."
+                  placeholder={t("admin.searchQuestionsPlaceholder", "Search question text or subject...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-11 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 w-full sm:w-60 transition-colors"
@@ -804,7 +855,7 @@ export default function AdminDashboardPage() {
                 onChange={(e) => setQSubjectFilter(e.target.value)}
                 className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="ALL">All Subjects</option>
+                <option value="ALL">{t("admin.allSubjects", "All Subjects")}</option>
                 {questionSubjects.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -818,10 +869,10 @@ export default function AdminDashboardPage() {
                 onChange={(e) => setQDifficultyFilter(e.target.value)}
                 className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="ALL">All Difficulties</option>
-                <option value="EASY">Easy</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HARD">Hard</option>
+                <option value="ALL">{t("admin.allDifficulties", "All Difficulties")}</option>
+                <option value="EASY">{t("admin.easy", "Easy")}</option>
+                <option value="MEDIUM">{t("admin.medium", "Medium")}</option>
+                <option value="HARD">{t("admin.hard", "Hard")}</option>
               </select>
 
               {/* Type Filter */}
@@ -830,12 +881,12 @@ export default function AdminDashboardPage() {
                 onChange={(e) => setQTypeFilter(e.target.value)}
                 className="px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs font-semibold text-white focus:outline-none focus:border-indigo-500"
               >
-                <option value="ALL">All Types</option>
-                <option value="MCQ">MCQ</option>
-                <option value="MULTI_SELECT">Multi-Select</option>
-                <option value="SHORT_ANSWER">Short Answer</option>
-                <option value="LONG_ANSWER">Descriptive</option>
-                <option value="IMAGE">Image-based</option>
+                <option value="ALL">{t("admin.allTypes", "All Types")}</option>
+                <option value="MCQ">{t("admin.mcq", "MCQ")}</option>
+                <option value="MULTI_SELECT">{t("admin.multiSelect", "Multi-Select")}</option>
+                <option value="SHORT_ANSWER">{t("admin.shortAnswer", "Short Answer")}</option>
+                <option value="LONG_ANSWER">{t("admin.descriptive", "Descriptive")}</option>
+                <option value="IMAGE">{t("admin.imageBased", "Image-based")}</option>
               </select>
             </div>
           </div>
@@ -844,12 +895,14 @@ export default function AdminDashboardPage() {
             {loading ? (
               <div className="p-16 text-center text-slate-400">
                 <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400 mb-3" />
-                <span>Loading question pool...</span>
+                <span>{t("admin.loadingQuestionPool", "Loading question pool...")}</span>
               </div>
             ) : questions.length === 0 ? (
               <div className="p-16 text-center text-slate-400">
                 <BookOpen className="h-10 w-10 mx-auto text-slate-600 mb-3" />
-                <p className="text-base font-semibold text-slate-300">No questions found matching criteria.</p>
+                <p className="text-base font-semibold text-slate-300">
+                  {t("admin.noQuestionsFound", "No questions found matching criteria.")}
+                </p>
               </div>
             ) : (
               questions.map((q, idx) => (
@@ -869,7 +922,7 @@ export default function AdminDashboardPage() {
                             : "bg-rose-500/15 text-rose-300 border-rose-500/30"
                         }`}
                       >
-                        {q.difficulty}
+                        {getDifficultyLabel(q.difficulty)}
                       </span>
                       <span className="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
                         {q.question_type}
@@ -878,14 +931,14 @@ export default function AdminDashboardPage() {
 
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-extrabold text-amber-400">
-                        {q.marks} Mark{q.marks > 1 ? "s" : ""}
+                        {q.marks} {t("admin.marks", "Marks")}
                       </span>
                       {q.exam_id && (
                         <Link
                           href={`/examiner/exams/${q.exam_id}/manage`}
                           className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-semibold"
                         >
-                          <span>Assigned Exam</span>
+                          <span>{t("admin.assignedExam", "Assigned Exam")}</span>
                           <ExternalLink className="h-3 w-3" />
                         </Link>
                       )}

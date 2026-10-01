@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, CheckCircle, AlertTriangle, Building, Briefcase, Mail, Calendar, UserCheck } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ExaminerData {
   id: string;
@@ -28,6 +29,7 @@ export function ExaminerApprovalModal({
   onApprove,
   onReject,
 }: ExaminerApprovalModalProps) {
+  const { t } = useLanguage();
   const [actionType, setActionType] = useState<"view" | "approve" | "reject">("view");
   const [rejectionReason, setRejectionReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -65,6 +67,14 @@ export function ExaminerApprovalModal({
     }
   };
 
+  const getStatusLabel = (status: string) => {
+    if (status === "PENDING") return t("admin.pending", "Pending");
+    if (status === "ACTIVE") return t("admin.active", "Active");
+    if (status === "REJECTED") return t("admin.rejected", "Rejected");
+    if (status === "SUSPENDED") return t("admin.suspended", "Suspended");
+    return status;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
       <div className="relative w-full max-w-xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-8 overflow-hidden">
@@ -75,8 +85,12 @@ export function ExaminerApprovalModal({
               <UserCheck className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white">Examiner Application</h3>
-              <p className="text-sm text-slate-400">Review credential verification request</p>
+              <h3 className="text-xl font-bold text-white">
+                {t("admin.examinerApplicationModalTitle", "Examiner Application")}
+              </h3>
+              <p className="text-sm text-slate-400">
+                {t("admin.examinerApplicationModalSubtitle", "Review credential verification request")}
+              </p>
             </div>
           </div>
           <button
@@ -113,22 +127,22 @@ export function ExaminerApprovalModal({
                   ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
                   : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
               }`}>
-                {examiner.status}
+                {getStatusLabel(examiner.status)}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-sm">
               <div className="flex items-center gap-2 text-slate-200">
                 <Building className="h-4 w-4 text-indigo-400 shrink-0" />
-                <span className="font-medium">{examiner.institution || "Not specified"}</span>
+                <span className="font-medium">{examiner.institution || t("admin.notSpecified", "Not specified")}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-200">
                 <Briefcase className="h-4 w-4 text-violet-400 shrink-0" />
-                <span className="font-medium">{examiner.department || "Not specified"}</span>
+                <span className="font-medium">{examiner.department || t("admin.notSpecified", "Not specified")}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-400 sm:col-span-2 pt-1 text-xs">
                 <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
-                <span>Requested: {new Date(examiner.createdAt).toLocaleDateString()} at {new Date(examiner.createdAt).toLocaleTimeString()}</span>
+                <span>{t("admin.requested", "Requested")}: {new Date(examiner.createdAt).toLocaleDateString()} at {new Date(examiner.createdAt).toLocaleTimeString()}</span>
               </div>
             </div>
           </div>
@@ -137,12 +151,12 @@ export function ExaminerApprovalModal({
           {actionType === "reject" && (
             <div className="space-y-2.5 animate-fadeIn">
               <label className="block text-sm font-semibold text-slate-200">
-                Reason for Rejection (Required)
+                {t("admin.reasonForRejection", "Reason for Rejection (Required)")}
               </label>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="e.g. Unverified academic affiliation, invalid department details, etc."
+                placeholder={t("admin.rejectionReasonPlaceholder", "e.g. Unverified academic affiliation, invalid department details, etc.")}
                 rows={3}
                 className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
               />
@@ -159,7 +173,7 @@ export function ExaminerApprovalModal({
                 onClick={onClose}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
-                Close
+                {t("admin.close", "Close")}
               </button>
               {examiner.status === "PENDING" && (
                 <>
@@ -168,7 +182,7 @@ export function ExaminerApprovalModal({
                     onClick={() => setActionType("reject")}
                     className="px-5 py-2.5 rounded-xl text-sm font-semibold text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-colors cursor-pointer"
                   >
-                    Reject Application
+                    {t("admin.rejectApplication", "Reject Application")}
                   </button>
                   <button
                     type="button"
@@ -177,7 +191,7 @@ export function ExaminerApprovalModal({
                     className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/25 transition-all flex items-center gap-2 cursor-pointer"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    <span>{submitting ? "Approving..." : "Approve & Activate"}</span>
+                    <span>{submitting ? t("admin.approving", "Approving...") : t("admin.approveAndActivate", "Approve & Activate")}</span>
                   </button>
                 </>
               )}
@@ -192,7 +206,7 @@ export function ExaminerApprovalModal({
                 }}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
-                Back
+                {t("admin.back", "Back")}
               </button>
               <button
                 type="button"
@@ -200,7 +214,7 @@ export function ExaminerApprovalModal({
                 disabled={submitting}
                 className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/25 transition-all cursor-pointer"
               >
-                {submitting ? "Rejecting..." : "Confirm Rejection"}
+                {submitting ? t("admin.rejecting", "Rejecting...") : t("admin.confirmRejection", "Confirm Rejection")}
               </button>
             </>
           ) : null}

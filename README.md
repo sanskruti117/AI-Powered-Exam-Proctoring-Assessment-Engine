@@ -89,10 +89,7 @@ ADMIN_EMAIL="admin@proctor.com"
 ADMIN_PASSWORD="AdminSecurePass123!"
 ADMIN_NAME="Super Administrator"
 GEMINI_API_KEY="your_google_gemini_api_key"
-SARVAM_API_KEY="your_sarvam_api_key"
 ```
-
-The Sarvam key is used only when running `python translate_catalog.py` to fill the Hindi, Marathi, Malayalam, Telugu, and Tamil UI catalogs. Keep it in your local `.env`; do not commit it.
 
 ---
 

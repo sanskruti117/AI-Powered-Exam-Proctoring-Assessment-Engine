@@ -11,19 +11,13 @@ import {
   CheckCircle2,
   AlertTriangle,
   PlayCircle,
-  XCircle,
+  Users,
+  Plus,
   BarChart3,
   Trophy,
-  PenTool,
-  Users,
-  Settings,
-  Plus,
-  RefreshCw,
-  Sparkles,
-  ShieldCheck,
-  ChevronRight,
 } from "lucide-react";
 import { ExamContextNav } from "@/components/ExamContextNav";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface ExamSection {
   id: string;
@@ -59,6 +53,7 @@ interface ExamDetail {
 }
 
 export default function ExamOverviewPage() {
+  const { t } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const examId = params?.id as string;
@@ -79,7 +74,7 @@ export default function ExamOverviewPage() {
     try {
       setLoading(true);
       const res = await fetch(`/api/exams/${examId}`);
-      if (!res.ok) throw new Error("Failed to load exam details.");
+      if (!res.ok) throw new Error(t("examiner.examNotFound", "Failed to load exam details."));
       const data = await res.json();
       setExam(data);
     } catch (err: any) {
@@ -133,11 +128,10 @@ export default function ExamOverviewPage() {
     }
   };
 
-
   const formatDate = (isoString: string) => {
     try {
       const d = new Date(isoString);
-      return d.toLocaleString("en-US", {
+      return d.toLocaleString(undefined, {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -151,15 +145,15 @@ export default function ExamOverviewPage() {
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-slate-400">Loading exam overview...</div>;
+    return <div className="p-12 text-center text-slate-400">{t("examiner.loadingOverview", "Loading exam overview...")}</div>;
   }
 
   if (!exam) {
     return (
       <div className="p-12 text-center space-y-3">
-        <div className="text-rose-400 font-bold">Exam not found.</div>
+        <div className="text-rose-400 font-bold">{t("examiner.examNotFound", "Exam not found.")}</div>
         <Link href="/examiner/exams" className="text-xs text-indigo-400 underline">
-          Return to Examinations
+          {t("examiner.returnToExams", "Return to Examinations")}
         </Link>
       </div>
     );
@@ -197,8 +191,8 @@ export default function ExamOverviewPage() {
             )}
             <span className="text-sm font-medium">{feedback.msg}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70">
-            Dismiss
+          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70 cursor-pointer">
+            {t("common.dismiss", "Dismiss")}
           </button>
         </div>
       )}
@@ -208,20 +202,20 @@ export default function ExamOverviewPage() {
         {/* Total Target Marks & Readiness */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Exam Marks</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.examMarks", "EXAM MARKS")}</span>
             <Award className="h-4 w-4 text-amber-400" />
           </div>
           <div className="text-3xl font-black text-white">
             {exam.total_marks}{" "}
             <span className="text-xs font-normal text-slate-400">
-              (Pass: {exam.passing_marks})
+              ({t("examiner.pass", "Pass")}: {exam.passing_marks})
             </span>
           </div>
           <div className="text-xs font-semibold">
             {exam.total_pool_marks >= exam.total_marks ? (
-              <span className="text-emerald-400">✓ Pool: {exam.total_pool_marks} Marks</span>
+              <span className="text-emerald-400">✓ {t("examiner.pool", "Pool")}: {exam.total_pool_marks} {t("examiner.marks", "Marks")}</span>
             ) : (
-              <span className="text-rose-400">⚠️ Pool: {exam.total_pool_marks} / {exam.total_marks}</span>
+              <span className="text-rose-400">⚠️ {t("examiner.pool", "Pool")}: {exam.total_pool_marks} / {exam.total_marks}</span>
             )}
           </div>
         </div>
@@ -229,23 +223,23 @@ export default function ExamOverviewPage() {
         {/* Duration & Delivery */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Duration & Policy</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.durationAndPolicy", "DURATION & POLICY")}</span>
             <Clock className="h-4 w-4 text-indigo-400" />
           </div>
-          <div className="text-3xl font-black text-white">{exam.duration_minutes} Mins</div>
+          <div className="text-3xl font-black text-white">{exam.duration_minutes} {t("examiner.mins", "Mins")}</div>
           <div className="text-xs text-slate-400">
-            {exam.max_attempts} Attempt Allowed &bull; Shuffled
+            {exam.max_attempts} {exam.max_attempts > 1 ? t("examiner.attemptsAllowed", "Attempts Allowed") : t("examiner.attemptAllowed", "Attempt Allowed")} &bull; {t("examiner.shuffled", "Shuffled")}
           </div>
         </div>
 
         {/* Testing Window */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Schedule Status</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.scheduleStatus", "SCHEDULE STATUS")}</span>
             <Calendar className="h-4 w-4 text-sky-400" />
           </div>
           <div className="text-lg font-bold text-white truncate">
-            {exam.is_active ? "Live Window Active" : exam.is_upcoming ? "Upcoming Schedule" : "Closed / Ended"}
+            {exam.is_active ? t("examiner.liveWindowActive", "Live Window Active") : exam.is_upcoming ? t("examiner.upcomingSchedule", "Upcoming Schedule") : t("examiner.closedEnded", "Closed / Ended")}
           </div>
           <div className="text-[11px] text-slate-400 truncate">
             {formatDate(exam.start_time)}
@@ -255,11 +249,11 @@ export default function ExamOverviewPage() {
         {/* Candidate Submissions */}
         <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">Submissions</span>
+            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.submissions", "SUBMISSIONS")}</span>
             <Users className="h-4 w-4 text-violet-400" />
           </div>
           <div className="text-3xl font-black text-white">{exam.attempts_count}</div>
-          <div className="text-xs text-slate-400">Candidate evaluations</div>
+          <div className="text-xs text-slate-400">{t("examiner.candidateEvaluations", "Candidate evaluations")}</div>
         </div>
       </div>
 
@@ -274,19 +268,29 @@ export default function ExamOverviewPage() {
                   : "bg-amber-500/15 text-amber-300 border-amber-500/30"
               }`}
             >
-              {exam.results_published ? "● Scores Published to Students" : "○ Scores Withheld (Private to Examiner)"}
+              {exam.results_published
+                ? `● ${t("examiner.scoresPublished", "Scores Published to Students")}`
+                : `○ ${t("examiner.scoresWithheld", "Scores Withheld (Private to Examiner)")}`}
             </span>
-            <span className="text-xs text-slate-400 font-medium">&bull; {exam.attempts_count} Submissions Recorded</span>
+            <span className="text-xs text-slate-400 font-medium">
+              &bull; {exam.attempts_count} {t("examiner.submissionsRecorded", "Submissions Recorded")}
+            </span>
           </div>
           <h3 className="text-base font-bold text-white">
             {exam.results_published
-              ? "Candidate Results Are Live & Viewable by Students"
-              : "Scores & Answer Keys Are Hidden from Candidates"}
+              ? t("examiner.candidateResultsLive", "Candidate Results Are Live & Viewable by Students")
+              : t("examiner.scoresHidden", "Scores & Answer Keys Are Hidden from Candidates")}
           </h3>
           <p className="text-xs text-slate-400 max-w-2xl">
             {exam.results_published
-              ? "Students can currently view their certified score reports, earned marks, and question breakdown."
-              : "Students can only see that their exam attempt was recorded. Publish scores once you have completed all evaluations and reviews."}
+              ? t(
+                  "examiner.candidateResultsLiveSubtitle",
+                  "Students can currently view their certified score reports, earned marks, and question breakdown."
+                )
+              : t(
+                  "examiner.scoresHiddenSubtitle",
+                  "Students can only see that their exam attempt was recorded. Publish scores once you have completed all evaluations and reviews."
+                )}
           </p>
         </div>
 
@@ -294,7 +298,7 @@ export default function ExamOverviewPage() {
           <button
             onClick={() => handleTogglePublishResults(!exam.results_published)}
             disabled={resultsPublishLoading}
-            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg ${
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg cursor-pointer ${
               exam.results_published
                 ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
                 : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/25"
@@ -303,10 +307,10 @@ export default function ExamOverviewPage() {
             <Award className="h-4 w-4" />
             <span>
               {resultsPublishLoading
-                ? "Updating..."
+                ? t("common.loading", "Updating...")
                 : exam.results_published
-                ? "Unpublish / Revoke Scores"
-                : "Publish Scores to Students"}
+                ? t("examiner.unpublishScores", "Unpublish / Revoke Scores")
+                : t("examiner.publishScores", "Publish Scores to Students")}
             </span>
           </button>
         </div>
@@ -314,24 +318,26 @@ export default function ExamOverviewPage() {
 
       {/* Section-by-Section Question Pool Readiness */}
       <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <Layers className="h-5 w-5 text-indigo-400" />
-              <span>Section-wise Question Pools & Marks Readiness</span>
+              <span>{t("examiner.sectionWisePools", "Section-wise Question Pools & Marks Readiness")}</span>
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Each student attempt will be delivered a randomized combination of questions summing exactly to the section target marks.
+              {t(
+                "examiner.sectionWiseSubtitle",
+                "Each student attempt will be delivered a randomized combination of questions summing exactly to the section target marks."
+              )}
             </p>
           </div>
 
           <Link
             href={`/examiner/exams/${exam.id}/manage`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all self-start sm:self-auto cursor-pointer"
           >
             <Plus className="h-3.5 w-3.5" />
-            <span>Manage Question Pools</span>
+            <span>{t("examiner.manageQuestionPools", "Manage Question Pools")}</span>
           </Link>
         </div>
 
@@ -360,16 +366,18 @@ export default function ExamOverviewPage() {
                     <span className="font-bold text-sm text-white">{sec.title}</span>
                   </div>
                   <span className="text-xs font-extrabold text-amber-400">
-                    Target: {sec.target_marks} Marks
+                    {t("examiner.target", "Target")}: {sec.target_marks} {t("examiner.marks", "Marks")}
                   </span>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>Pool: {sec.total_pool_questions} questions</span>
+                    <span>
+                      {t("examiner.pool", "Pool")}: {sec.total_pool_questions} {t("examiner.questions", "questions")}
+                    </span>
                     <span className={isReady ? "text-emerald-400 font-bold" : "text-rose-400 font-bold"}>
-                      {sec.total_pool_marks} / {sec.target_marks} Marks ({progressPct}%)
+                      {sec.total_pool_marks} / {sec.target_marks} {t("examiner.marks", "Marks")} ({progressPct}%)
                     </span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
@@ -387,7 +395,10 @@ export default function ExamOverviewPage() {
                   <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0" />
                     <span>
-                      Cannot publish — this section needs enough questions to form exactly {sec.target_marks} marks (currently {sec.total_pool_marks} marks).
+                      {t(
+                        "examiner.cannotPublishWarning",
+                        "Cannot publish — this section needs enough questions to form target marks."
+                      )}
                     </span>
                   </div>
                 )}
@@ -400,21 +411,31 @@ export default function ExamOverviewPage() {
         {exam.status === "DRAFT" && (
           <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-white">Publishing Status</h4>
+              <h4 className="text-sm font-bold text-white">{t("examiner.publishingStatus", "Publishing Status")}</h4>
               <p className="text-xs text-slate-400">
                 {isPublishable
-                  ? "All sections meet the minimum target marks threshold. You can now publish this examination."
-                  : "Add more questions to all sections so each section has at least its target marks before publishing."}
+                  ? t(
+                      "examiner.publishingReadyDesc",
+                      "All sections meet the minimum target marks threshold. You can now publish this examination."
+                    )
+                  : t(
+                      "examiner.publishingUnreadyDesc",
+                      "Add more questions to all sections so each section has at least its target marks before publishing."
+                    )}
               </p>
             </div>
 
             <button
               onClick={handlePublish}
               disabled={!isPublishable || publishLoading}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 transition-all shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-600/20 transition-all shrink-0 cursor-pointer"
             >
               <PlayCircle className="h-4 w-4" />
-              <span>{publishLoading ? "Validating & Publishing..." : "Publish Examination"}</span>
+              <span>
+                {publishLoading
+                  ? t("examiner.validatingAndPublishing", "Validating & Publishing...")
+                  : t("examiner.publishExamination", "Publish Examination")}
+              </span>
             </button>
           </div>
         )}
@@ -424,46 +445,55 @@ export default function ExamOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           href={`/examiner/exams/${exam.id}/manage`}
-          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2"
+          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2 cursor-pointer"
         >
           <div className="h-10 w-10 rounded-xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Layers className="h-5 w-5" />
           </div>
           <h4 className="text-sm font-bold text-white group-hover:text-indigo-300">
-            Question Paper & Pools
+            {t("examiner.questionPaperPools", "Question Paper & Pools")}
           </h4>
           <p className="text-xs text-slate-400">
-            Author, edit, and organize questions under section weightages.
+            {t(
+              "examiner.questionPaperPoolsSubtitle",
+              "Author, edit, and organize questions under section weightages."
+            )}
           </p>
         </Link>
 
         <Link
           href={`/examiner/exams/${exam.id}/leaderboard`}
-          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2"
+          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2 cursor-pointer"
         >
           <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center group-hover:scale-110 transition-transform">
             <Trophy className="h-5 w-5" />
           </div>
           <h4 className="text-sm font-bold text-white group-hover:text-amber-300">
-            Candidate Leaderboard
+            {t("examiner.candidateLeaderboard", "Candidate Leaderboard")}
           </h4>
           <p className="text-xs text-slate-400">
-            View ranked scores, percentages, and average stopwatch pacing.
+            {t(
+              "examiner.candidateLeaderboardSubtitle",
+              "View ranked scores, percentages, and average stopwatch pacing."
+            )}
           </p>
         </Link>
 
         <Link
           href={`/examiner/exams/${exam.id}/analytics`}
-          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2"
+          className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all group space-y-2 cursor-pointer"
         >
           <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
             <BarChart3 className="h-5 w-5" />
           </div>
           <h4 className="text-sm font-bold text-white group-hover:text-emerald-300">
-            Cohort Analytics
+            {t("examiner.cohortAnalytics", "Cohort Analytics")}
           </h4>
           <p className="text-xs text-slate-400">
-            Inspect pass rates, section mastery gauges, and item diagnostics.
+            {t(
+              "examiner.cohortAnalyticsSubtitle",
+              "Inspect pass rates, section mastery gauges, and item diagnostics."
+            )}
           </p>
         </Link>
       </div>

@@ -379,10 +379,11 @@ def evaluate_descriptive_answer(
     try:
         from google import genai
         from google.genai import types
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
-        client = genai.Client(api_key=api_key)
-
-        prompt = f"""
+        def _call_gemini():
+            client = genai.Client(api_key=api_key)
+            prompt = f"""
 You are an expert academic examiner evaluating a student's answer.
 
 Question ({question_type}):
@@ -401,16 +402,19 @@ Evaluation Criteria:
 2. Provide constructive, specific feedback explaining why the score was awarded.
 3. List key points correctly covered and any missing or inaccurate concepts.
 """
+            return client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=AIEvaluationResult,
+                    temperature=0.2,
+                ),
+            )
 
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=AIEvaluationResult,
-                temperature=0.2,
-            ),
-        )
+        with ThreadPoolExecutor(max_workers=1) as single_executor:
+            future = single_executor.submit(_call_gemini)
+            response = future.result(timeout=2.5)
 
         if response and response.text:
             data = json.loads(response.text)
@@ -426,9 +430,9 @@ Evaluation Criteria:
             )
 
     except Exception as exc:
-        logger.warning(f"Gemini API evaluation error: {exc}. Falling back to semantic analyzer.")
+        logger.warning(f"Gemini API evaluation deferred or timed out: {exc}. Using instant semantic analyzer.")
 
-    # Fallback if API call errors out
+    # Fallback if API call errors out or exceeds 2.5s
     return _evaluate_with_semantic_fallback(
         question_text=question_text,
         expected_answer=expected_answer,

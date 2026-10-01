@@ -3,7 +3,6 @@ import re
 import json
 import logging
 import hashlib
-import requests
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 
@@ -13,26 +12,11 @@ logger = logging.getLogger("translator")
 
 LANGUAGE_NAMES: Dict[str, str] = {
     "en": "English",
-    "hi": "Hindi (हिन्दी)",
-    "mr": "Marathi (मराठी)",
-    "ml": "Malayalam (മലയാളം)",
-    "te": "Telugu (తెలుగు)",
-    "ta": "Tamil (தமிழ்)",
-    "kn": "Kannada (ಕನ್ನಡ)",
-    "bn": "Bengali (বাংলা)",
-    "gu": "Gujarati (ગુજરાતી)",
-}
-
-SARVAM_LANG_CODES: Dict[str, str] = {
-    "hi": "hi-IN",
-    "mr": "mr-IN",
-    "ml": "ml-IN",
-    "te": "te-IN",
-    "ta": "ta-IN",
-    "kn": "kn-IN",
-    "bn": "bn-IN",
-    "gu": "gu-IN",
-    "en": "en-IN",
+    "hi": "Hindi (\u0939\u093f\u0928\u094d\u0926\u0940)",
+    "mr": "Marathi (\u092e\u0930\u093e\u0920\u0940)",
+    "ml": "Malayalam (\u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02)",
+    "te": "Telugu (\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41)",
+    "ta": "Tamil (\u0ba4\u0bae\u0bbf\u0bb4\u0bcd)",
 }
 
 # In-memory translation cache: hash_key -> translation result dict
@@ -42,38 +26,6 @@ _TRANSLATION_CACHE: Dict[str, Dict[str, Any]] = {}
 def _compute_cache_key(target_lang: str, question_text: str, options: List[Dict[str, Any]]) -> str:
     serialized = f"{target_lang}::{question_text}::{json.dumps(options, sort_keys=True)}"
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-
-def _translate_with_sarvam(text: str, target_lang: str, api_key: str) -> Optional[str]:
-    """Translates text using Sarvam AI translation endpoint."""
-    if not text or not text.strip():
-        return text
-    target_code = SARVAM_LANG_CODES.get(target_lang.lower().strip())
-    if not target_code or target_code == "en-IN":
-        return text
-
-    try:
-        url = "https://api.sarvam.ai/translate"
-        headers = {
-            "api-subscription-key": api_key,
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "input": text.strip(),
-            "source_language_code": "en-IN",
-            "target_language_code": target_code,
-            "mode": "formal",
-            "model": "mayura:v1",
-        }
-        resp = requests.post(url, json=payload, headers=headers, timeout=8)
-        if resp.status_code == 200:
-            data = resp.json()
-            translated = data.get("translated_text")
-            if translated:
-                return translated.strip()
-    except Exception as exc:
-        logger.warning(f"Sarvam translation error for text '{text[:30]}...': {exc}")
-    return None
 
 
 def translate_question_content(
@@ -87,7 +39,7 @@ def translate_question_content(
 ) -> Dict[str, Any]:
     """
     Translates question text, choices, and coding specifications into the specified Indian regional language or English.
-    Uses Sarvam AI for fast Indian regional language translation with fallback to Gemini.
+    Uses the configured Gemini API for dynamic exam content; UI labels use local i18next catalogs.
     """
     norm_lang = target_language.lower().strip()
     lang_name = LANGUAGE_NAMES.get(norm_lang, norm_lang)
@@ -114,43 +66,7 @@ def translate_question_content(
         cached["question_id"] = question_id
         return cached
 
-    # 1. First Attempt: Sarvam AI
-    sarvam_key = os.environ.get("SARVAM_API_KEY") or "sk_3eqncaw5_kR3dGvNuooZNhQn3EVDoyQBX"
-    if sarvam_key:
-        try:
-            trans_q_text = _translate_with_sarvam(question_text, norm_lang, sarvam_key)
-            if trans_q_text:
-                trans_opts = []
-                for opt in safe_options:
-                    opt_text = opt.get("option_text", "")
-                    trans_opt_text = _translate_with_sarvam(opt_text, norm_lang, sarvam_key) if opt_text else opt_text
-                    trans_opts.append({
-                        "id": opt.get("id"),
-                        "option_text": trans_opt_text or opt_text,
-                    })
-
-                trans_constraints = _translate_with_sarvam(constraints, norm_lang, sarvam_key) if constraints else constraints
-                trans_in_format = _translate_with_sarvam(input_format, norm_lang, sarvam_key) if input_format else input_format
-                trans_out_format = _translate_with_sarvam(output_format, norm_lang, sarvam_key) if output_format else output_format
-
-                res = {
-                    "success": True,
-                    "target_language": norm_lang,
-                    "target_language_name": lang_name,
-                    "question_id": question_id,
-                    "translated_question_text": trans_q_text,
-                    "translated_options": trans_opts,
-                    "translated_constraints": trans_constraints,
-                    "translated_input_format": trans_in_format,
-                    "translated_output_format": trans_out_format,
-                    "provider": "sarvam_ai",
-                }
-                _TRANSLATION_CACHE[cache_key] = res
-                return res
-        except Exception as exc:
-            logger.warning(f"Sarvam translation pipeline error: {exc}. Trying Gemini fallback.")
-
-    # 2. Second Attempt: Gemini AI
+    # Translate dynamic exam content with Gemini when configured
     gemini_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if gemini_key:
         try:

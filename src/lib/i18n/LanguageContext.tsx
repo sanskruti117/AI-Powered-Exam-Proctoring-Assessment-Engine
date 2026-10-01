@@ -1,7 +1,9 @@
-﻿"use client";
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { SupportedLanguage, SUPPORTED_LANGUAGES, translations } from "./translations";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { SUPPORTED_LANGUAGES, SupportedLanguage } from "./translations";
+import "./i18n";
 
 interface LanguageContextType {
   language: SupportedLanguage;
@@ -13,59 +15,49 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<SupportedLanguage>("en");
+  const { t: i18nextT, i18n } = useTranslation();
   const [isReady, setIsReady] = useState(false);
 
+  const language =
+    SUPPORTED_LANGUAGES.find(({ code }) => code === i18n.resolvedLanguage)?.code ?? "en";
+
   useEffect(() => {
+    let initialLanguage: SupportedLanguage = "en";
     try {
       const saved = localStorage.getItem("app_language") as SupportedLanguage | null;
-      if (saved && SUPPORTED_LANGUAGES.some((l) => l.code === saved)) {
-        setLanguageState(saved);
+      if (saved && SUPPORTED_LANGUAGES.some(({ code }) => code === saved)) {
+        initialLanguage = saved;
       }
     } catch {
-      // ignore localStorage errors in SSR or restricted environments
-    } finally {
-      setIsReady(true);
+      // Use English when browser storage is unavailable.
     }
-  }, []);
+
+    void i18n.changeLanguage(initialLanguage).finally(() => setIsReady(true));
+  }, [i18n]);
 
   useEffect(() => {
     document.documentElement.lang = language;
   }, [language]);
 
-  const setLanguage = (lang: SupportedLanguage) => {
-    setLanguageState(lang);
-    try {
-      localStorage.setItem("app_language", lang);
-    } catch {
-      // ignore
-    }
-  };
-
-  const t = (path: string, fallback?: string): string => {
-    const keys = path.split(".");
-    let current: any = translations[language];
-
-    for (const key of keys) {
-      if (current && typeof current === "object" && key in current) {
-        current = current[key];
-      } else {
-        // Fallback to English translation
-        let enFallback: any = translations["en"];
-        for (const k of keys) {
-          if (enFallback && typeof enFallback === "object" && k in enFallback) {
-            enFallback = enFallback[k];
-          } else {
-            enFallback = undefined;
-            break;
-          }
-        }
-        return typeof enFallback === "string" ? enFallback : fallback || path;
+  const setLanguage = useCallback(
+    (lang: SupportedLanguage) => {
+      try {
+        localStorage.setItem("app_language", lang);
+      } catch {
+        // The selection still applies for the current page when storage is unavailable.
       }
-    }
+      void i18n.changeLanguage(lang);
+    },
+    [i18n],
+  );
 
-    return typeof current === "string" ? current : fallback || path;
-  };
+  const t = useCallback(
+    (path: string, fallback?: string): string => {
+      const translated = i18nextT(path, { defaultValue: fallback ?? path });
+      return typeof translated === "string" ? translated : fallback ?? path;
+    },
+    [i18nextT],
+  );
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isReady }}>

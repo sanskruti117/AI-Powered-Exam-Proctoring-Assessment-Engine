@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AlertTriangle, Trash2, X, RefreshCw } from "lucide-react";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -15,14 +16,18 @@ interface DeleteConfirmationModalProps {
 
 export function DeleteConfirmationModal({
   isOpen,
-  title = "Delete Question",
-  message = "Are you sure you want to permanently remove this question from your Question Bank? This action cannot be undone.",
+  title,
+  message,
   itemName,
   isDeleting,
   onConfirm,
   onClose,
 }: DeleteConfirmationModalProps) {
+  const { t } = useLanguage();
   if (!isOpen) return null;
+
+  const modalTitle = title || t("examiner.deleteConfirmTitle", "Delete Confirmation");
+  const modalMessage = message || t("examiner.deleteConfirmText", "Are you sure you want to permanently remove this item? This action cannot be undone.");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
@@ -32,8 +37,8 @@ export function DeleteConfirmationModal({
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-xl font-bold text-white">{title}</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">{message}</p>
+            <h3 className="text-xl font-bold text-white">{modalTitle}</h3>
+            <p className="text-sm text-slate-400 leading-relaxed">{modalMessage}</p>
           </div>
         </div>
 
@@ -50,7 +55,7 @@ export function DeleteConfirmationModal({
             disabled={isDeleting}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
-            Cancel
+            {t("common.cancel", "Cancel")}
           </button>
 
           <button
@@ -62,12 +67,12 @@ export function DeleteConfirmationModal({
             {isDeleting ? (
               <>
                 <RefreshCw className="h-4 w-4 animate-spin" />
-                <span>Deleting...</span>
+                <span>{t("examiner.saving", "Deleting...")}</span>
               </>
             ) : (
               <>
                 <Trash2 className="h-4 w-4" />
-                <span>Confirm Delete</span>
+                <span>{t("examiner.confirmDelete", "Confirm Delete")}</span>
               </>
             )}
           </button>

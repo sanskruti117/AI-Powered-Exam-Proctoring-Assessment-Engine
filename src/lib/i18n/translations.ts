@@ -1,6 +1,6 @@
 import translationData from "./all_translations.json";
 
-export type SupportedLanguage = "en" | "hi" | "mr" | "ml" | "te" | "ta";
+export type SupportedLanguage = "en" | "hi" | "mr" | "ml" | "te" | "ta" | "kn" | "bn" | "gu";
 
 export interface LanguageOption {
   code: SupportedLanguage;
@@ -11,11 +11,14 @@ export interface LanguageOption {
 // Keep this list aligned with the language catalogs and the language picker.
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: "en", name: "English", nativeName: "English" },
-  { code: "hi", name: "Hindi", nativeName: "\u0939\u093f\u0928\u094d\u0926\u0940" },
-  { code: "mr", name: "Marathi", nativeName: "\u092e\u0930\u093e\u0920\u0940" },
-  { code: "ml", name: "Malayalam", nativeName: "\u0d2e\u0d32\u0d2f\u0d3e\u0d33\u0d02" },
-  { code: "te", name: "Telugu", nativeName: "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41" },
-  { code: "ta", name: "Tamil", nativeName: "\u0ba4\u0bae\u0bbf\u0bb4\u0bcd" },
+  { code: "hi", name: "Hindi", nativeName: "हिन्दी" },
+  { code: "mr", name: "Marathi", nativeName: "मराठी" },
+  { code: "kn", name: "Kannada", nativeName: "ಕನ್ನಡ" },
+  { code: "te", name: "Telugu", nativeName: "తెలుగు" },
+  { code: "ta", name: "Tamil", nativeName: "தமிழ்" },
+  { code: "ml", name: "Malayalam", nativeName: "മലയാളം" },
+  { code: "bn", name: "Bengali", nativeName: "বাংলা" },
+  { code: "gu", name: "Gujarati", nativeName: "ગુજરાતી" },
 ];
 
 export const translations = translationData as Record<

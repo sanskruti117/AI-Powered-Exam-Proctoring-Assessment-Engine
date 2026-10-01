@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   X,
   BookOpen,
@@ -13,7 +14,7 @@ import {
   FileText,
   Edit,
 } from "lucide-react";
-import Link from "next/link";
+import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 export interface OptionData {
   id: string;
@@ -47,6 +48,7 @@ export function QuestionDetailModal({
   isOpen,
   onClose,
 }: QuestionDetailModalProps) {
+  const { t } = useLanguage();
   if (!isOpen || !question) return null;
 
   const getDifficultyBadge = (difficulty: string) => {
@@ -54,19 +56,19 @@ export function QuestionDetailModal({
       case "EASY":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-            Easy
+            {t("examiner.difficultyEasy", "Easy")}
           </span>
         );
       case "MEDIUM":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30">
-            Medium
+            {t("examiner.difficultyMedium", "Medium")}
           </span>
         );
       case "HARD":
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/15 text-rose-300 border border-rose-500/30">
-            Hard
+            {t("examiner.difficultyHard", "Hard")}
           </span>
         );
       default:
@@ -76,11 +78,11 @@ export function QuestionDetailModal({
 
   const getTypeBadge = (type: string) => {
     const labels: Record<string, string> = {
-      MCQ: "Single Choice (MCQ)",
-      MULTI_SELECT: "Multiple Select",
-      SHORT_ANSWER: "Short Answer",
-      LONG_ANSWER: "Long Answer / Essay",
-      IMAGE: "Image-Based Question",
+      MCQ: t("examiner.formatMcq", "Single Choice (MCQ)"),
+      MULTI_SELECT: t("examiner.formatMultiSelect", "Multiple Select"),
+      SHORT_ANSWER: t("examiner.formatShortAnswer", "Short Answer"),
+      LONG_ANSWER: t("examiner.formatLongAnswer", "Long Answer / Essay"),
+      IMAGE: t("examiner.imageBased", "Image-Based Question"),
     };
     return (
       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
@@ -99,7 +101,7 @@ export function QuestionDetailModal({
               <HelpCircle className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Question Details</h2>
+              <h2 className="text-xl font-bold text-white">{t("examiner.questionDetails", "Question Details")}</h2>
               <p className="text-xs text-slate-400">ID: {question.id}</p>
             </div>
           </div>
@@ -120,7 +122,7 @@ export function QuestionDetailModal({
             {getDifficultyBadge(question.difficulty)}
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-200 border border-slate-700">
               <Award className="h-3.5 w-3.5 text-indigo-400" />
-              {question.marks} {question.marks === 1 ? "Mark" : "Marks"}
+              {question.marks} {question.marks === 1 ? t("examiner.mark", "Mark") : t("examiner.marks", "Marks")}
             </span>
             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700/80">
               <BookOpen className="h-3.5 w-3.5 text-violet-400" />
@@ -137,7 +139,7 @@ export function QuestionDetailModal({
           {/* Question Text */}
           <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Question Statement
+              {t("examiner.questionStatement", "Question Statement")}
             </h3>
             <p className="text-base sm:text-lg font-semibold text-white whitespace-pre-wrap leading-relaxed">
               {question.question_text}
@@ -149,7 +151,7 @@ export function QuestionDetailModal({
             <div className="space-y-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-indigo-400" />
-                Attached Diagram / Image
+                {t("examiner.attachedDiagram", "Attached Diagram / Image")}
               </h3>
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-2 overflow-hidden flex items-center justify-center max-h-72">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -167,7 +169,7 @@ export function QuestionDetailModal({
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <Layers className="h-4 w-4 text-indigo-400" />
-                Answer Options ({question.options.length})
+                {t("examiner.mcqOptions", "Answer Options")} ({question.options.length})
               </h3>
               <div className="space-y-2.5">
                 {question.options.map((opt, index) => (
@@ -195,7 +197,7 @@ export function QuestionDetailModal({
                     {opt.is_correct && (
                       <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30 shrink-0">
                         <CheckCircle className="h-3.5 w-3.5" />
-                        Correct Answer
+                        {t("examiner.correctAnswer", "Correct Answer")}
                       </span>
                     )}
                   </div>
@@ -209,7 +211,7 @@ export function QuestionDetailModal({
             <div className="space-y-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
                 <FileText className="h-4 w-4 text-violet-400" />
-                Expected Answer / Scoring Rubric
+                {t("examiner.expectedAnswer", "Expected Answer / Scoring Rubric")}
               </h3>
               <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/40 text-sm text-indigo-200 whitespace-pre-wrap leading-relaxed">
                 {question.expected_answer}
@@ -224,7 +226,7 @@ export function QuestionDetailModal({
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
           >
-            Close
+            {t("common.close", "Close")}
           </button>
 
           <Link
@@ -232,7 +234,7 @@ export function QuestionDetailModal({
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer hover:scale-105"
           >
             <Edit className="h-4 w-4" />
-            <span>Edit Question</span>
+            <span>{t("examiner.editQuestion", "Edit Question")}</span>
           </Link>
         </div>
       </div>

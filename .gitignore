@@ -75,3 +75,5 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+scratch/
+backend/models/

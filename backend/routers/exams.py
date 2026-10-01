@@ -25,7 +25,10 @@ from backend.schemas import (
     CodeRunResponse,
     CodeSubmitTestRequest,
     CodeSubmitTestResponse,
+    ProctorVisionFrameRequest,
+    ProctorVisionFrameResponse,
 )
+from backend.services.proctor_vision import analyze_proctor_frame
 from backend.crud import (
     create_exam,
     get_exams,
@@ -580,6 +583,17 @@ def log_proctor_event(
     db.add(pe)
     db.commit()
     return {"success": True}
+
+
+@router.post("/{id}/proctor-vision", response_model=ProctorVisionFrameResponse)
+def analyze_student_proctor_vision_frame(
+    id: str,
+    body: ProctorVisionFrameRequest,
+    request: Request,
+):
+    require_auth(request)
+    result = analyze_proctor_frame(body.frame_base64)
+    return result
 
 
 # ==========================================

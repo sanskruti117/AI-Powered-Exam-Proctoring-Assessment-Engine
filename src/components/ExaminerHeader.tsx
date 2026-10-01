@@ -70,7 +70,7 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
               <div className="flex items-center gap-2">
                 <p className="truncate text-xs font-bold text-slate-100">{name}</p>
                 <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ring-1 ring-inset ${isAdmin ? "bg-rose-500/15 text-rose-300 ring-rose-400/20" : "bg-indigo-500/15 text-indigo-300 ring-indigo-400/20"}`}>
-                  {isAdmin ? "Admin" : "Examiner"}
+                  {isAdmin ? t("common.admin", "Admin") : t("common.examiner", "Examiner")}
                 </span>
               </div>
               <p className="mt-1 truncate text-[10px] text-slate-400">{user?.email || user?.institution || (isAdmin ? "Platform Authority" : "Academic workspace")}</p>

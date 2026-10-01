@@ -456,7 +456,7 @@ export default function ExaminerExamsPage() {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search exams by title or topic..."
+            placeholder={t("examiner.searchExamsPlaceholder", "Search exams by title or topic...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
@@ -464,23 +464,28 @@ export default function ExaminerExamsPage() {
         </form>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {["ALL", "DRAFT", "PUBLISHED", "CLOSED"].map((st) => (
+          {[
+            { id: "ALL", label: t("common.all", "ALL") },
+            { id: "DRAFT", label: t("examiner.draft", "DRAFT") },
+            { id: "PUBLISHED", label: t("examiner.published", "PUBLISHED") },
+            { id: "CLOSED", label: t("examiner.closed", "CLOSED") },
+          ].map((st) => (
             <button
-              key={st}
-              onClick={() => setStatusFilter(st)}
+              key={st.id}
+              onClick={() => setStatusFilter(st.id)}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
-                statusFilter === st
+                statusFilter === st.id
                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
                   : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
-              {st}
+              {st.label}
             </button>
           ))}
           <button
             onClick={fetchExams}
             className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
-            title="Refresh"
+            title={t("common.refresh", "Refresh")}
           >
             <RefreshCw className="h-4 w-4" />
           </button>
@@ -489,7 +494,7 @@ export default function ExaminerExamsPage() {
 
       {/* Exam Cards Grid */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400">Loading examinations...</div>
+        <div className="p-12 text-center text-slate-400">{t("common.loading", "Loading examinations...")}</div>
       ) : exams.length === 0 ? (
         <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 space-y-4">
           <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto">
@@ -498,7 +503,7 @@ export default function ExaminerExamsPage() {
           <div className="space-y-1">
             <h3 className="text-lg font-bold text-white">{t("examiner.noExamsFound", "No Examinations Found")}</h3>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Create your first examination to define subject sections, populate randomized question pools, and schedule assessments.
+              {t("examiner.noExamsSubtitle", "Create your first examination to define subject sections, populate randomized question pools, and schedule assessments.")}
             </p>
           </div>
           <button
@@ -506,7 +511,7 @@ export default function ExaminerExamsPage() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
           >
             <Plus className="h-4 w-4" />
-            <span>Create Exam</span>
+            <span>{t("examiner.createNewExam", "Create Exam")}</span>
           </button>
         </div>
       ) : (
@@ -540,15 +545,17 @@ export default function ExaminerExamsPage() {
                       >
                         {exam.status === "PUBLISHED"
                           ? exam.is_active
-                            ? "● LIVE ACTIVE"
+                            ? `● ${t("examiner.liveActive", "LIVE ACTIVE")}`
                             : exam.is_upcoming
-                            ? "SCHEDULED"
-                            : "ENDED"
-                          : exam.status}
+                            ? t("examiner.scheduled", "SCHEDULED")
+                            : t("examiner.concluded", "ENDED")
+                          : exam.status === "DRAFT"
+                          ? t("examiner.draft", "DRAFT")
+                          : t("examiner.closed", "CLOSED")}
                       </span>
 
                       <span className="text-xs text-slate-400 font-medium">
-                        Created {formatReadableDate(exam.created_at)}
+                        {formatReadableDate(exam.created_at)}
                       </span>
                     </div>
 
@@ -565,7 +572,7 @@ export default function ExaminerExamsPage() {
                   {/* Top Stats Badges */}
                   <div className="flex items-center gap-3 flex-wrap">
                     <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">Duration</div>
+                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.duration", "Duration")}</div>
                       <div className="text-sm font-extrabold text-white flex items-center justify-center gap-1">
                         <Clock className="h-3.5 w-3.5 text-indigo-400" />
                         <span>{exam.duration_minutes}m</span>
@@ -573,7 +580,7 @@ export default function ExaminerExamsPage() {
                     </div>
 
                     <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">Total Marks</div>
+                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.totalMarks", "Total Marks")}</div>
                       <div className="text-sm font-extrabold text-white flex items-center justify-center gap-1">
                         <Award className="h-3.5 w-3.5 text-amber-400" />
                         <span>{exam.total_marks}</span>
@@ -581,7 +588,7 @@ export default function ExaminerExamsPage() {
                     </div>
 
                     <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">Submissions</div>
+                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.submissions", "Submissions")}</div>
                       <div className="text-sm font-extrabold text-emerald-400 flex items-center justify-center gap-1">
                         <Trophy className="h-3.5 w-3.5" />
                         <span>{exam.attempts_count}</span>
@@ -593,8 +600,8 @@ export default function ExaminerExamsPage() {
                 {/* Subject Sections & Pool Breakdown */}
                 <div className="space-y-3 pt-2 border-t border-slate-800/60">
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
-                    <span>Configured Subject Sections ({exam.sections.length})</span>
-                    <span>Question Pool vs Target Marks</span>
+                    <span>{t("examiner.configuredSections", "Configured Subject Sections")} ({exam.sections.length})</span>
+                    <span>{t("examiner.questionPoolVsTarget", "Question Pool vs Target Marks")}</span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -616,14 +623,14 @@ export default function ExaminerExamsPage() {
                         >
                           <div className="flex items-center justify-between text-xs font-bold text-white">
                             <span className="truncate pr-2">{sec.title}</span>
-                            <span className="text-amber-400">{sec.target_marks} Marks</span>
+                            <span className="text-amber-400">{sec.target_marks} {t("examiner.marks", "Marks")}</span>
                           </div>
 
                           <div className="space-y-1">
                             <div className="flex items-center justify-between text-xs text-slate-400">
-                              <span>Pool: {sec.total_pool_questions} questions</span>
+                              <span>{t("examiner.pool", "Pool")}: {sec.total_pool_questions} {t("examiner.poolQuestions", "questions")}</span>
                               <span className={isReady ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
-                                {sec.total_pool_marks} / {sec.target_marks} marks
+                                {sec.total_pool_marks} / {sec.target_marks} {t("examiner.marks", "marks")}
                               </span>
                             </div>
                             <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
@@ -638,7 +645,7 @@ export default function ExaminerExamsPage() {
 
                           {!isReady && (
                             <div className="text-[11px] text-rose-300 flex items-center gap-1 font-medium">
-                              <span>⚠️ Needs questions to form exactly {sec.target_marks} marks</span>
+                              <span>⚠️ {t("examiner.needsQuestionsPool", "Needs questions to form target marks")}</span>
                             </div>
                           )}
                         </div>
@@ -652,20 +659,20 @@ export default function ExaminerExamsPage() {
                   <div className="flex items-center gap-4 flex-wrap">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                      Starts: {formatReadableDate(exam.start_time)}
+                      {t("examiner.starts", "Starts")}: {formatReadableDate(exam.start_time)}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5 text-slate-500" />
-                      Ends: {formatReadableDate(exam.end_time)}
+                      {t("examiner.ends", "Ends")}: {formatReadableDate(exam.end_time)}
                     </span>
                   </div>
 
                   <div>
                     {exam.shuffle_questions && (
-                      <span className="mr-3 text-slate-400">✓ Shuffled Questions</span>
+                      <span className="mr-3 text-slate-400">✓ {t("examiner.shuffledQuestions", "Shuffled Questions")}</span>
                     )}
                     {exam.shuffle_options && (
-                      <span className="text-slate-400">✓ Shuffled Options</span>
+                      <span className="text-slate-400">✓ {t("examiner.shuffledOptions", "Shuffled Options")}</span>
                     )}
                   </div>
                 </div>
@@ -678,7 +685,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 transition-all"
                     >
                       <LayoutDashboard className="h-3.5 w-3.5" />
-                      <span>Open Workspace</span>
+                      <span>{t("examiner.assessmentWorkspace", "Open Workspace")}</span>
                     </Link>
 
                     <Link
@@ -686,7 +693,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
                     >
                       <Layers className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Manage Pools ({exam.total_questions})</span>
+                      <span>{t("examiner.questionPaperPools", "Manage Pools")} ({exam.total_questions})</span>
                     </Link>
 
                     <Link
@@ -694,7 +701,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
                     >
                       <Users className="h-3.5 w-3.5 text-violet-400" />
-                      <span>Candidates ({exam.attempts_count})</span>
+                      <span>{t("examiner.candidates", "Candidates")} ({exam.attempts_count})</span>
                     </Link>
 
                     <Link
@@ -702,7 +709,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
                     >
                       <PenTool className="h-3.5 w-3.5 text-violet-400" />
-                      <span>Grading</span>
+                      <span>{t("examiner.gradingStudio", "Grading")}</span>
                     </Link>
                   </div>
 
@@ -712,7 +719,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-indigo-500/40 transition-all"
                     >
                       <Edit3 className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Edit settings</span>
+                      <span>{t("examiner.editExamDetails", "Edit settings")}</span>
                     </button>
                     {exam.status === "DRAFT" && (
                       <button
@@ -725,13 +732,13 @@ export default function ExaminerExamsPage() {
                         }`}
                         title={
                           isPublishable
-                            ? "Publish Examination"
-                            : "Cannot publish — one or more sections do not meet the minimum target marks."
+                            ? t("examiner.publishExam", "Publish Examination")
+                            : t("examiner.cannotPublishTargetMarks", "Cannot publish — one or more sections do not meet the minimum target marks.")
                         }
                       >
                         <PlayCircle className="h-3.5 w-3.5" />
                         <span>
-                          {actionLoading === exam.id ? "Publishing..." : "Publish Exam"}
+                          {actionLoading === exam.id ? t("examiner.saving", "Publishing...") : t("examiner.publishExam", "Publish Exam")}
                         </span>
                       </button>
                     )}
@@ -743,7 +750,7 @@ export default function ExaminerExamsPage() {
                         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer"
                       >
                         <XCircle className="h-3.5 w-3.5 text-rose-400" />
-                        <span>Close Exam</span>
+                        <span>{t("examiner.closeExam", "Close Exam")}</span>
                       </button>
                     )}
 
@@ -752,7 +759,7 @@ export default function ExaminerExamsPage() {
                         onClick={() => handleDeleteExam(exam.id)}
                         disabled={actionLoading === exam.id}
                         className="p-2 rounded-xl text-slate-400 hover:text-rose-400 bg-slate-900/60 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
-                        title="Delete Exam"
+                        title={t("examiner.deleteExam", "Delete Exam")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -772,10 +779,10 @@ export default function ExaminerExamsPage() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div>
                 <h3 className="text-xl font-bold text-white">
-                  {editingExamId ? "Edit Examination" : "Create New Examination"}
+                  {editingExamId ? t("examiner.modalEditExamTitle", "Edit Examination") : t("examiner.modalCreateExamTitle", "Create New Examination")}
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Configure assessment timing, section weightage, and randomized delivery policies.
+                  {t("examiner.modalExamDesc", "Configure assessment timing, section weightage, and randomized delivery policies.")}
                 </p>
               </div>
               <button
@@ -790,7 +797,7 @@ export default function ExaminerExamsPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Exam Title *
+                    {t("examiner.examTitleLabel", "Exam Title")} *
                   </label>
                   <input
                     type="text"
@@ -804,7 +811,7 @@ export default function ExaminerExamsPage() {
 
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                    Description & Instructions
+                    {t("examiner.examDescLabel", "Description & Instructions")}
                   </label>
                   <textarea
                     rows={2}
@@ -819,7 +826,7 @@ export default function ExaminerExamsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Start Window (Date & Time) *
+                      {t("examiner.startTimeLabel", "Start Window (Date & Time)")} *
                     </label>
                     <input
                       type="datetime-local"
@@ -832,7 +839,7 @@ export default function ExaminerExamsPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      End Window (Date & Time) *
+                      {t("examiner.endTimeLabel", "End Window (Date & Time)")} *
                     </label>
                     <input
                       type="datetime-local"
@@ -848,7 +855,7 @@ export default function ExaminerExamsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Duration (Mins) *
+                      {t("examiner.durationMinutesLabel", "Duration (Mins)")} *
                     </label>
                     <input
                       type="number"
@@ -862,7 +869,7 @@ export default function ExaminerExamsPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Total Marks *
+                      {t("examiner.totalMarksLabel", "Total Marks")} *
                     </label>
                     <input
                       type="number"
@@ -883,7 +890,7 @@ export default function ExaminerExamsPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Passing Marks *
+                      {t("examiner.passingMarksLabel", "Passing Marks")} *
                     </label>
                     <input
                       type="number"
@@ -898,7 +905,7 @@ export default function ExaminerExamsPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
-                      Max Attempts *
+                      {t("examiner.maxAttemptsLabel", "Max Attempts")} *
                     </label>
                     <input
                       type="number"
@@ -921,7 +928,7 @@ export default function ExaminerExamsPage() {
                       onChange={(e) => setModalShuffleQuestions(e.target.checked)}
                       className="h-4 w-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span>Shuffle Questions Order</span>
+                    <span>{t("examiner.shuffleQuestionsLabel", "Shuffle Questions Order")}</span>
                   </label>
 
                   <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
@@ -931,7 +938,7 @@ export default function ExaminerExamsPage() {
                       onChange={(e) => setModalShuffleOptions(e.target.checked)}
                       className="h-4 w-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
                     />
-                    <span>Shuffle Option Choices</span>
+                    <span>{t("examiner.shuffleOptionsLabel", "Shuffle Option Choices")}</span>
                   </label>
                 </div>
 
@@ -939,9 +946,9 @@ export default function ExaminerExamsPage() {
                 <div className="space-y-3 pt-4 border-t border-slate-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-bold text-white">Subject Sections & Target Marks</h4>
+                      <h4 className="text-sm font-bold text-white">{t("examiner.sectionsHeader", "Subject Sections & Target Marks")}</h4>
                       <p className="text-xs text-slate-400">
-                        Define the subject hierarchy. Questions created under this exam will be mapped to these sections.
+                        {t("examiner.sectionsSubheader", "Define the subject hierarchy. Questions created under this exam will be mapped to these sections.")}
                       </p>
                     </div>
                     <button
@@ -950,7 +957,7 @@ export default function ExaminerExamsPage() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      <span>Add Section</span>
+                      <span>{t("examiner.addSection", "Add Section")}</span>
                     </button>
                   </div>
 
@@ -991,7 +998,7 @@ export default function ExaminerExamsPage() {
                             }}
                             className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
                           />
-                          <span className="text-xs text-slate-400">Marks</span>
+                          <span className="text-xs text-slate-400">{t("examiner.marks", "Marks")}</span>
                         </div>
                         {modalSections.length > 1 && (
                           <button
@@ -1007,7 +1014,7 @@ export default function ExaminerExamsPage() {
                   </div>
 
                   <div className="text-xs text-right font-bold text-slate-400">
-                    Total Section Marks:{" "}
+                    {t("examiner.totalSectionMarks", "Total Section Marks")}:{" "}
                     <span
                       className={
                         modalSections.reduce((acc, s) => acc + Number(s.target_marks || 0), 0) ===
@@ -1017,7 +1024,7 @@ export default function ExaminerExamsPage() {
                       }
                     >
                       {modalSections.reduce((acc, s) => acc + Number(s.target_marks || 0), 0)} /{" "}
-                      {modalTotalMarks} Marks
+                      {modalTotalMarks} {t("examiner.marks", "Marks")}
                     </span>
                   </div>
                 </div>
@@ -1037,14 +1044,14 @@ export default function ExaminerExamsPage() {
                   onClick={() => setIsModalOpen(false)}
                   className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
                 >
-                  Cancel
+                  {t("common.cancel", "Cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === "saving"}
                   className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
                 >
-                  {actionLoading === "saving" ? "Saving..." : editingExamId ? "Save Changes" : "Create Examination"}
+                  {actionLoading === "saving" ? t("examiner.saving", "Saving...") : editingExamId ? t("examiner.saveExam", "Save Changes") : t("examiner.createNewExam", "Create Examination")}
                 </button>
               </div>
             </form>

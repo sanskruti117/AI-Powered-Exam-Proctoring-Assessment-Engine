@@ -199,12 +199,17 @@ export default function StudentExamChamberPage() {
     details: string;
     isFinal: boolean;
   } | null>(null);
+  const [autoSubmitCountdown, setAutoSubmitCountdown] = useState<number | null>(null);
   const [proctorWarnings, setProctorWarnings] = useState<string[]>([]);
-  const [aiDetectionStatus, setAiDetectionStatus] = useState<string>("Initializing AI Monitor...");
+  const [aiDetectionStatus, setAiDetectionStatus] = useState<string>("Initializing Dual AI Monitor...");
   const [detectedEntities, setDetectedEntities] = useState<string[]>([]);
+  const [boundingReticles, setBoundingReticles] = useState<
+    Array<{ label: string; type: string; confidence: number; box: number[] }>
+  >([]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const activeQuestionStartTimeRef = useRef<number>(Date.now());
   const cocoModelRef = useRef<any>(null);
   const blazeFaceModelRef = useRef<any>(null);
@@ -330,31 +335,57 @@ export default function StudentExamChamberPage() {
     }
   };
 
-  // Helper to dynamically load external CDN scripts
-  const loadScript = (src: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      if (document.querySelector(`script[src="${src}"]`)) {
-        resolve();
+  // Helper to dynamically load external CDN scripts with fallbacks
+  const loadScriptWithFallback = async (urls: string[]): Promise<void> => {
+    let lastError = null;
+    for (const url of urls) {
+      if (document.querySelector(`script[src="${url}"]`)) {
         return;
       }
-      const script = document.createElement("script");
-      script.src = src;
-      script.async = true;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error(`Failed to load ${src}`));
-      document.body.appendChild(script);
-    });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = url;
+          script.async = true;
+          script.crossOrigin = "anonymous";
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
+          document.body.appendChild(script);
+        });
+        return;
+      } catch (err) {
+        lastError = err;
+        console.warn(`Script load attempt failed for ${url}, trying alternative mirror...`);
+      }
+    }
+    throw lastError || new Error("Failed to load scripts from all CDNs.");
   };
 
-  // Initialize Dual AI Vision Networks (BlazeFace for ultra-sensitive face/person count + COCO-SSD for devices)
+  // Initialize Dual AI Vision Networks (BlazeFace/MediaPipe Face Detection + COCO-SSD/YOLO Object Detection)
   const initAiProctorModel = async () => {
     try {
-      setAiDetectionStatus("Loading Dual AI Vision Networks...");
-      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js");
-      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js");
-      await loadScript("https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js");
+      setAiDetectionStatus("Loading MediaPipe Face & YOLO Object Neural Models...");
 
-      // Load BlazeFace (optimized face/multi-person detector)
+      // 1. TensorFlow Core Runtime
+      await loadScriptWithFallback([
+        "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.18.0/dist/tf.min.js",
+        "https://unpkg.com/@tensorflow/tfjs@4.18.0/dist/tf.min.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.18.0/tf.min.js",
+      ]);
+
+      // 2. BlazeFace / MediaPipe Face Detector
+      await loadScriptWithFallback([
+        "https://cdn.jsdelivr.net/npm/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js",
+        "https://unpkg.com/@tensorflow-models/blazeface@0.0.7/dist/blazeface.min.js",
+      ]);
+
+      // 3. COCO-SSD Object & Device Detector (YOLO-aligned classes)
+      await loadScriptWithFallback([
+        "https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js",
+        "https://unpkg.com/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js",
+      ]);
+
+      // Load BlazeFace Model
       if ((window as any).blazeface) {
         try {
           const bModel = await (window as any).blazeface.load();
@@ -364,7 +395,7 @@ export default function StudentExamChamberPage() {
         }
       }
 
-      // Load COCO-SSD (device and object detector)
+      // Load COCO-SSD Model
       if ((window as any).cocoSsd) {
         try {
           const cModel = await (window as any).cocoSsd.load();
@@ -374,10 +405,10 @@ export default function StudentExamChamberPage() {
         }
       }
 
-      setAiDetectionStatus("Dual AI Vision Guard Active");
+      setAiDetectionStatus("MediaPipe & YOLO Vision Guard Active");
     } catch (err) {
       console.warn("AI Model load warning:", err);
-      setAiDetectionStatus("AI Monitor Active");
+      setAiDetectionStatus("AI Vision Guard Active");
     }
   };
 
@@ -441,14 +472,60 @@ export default function StudentExamChamberPage() {
     }
   }, [loading, hasEnteredChamber, runAllDiagnostics]);
 
+  // Auto-Submit Countdown Timer Hook (Counts down 5s to 0s on Final Lockout)
+  useEffect(() => {
+    if (activeStrikeModal?.isFinal && autoSubmitCountdown === null) {
+      setAutoSubmitCountdown(5);
+    }
+  }, [activeStrikeModal?.isFinal, autoSubmitCountdown]);
+
+  useEffect(() => {
+    if (autoSubmitCountdown === null || !activeStrikeModal?.isFinal) return;
+
+    if (autoSubmitCountdown <= 0) {
+      handleSubmitFinalExam(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setAutoSubmitCountdown((prev) => (prev !== null ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [autoSubmitCountdown, activeStrikeModal?.isFinal]);
+
+  // Exam Duration Countdown Timer Hook
+  useEffect(() => {
+    if (!hasEnteredChamber || remainingSeconds === null || submitting) return;
+
+    if (remainingSeconds <= 0) {
+      handleAutoSubmitOnExpiry();
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleAutoSubmitOnExpiry();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [hasEnteredChamber, remainingSeconds, submitting]);
+
   // Trigger strike violation with automatic lockout on 4th strike
   const triggerStrikeViolation = useCallback(
     async (eventType: string, reason: string, details: string) => {
       if (!hasEnteredChamberRef.current || strikesCountRef.current >= 4) return;
 
       const now = Date.now();
-      // Enforce 4-second cooldown between strikes to avoid double-penalizing the same continuous transition
-      if (now - lastStrikeTimestampRef.current < 4000) return;
+      // Enforce 3.5-second cooldown between strikes to avoid double-penalizing the same continuous transition
+      if (now - lastStrikeTimestampRef.current < 3500) return;
       lastStrikeTimestampRef.current = now;
 
       const newStrikeNum = strikesCountRef.current + 1;
@@ -477,7 +554,7 @@ export default function StudentExamChamberPage() {
         isFinal,
       });
 
-      // Auto-submit quickly if 4th strike reached
+      // Stop camera stream & start clean 5s auto-submission sequence if 4th strike reached
       if (isFinal) {
         hasEnteredChamberRef.current = false;
         if (mediaStreamRef.current) {
@@ -485,9 +562,7 @@ export default function StudentExamChamberPage() {
             mediaStreamRef.current.getTracks().forEach((t) => t.stop());
           } catch (_) {}
         }
-        setTimeout(() => {
-          handleSubmitFinalExam(true);
-        }, 200);
+        setAutoSubmitCountdown(5);
       }
     },
     [examId]
@@ -575,7 +650,7 @@ export default function StudentExamChamberPage() {
     };
   }, [triggerStrikeViolation]);
 
-  // Continuous AI Vision Slot Monitoring Loop (every 1.0s)
+  // Continuous AI Vision Slot Monitoring Loop (every 1.2s)
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!videoRef.current || isAiLoopRunningRef.current) return;
@@ -585,134 +660,199 @@ export default function StudentExamChamberPage() {
       try {
         isAiLoopRunningRef.current = true;
 
-        let faceCount = 0;
-        let cocoPersonCount = 0;
-        const foundProhibited: Array<{ class: string; score: number }> = [];
-
-        // 1. Detect Faces with BlazeFace (High-Speed & Precision Face Detection)
-        if (blazeFaceModelRef.current) {
-          try {
-            const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
-            faceCount = faces ? faces.length : 0;
-          } catch (bfErr) {
-            console.warn("BlazeFace estimate error:", bfErr);
-          }
+        // Ensure high-resolution canvas normalization for sharp neural tensor analysis
+        if (!offscreenCanvasRef.current) {
+          offscreenCanvasRef.current = document.createElement("canvas");
+          offscreenCanvasRef.current.width = 640;
+          offscreenCanvasRef.current.height = 480;
+        }
+        const canvas = offscreenCanvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, 640, 480);
         }
 
-        // 2. Detect Objects & Persons with COCO-SSD
-        if (cocoModelRef.current) {
-          try {
-            const predictions: Array<{ class: string; score: number }> = await cocoModelRef.current.detect(
-              video,
-              25,
-              0.20
-            );
+        const frameBase64 = canvas.toDataURL("image/jpeg", 0.60);
+        let handledViaServer = false;
 
-            const prohibitedClasses = [
-              "cell phone",
-              "phone",
-              "remote",
-              "laptop",
-              "tablet",
-              "book",
-              "electronic device",
-              "tv",
-            ];
+        // 1. Try Backend Ultra-Accurate YOLOv8 + OpenCV Neural Detector
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 1200);
 
-            predictions.forEach((p) => {
-              const className = p.class.toLowerCase();
-              if (className === "person" && p.score >= 0.35) {
-                cocoPersonCount += 1;
-              } else if (
-                prohibitedClasses.some((c) => className.includes(c)) &&
-                p.score >= 0.28
-              ) {
-                foundProhibited.push(p);
+          const res = await fetch(`/api/exams/${examId}/proctor-vision`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ frame_base64: frameBase64 }),
+            signal: controller.signal,
+          });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.success) {
+              handledViaServer = true;
+              setDetectedEntities(data.hud_tags || []);
+              setBoundingReticles(data.bounding_boxes || []);
+
+              // Enforce strikes only when inside active exam chamber
+              if (hasEnteredChamberRef.current) {
+                // Rule 1: Prohibited Device (Phone, tablet, laptop, book)
+                if (data.prohibited_items && data.prohibited_items.length > 0) {
+                  consecutivePhoneSlotsRef.current += 1;
+                  if (consecutivePhoneSlotsRef.current >= 2) {
+                    consecutivePhoneSlotsRef.current = 0;
+                    const item = data.prohibited_items[0].class;
+                    const confPct = Math.round(data.prohibited_items[0].confidence * 100);
+                    triggerStrikeViolation(
+                      "PROHIBITED_DEVICE",
+                      `Secondary Device Detected (${item.toUpperCase()})`,
+                      `AI Vision identified unauthorized item: "${item}" (Confidence: ${confPct}%) in front of camera.`
+                    );
+                  }
+                } else {
+                  consecutivePhoneSlotsRef.current = 0;
+                }
+
+                // Rule 2: Multiple Persons in Chamber
+                if (data.multiple_persons) {
+                  consecutiveMultiPersonSlotsRef.current += 1;
+                  if (consecutiveMultiPersonSlotsRef.current >= 2) {
+                    consecutiveMultiPersonSlotsRef.current = 0;
+                    const pCount = Math.max(data.face_count, data.person_count);
+                    triggerStrikeViolation(
+                      "MULTIPLE_PERSONS",
+                      "Multiple Persons Detected",
+                      `AI Vision identified ${pCount} individuals simultaneously in camera stream. Only 1 candidate is permitted.`
+                    );
+                  }
+                } else {
+                  consecutiveMultiPersonSlotsRef.current = 0;
+                }
+
+                // Rule 3: Candidate Absent (No Face in Camera Frame)
+                if (!data.candidate_present) {
+                  consecutiveNoPersonSlotsRef.current += 1;
+                  if (consecutiveNoPersonSlotsRef.current >= 3) {
+                    consecutiveNoPersonSlotsRef.current = 0;
+                    triggerStrikeViolation(
+                      "CANDIDATE_ABSENT",
+                      "Candidate Absent from Frame",
+                      "No human face or candidate detected in front of the camera stream. Please remain centered in camera view."
+                    );
+                  }
+                } else {
+                  consecutiveNoPersonSlotsRef.current = 0;
+                }
               }
-            });
-          } catch (cocoErr) {
-            console.warn("COCO-SSD detect error:", cocoErr);
+            }
+          }
+        } catch (serverErr) {
+          // If server call deferred or aborted, smoothly fall back to local client detector
+        }
+
+        // 2. Fallback to Local Client-Side Detector if Server was Offline
+        if (!handledViaServer) {
+          let faceCount = 0;
+          let cocoPersonCount = 0;
+          const foundProhibited: Array<{ class: string; score: number }> = [];
+
+          if (blazeFaceModelRef.current) {
+            try {
+              const faces = await blazeFaceModelRef.current.estimateFaces(canvas, false);
+              faceCount = faces ? faces.length : 0;
+            } catch (_) {}
+          }
+
+          if (cocoModelRef.current) {
+            try {
+              const predictions: Array<{ class: string; score: number }> = await cocoModelRef.current.detect(
+                canvas,
+                20,
+                0.20
+              );
+              const prohibitedClasses = ["cell phone", "phone", "mobile", "remote", "laptop", "tablet", "book", "tv"];
+              predictions.forEach((p) => {
+                const cName = p.class.toLowerCase();
+                if (cName === "person" && p.score >= 0.50) cocoPersonCount += 1;
+                else if (prohibitedClasses.some((c) => cName.includes(c)) && p.score >= 0.20) {
+                  foundProhibited.push(p);
+                }
+              });
+            } catch (_) {}
+          }
+
+          const currentTags: string[] = [];
+          if (foundProhibited.length > 0) {
+            foundProhibited.forEach((p) => currentTags.push(`🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`));
+          }
+          if (faceCount === 0) {
+            currentTags.push("⚠️ No Candidate Detected");
+          } else if (faceCount > 1 || (faceCount >= 1 && cocoPersonCount > 1)) {
+            currentTags.push(`🚨 ${Math.max(faceCount, cocoPersonCount)} Persons Detected`);
+          } else {
+            currentTags.push("🟢 Candidate In Frame");
+          }
+
+          setDetectedEntities(currentTags);
+
+          // Enforce strikes in client fallback mode if active in chamber
+          if (hasEnteredChamberRef.current) {
+            if (foundProhibited.length > 0) {
+              consecutivePhoneSlotsRef.current += 1;
+              if (consecutivePhoneSlotsRef.current >= 2) {
+                consecutivePhoneSlotsRef.current = 0;
+                const item = foundProhibited[0].class;
+                const confPct = Math.round(foundProhibited[0].score * 100);
+                triggerStrikeViolation(
+                  "PROHIBITED_DEVICE",
+                  `Secondary Device Detected (${item.toUpperCase()})`,
+                  `AI Vision identified unauthorized item: "${item}" (Confidence: ${confPct}%) in front of camera.`
+                );
+              }
+            } else {
+              consecutivePhoneSlotsRef.current = 0;
+            }
+
+            if (faceCount > 1 || (faceCount >= 1 && cocoPersonCount > 1)) {
+              consecutiveMultiPersonSlotsRef.current += 1;
+              if (consecutiveMultiPersonSlotsRef.current >= 2) {
+                consecutiveMultiPersonSlotsRef.current = 0;
+                const pCount = Math.max(faceCount, cocoPersonCount);
+                triggerStrikeViolation(
+                  "MULTIPLE_PERSONS",
+                  "Multiple Persons Detected",
+                  `AI Vision identified ${pCount} individuals simultaneously in camera stream.`
+                );
+              }
+            } else {
+              consecutiveMultiPersonSlotsRef.current = 0;
+            }
+
+            if (faceCount === 0) {
+              consecutiveNoPersonSlotsRef.current += 1;
+              if (consecutiveNoPersonSlotsRef.current >= 3) {
+                consecutiveNoPersonSlotsRef.current = 0;
+                triggerStrikeViolation(
+                  "CANDIDATE_ABSENT",
+                  "Candidate Absent from Frame",
+                  "No human face or candidate detected in front of the camera stream. Please remain centered in camera view."
+                );
+              }
+            } else {
+              consecutiveNoPersonSlotsRef.current = 0;
+            }
           }
         }
 
         isAiLoopRunningRef.current = false;
-
-        // Determine effective candidate/person count (using maximum of BlazeFace face count and COCO person count)
-        const totalPersonCount = Math.max(faceCount, cocoPersonCount);
-
-        // Build live HUD tags
-        const currentTags: string[] = [];
-        if (foundProhibited.length > 0) {
-          foundProhibited.forEach((p) => {
-            currentTags.push(`🚨 ${p.class} (${Math.round(p.score * 100)}%)`);
-          });
-        }
-        if (totalPersonCount > 1) {
-          currentTags.push(`🚨 ${totalPersonCount} Persons Detected`);
-        } else if (totalPersonCount === 1) {
-          currentTags.push(`🟢 Candidate In Frame`);
-        } else {
-          currentTags.push(`⚠️ No Face Detected`);
-        }
-
-        setDetectedEntities(currentTags);
-
-        // Only enforce strikes once inside the exam chamber
-        if (!hasEnteredChamberRef.current) return;
-
-        // 1. Prohibited Device Detected across Consecutive Slots (2 slots = ~2s)
-        if (foundProhibited.length > 0) {
-          consecutivePhoneSlotsRef.current += 1;
-          if (consecutivePhoneSlotsRef.current >= 2) {
-            consecutivePhoneSlotsRef.current = 0;
-            const item = foundProhibited[0].class;
-            const scorePct = Math.round(foundProhibited[0].score * 100);
-            triggerStrikeViolation(
-              "PROHIBITED_DEVICE",
-              `Secondary Device Detected (${item})`,
-              `AI Vision identified unauthorized item: "${item}" (Confidence: ${scorePct}%) in camera view.`
-            );
-          }
-        } else {
-          consecutivePhoneSlotsRef.current = 0;
-        }
-
-        // 2. Multiple Persons in Frame (2 consecutive slots)
-        if (totalPersonCount > 1) {
-          consecutiveMultiPersonSlotsRef.current += 1;
-          if (consecutiveMultiPersonSlotsRef.current >= 2) {
-            consecutiveMultiPersonSlotsRef.current = 0;
-            triggerStrikeViolation(
-              "MULTIPLE_PERSONS",
-              "Multiple Persons Detected",
-              `AI Vision identified ${totalPersonCount} individuals simultaneously in the camera stream.`
-            );
-          }
-        } else {
-          consecutiveMultiPersonSlotsRef.current = 0;
-        }
-
-        // 3. Candidate Absent / No Face in Frame (4 consecutive slots = ~4s)
-        if (totalPersonCount === 0) {
-          consecutiveNoPersonSlotsRef.current += 1;
-          if (consecutiveNoPersonSlotsRef.current >= 4) {
-            consecutiveNoPersonSlotsRef.current = 0;
-            triggerStrikeViolation(
-              "CANDIDATE_ABSENT",
-              "Candidate Absent from Frame",
-              "No face or person detected in front of the camera stream."
-            );
-          }
-        } else {
-          consecutiveNoPersonSlotsRef.current = 0;
-        }
       } catch (err) {
         isAiLoopRunningRef.current = false;
       }
-    }, 1000);
+    }, 1200);
 
     return () => clearInterval(interval);
-  }, [triggerStrikeViolation]);
+  }, [examId, triggerStrikeViolation]);
 
   const sendHeartbeat = async () => {
     if (!attemptId || questions.length === 0) return;
@@ -997,35 +1137,46 @@ export default function StudentExamChamberPage() {
       });
 
       // Exit fullscreen mode if active
-      if (document.fullscreenElement) {
+      if (typeof document !== "undefined" && document.fullscreenElement) {
         document.exitFullscreen().catch(() => {});
       }
 
-      const res = await fetch(`/api/exams/${examId}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: payloadAnswers }),
-      });
+      // Fast 4.5-second AbortController so auto-submission never stalls or panics the student
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
 
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        if (
-          data.detail &&
-          typeof data.detail === "string" &&
-          (data.detail.includes("already been submitted") || data.detail.includes("No active"))
-        ) {
-          window.location.href = `/student/exam/${examId}/result`;
-          return;
+      try {
+        const res = await fetch(`/api/exams/${examId}/submit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ answers: payloadAnswers }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          if (
+            data.detail &&
+            typeof data.detail === "string" &&
+            (data.detail.includes("already been submitted") || data.detail.includes("No active"))
+          ) {
+            window.location.replace(`/student/exam/${examId}/result`);
+            return;
+          }
+          if (!isAuto) {
+            throw new Error(data.detail || data.message || "Failed to submit exam.");
+          }
         }
-        throw new Error(data.detail || data.message || "Failed to submit exam.");
+      } catch (fErr: any) {
+        console.warn("Submit network handler status:", fErr?.name === "AbortError" ? "Fast auto-submit redirect triggered" : fErr);
       }
 
-      // Redirect to Result Page instantly
-      window.location.href = `/student/exam/${examId}/result`;
+      // Redirect to Result Page cleanly
+      window.location.replace(`/student/exam/${examId}/result`);
     } catch (err: any) {
       if (isAuto) {
-        // For automated violation lockout submissions, always route to result page immediately
-        window.location.href = `/student/exam/${examId}/result`;
+        window.location.replace(`/student/exam/${examId}/result`);
         return;
       }
       setErrorMessage(err.message || "Failed to submit exam.");
@@ -1270,14 +1421,49 @@ export default function StudentExamChamberPage() {
                   <div className="w-48 h-32 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden relative shrink-0 flex items-center justify-center">
                     <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover mirror" />
                     
+                    {/* Visual Bounding Reticles */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                      {boundingReticles.map((r, rIdx) => {
+                        const leftPct = (1 - r.box[2]) * 100;
+                        const topPct = r.box[1] * 100;
+                        const widthPct = (r.box[2] - r.box[0]) * 100;
+                        const heightPct = (r.box[3] - r.box[1]) * 100;
+                        const isAlert = r.type === "PROHIBITED" || (r.type === "PERSON" && boundingReticles.filter(b => b.type === "PERSON").length > 1);
+                        return (
+                          <div
+                            key={rIdx}
+                            style={{
+                              left: `${Math.max(0, leftPct)}%`,
+                              top: `${Math.max(0, topPct)}%`,
+                              width: `${Math.min(100, widthPct)}%`,
+                              height: `${Math.min(100, heightPct)}%`,
+                            }}
+                            className={`absolute border rounded-sm transition-all duration-300 ${
+                              isAlert
+                                ? "border-rose-500 bg-rose-500/15 ring-1 ring-rose-400"
+                                : "border-emerald-400/70 bg-emerald-400/10"
+                            }`}
+                          >
+                            <span
+                              className={`absolute -top-4 left-0 text-[7px] font-bold px-1 rounded whitespace-nowrap ${
+                                isAlert ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                              }`}
+                            >
+                              {r.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
                     {/* Live HUD Tags */}
-                    <div className="absolute top-1.5 left-1.5 flex flex-wrap gap-1 max-w-[90%]">
+                    <div className="absolute top-1.5 left-1.5 flex flex-wrap gap-1 max-w-[90%] z-10">
                       {detectedEntities.map((tag, tIdx) => (
                         <span
                           key={tIdx}
                           className={`text-[8px] font-bold px-1.5 py-0.5 rounded shadow-md ${
-                            tag.includes("🚨")
-                              ? "bg-rose-600 text-white animate-pulse"
+                            tag.includes("🚨") || tag.includes("⚠️")
+                              ? "bg-rose-600 text-white animate-gentle-shiver"
                               : "bg-slate-900/90 text-emerald-300 border border-emerald-500/30"
                           }`}
                         >
@@ -1286,7 +1472,7 @@ export default function StudentExamChamberPage() {
                       ))}
                     </div>
 
-                    <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-1.5 right-1.5 text-[9px] bg-emerald-500 text-slate-950 font-bold px-1.5 py-0.5 rounded z-10">
                       {t("student.liveStream", "LIVE STREAM")}
                     </span>
                   </div>
@@ -1472,7 +1658,7 @@ export default function StudentExamChamberPage() {
       {/* ========================================================================= */}
       {hasEnteredChamber && !isFullscreen && (
         <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4">
-          <div className="glass-card rounded-3xl p-8 border border-rose-500/50 max-w-md w-full text-center space-y-6 shadow-2xl animate-bounce">
+          <div className="glass-card rounded-3xl p-8 border border-rose-500/60 max-w-md w-full text-center space-y-6 shadow-2xl animate-shiver-hover">
             <div className="h-16 w-16 rounded-3xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/40">
               <Lock className="h-8 w-8" />
             </div>
@@ -1482,21 +1668,24 @@ export default function StudentExamChamberPage() {
                 {t("student.fullscreenExitedTitle", "Full-Screen Mode Exited")}
               </h3>
               <p className="text-xs text-rose-300 leading-relaxed">
-                {t("student.fullscreenExitedDesc", "Examination access is temporarily locked because you exited full-screen mode. This incident has been recorded as a proctoring violation.")}
+                {t("student.fullscreenExitedDesc", "Examination access is temporarily locked because you exited full-screen mode. Please restore full-screen mode to resume your assessment.")}
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              {t("student.currentViolations", "Current Violations:")} <span className="font-bold text-rose-400">{strikesCount} / 3 {t("student.strikes", "Strikes")}</span>
+            <div className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+              <span>{t("student.currentViolations", "Current Violations:")}</span>
+              <span className="font-bold text-rose-400 font-mono px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">
+                {strikesCount} / 3 {t("student.strikes", "Strikes")}
+              </span>
             </div>
 
             <button
               type="button"
               onClick={handleReEnterFullscreen}
-              className="w-full py-3 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all"
+              className="w-full py-3.5 rounded-2xl font-bold text-xs text-white bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 shadow-xl shadow-rose-600/30 flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               <Maximize className="h-4 w-4" />
-              <span>{t("student.restoreFullscreenBtn", "Restore Fullscreen & Resume")}</span>
+              <span>{t("student.restoreFullscreenBtn", "Restore Fullscreen & Resume Assessment")}</span>
             </button>
           </div>
         </div>
@@ -1554,7 +1743,7 @@ export default function StudentExamChamberPage() {
             <div className="space-y-2">
               <div className="flex justify-between text-[11px] font-bold text-slate-400">
                 <span>{t("student.violationsMeter", "Violations Meter")}</span>
-                <span className={activeStrikeModal.isFinal ? "text-rose-400" : "text-amber-400"}>
+                <span className={activeStrikeModal.isFinal ? "text-rose-400 font-bold" : "text-amber-400 font-bold"}>
                   {Math.min(activeStrikeModal.strikeNum, 3)} / 3 {t("student.allowedStrikes", "Allowed Strikes")}
                 </span>
               </div>
@@ -1577,14 +1766,40 @@ export default function StudentExamChamberPage() {
 
             {/* Modal Actions */}
             {activeStrikeModal.isFinal ? (
-              <div className="p-4 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-center space-y-2">
-                <div className="text-sm font-bold text-white flex items-center justify-center gap-2">
-                  <RefreshCw className="h-4 w-4 animate-spin text-rose-400" />
-                  <span>{t("student.examTerminatedAutoSubmitting", "Exam Terminated. Auto-Submitting Assessment...")}</span>
+              <div className="p-5 rounded-2xl bg-rose-500/15 border border-rose-500/40 text-center space-y-4">
+                <div className="flex items-center justify-between text-xs font-bold text-rose-300">
+                  <span className="flex items-center gap-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-rose-400" />
+                    <span>{t("student.examTerminatedAutoSubmitting", "Assessment Auto-Submitting...")}</span>
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-500/30 text-white font-mono text-xs border border-rose-500/40">
+                    {autoSubmitCountdown !== null ? `${autoSubmitCountdown}s` : "5s"}
+                  </span>
                 </div>
-                <p className="text-[11px] text-rose-300">
-                  Your 4th violation strike was recorded. Answers saved up to this point are being submitted.
+
+                {/* Animated 5s Countdown Progress Bar */}
+                <div className="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+                  <div
+                    className="bg-gradient-to-r from-rose-500 to-amber-500 h-2 rounded-full transition-all duration-1000 ease-linear"
+                    style={{
+                      width: `${Math.max(0, Math.min(100, ((autoSubmitCountdown ?? 5) / 5) * 100))}%`,
+                    }}
+                  />
+                </div>
+
+                <p className="text-[11px] text-rose-300/90 leading-relaxed">
+                  Your 4th violation strike was recorded. All answered questions up to this point have been safely stored and are being submitted.
                 </p>
+
+                <button
+                  type="button"
+                  onClick={() => handleSubmitFinalExam(true)}
+                  disabled={submitting}
+                  className="w-full py-2.5 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-500 shadow-lg shadow-rose-600/30 flex items-center justify-center gap-2 transition-all"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                  <span>{submitting ? "Finalizing Submission..." : "Submit Immediately & View Report"}</span>
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-3">
@@ -2329,14 +2544,49 @@ export default function StudentExamChamberPage() {
                 className="w-full h-full object-cover mirror"
               />
 
+              {/* Visual Bounding Reticles */}
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {boundingReticles.map((r, rIdx) => {
+                  const leftPct = (1 - r.box[2]) * 100;
+                  const topPct = r.box[1] * 100;
+                  const widthPct = (r.box[2] - r.box[0]) * 100;
+                  const heightPct = (r.box[3] - r.box[1]) * 100;
+                  const isAlert = r.type === "PROHIBITED" || (r.type === "PERSON" && boundingReticles.filter(b => b.type === "PERSON").length > 1);
+                  return (
+                    <div
+                      key={rIdx}
+                      style={{
+                        left: `${Math.max(0, leftPct)}%`,
+                        top: `${Math.max(0, topPct)}%`,
+                        width: `${Math.min(100, widthPct)}%`,
+                        height: `${Math.min(100, heightPct)}%`,
+                      }}
+                      className={`absolute border rounded-sm transition-all duration-300 ${
+                        isAlert
+                          ? "border-rose-500 bg-rose-500/15 ring-1 ring-rose-400"
+                          : "border-emerald-400/70 bg-emerald-400/10"
+                      }`}
+                    >
+                      <span
+                        className={`absolute -top-4 left-0 text-[7px] font-bold px-1 rounded whitespace-nowrap ${
+                          isAlert ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
+                        }`}
+                      >
+                        {r.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
               {/* HUD Tags Overlay */}
-              <div className="absolute top-2 left-2 flex flex-wrap gap-1">
+              <div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[90%] z-10">
                 {detectedEntities.map((tag, tIdx) => (
                   <span
                     key={tIdx}
                     className={`text-[9px] font-bold px-2 py-0.5 rounded-md backdrop-blur-md shadow-md ${
-                      tag.includes("⚠️")
-                        ? "bg-rose-600/90 text-white animate-bounce"
+                      tag.includes("⚠️") || tag.includes("🚨")
+                        ? "bg-rose-600/90 text-white animate-gentle-shiver border border-rose-400/40"
                         : "bg-slate-900/80 text-emerald-300 border border-emerald-500/30"
                     }`}
                   >
