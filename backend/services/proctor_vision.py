@@ -145,21 +145,25 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
             yunet.setInputSize((width, height))
             retval, faces = yunet.detect(img_np)
             if faces is not None:
-                face_count = len(faces)
+                valid_faces = []
                 for f in faces:
                     x, y, w, h = int(f[0]), int(f[1]), int(f[2]), int(f[3])
                     conf = float(f[14]) if len(f) > 14 else 0.95
-                    bounding_boxes.append({
-                        "label": "Face",
-                        "type": "FACE",
-                        "confidence": round(conf, 2),
-                        "box": [
-                            round(max(0, x) / width, 4),
-                            round(max(0, y) / height, 4),
-                            round(min(width, x + w) / width, 4),
-                            round(min(height, y + h) / height, 4),
-                        ],
-                    })
+                    # Strict validation: confidence >= 0.70 and minimum face width/height >= 10% of frame
+                    if conf >= 0.70 and w >= (width * 0.10) and h >= (height * 0.10):
+                        valid_faces.append(f)
+                        bounding_boxes.append({
+                            "label": "Face",
+                            "type": "FACE",
+                            "confidence": round(conf, 2),
+                            "box": [
+                                round(max(0, x) / width, 4),
+                                round(max(0, y) / height, 4),
+                                round(min(width, x + w) / width, 4),
+                                round(min(height, y + h) / height, 4),
+                            ],
+                        })
+                face_count = len(valid_faces)
     except Exception as e:
         logger.warning(f"YuNet face detection warning: {e}")
 

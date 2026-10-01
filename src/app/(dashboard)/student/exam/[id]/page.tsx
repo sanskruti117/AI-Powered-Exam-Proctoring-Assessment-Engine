@@ -775,32 +775,74 @@ export default function StudentExamChamberPage() {
           let faceCount = 0;
           let cocoPersonCount = 0;
           const foundProhibited: Array<{ class: string; score: number }> = [];
+          const fallbackReticles: any[] = [];
 
           if (blazeFaceModelRef.current) {
             try {
               const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
-              faceCount = faces ? faces.length : 0;
-            } catch (_) {
-              try {
-                const faces = await blazeFaceModelRef.current.estimateFaces(canvas, false);
-                faceCount = faces ? faces.length : 0;
-              } catch (_) {}
-            }
+              const validFaces: any[] = [];
+              if (faces && Array.isArray(faces)) {
+                faces.forEach((f: any) => {
+                  const prob = Array.isArray(f.probability)
+                    ? f.probability[0]
+                    : typeof f.probability === "number"
+                    ? f.probability
+                    : 0;
+                  const start = f.topLeft;
+                  const end = f.bottomRight;
+                  if (start && end) {
+                    const fw = end[0] - start[0];
+                    const fh = end[1] - start[1];
+                    // Strict threshold: probability >= 0.90 and minimum size (10% of frame)
+                    // Discards ceiling beams, lights, and wall texture false positives
+                    if (prob >= 0.90 && fw >= vw * 0.10 && fh >= vh * 0.10) {
+                      validFaces.push(f);
+                      fallbackReticles.push({
+                        label: "Face",
+                        type: "FACE",
+                        confidence: Math.round(prob * 100) / 100,
+                        box: [
+                          Math.max(0, start[0]) / vw,
+                          Math.max(0, start[1]) / vh,
+                          Math.min(vw, end[0]) / vw,
+                          Math.min(vh, end[1]) / vh,
+                        ],
+                      });
+                    }
+                  }
+                });
+              }
+              faceCount = validFaces.length;
+            } catch (_) {}
           }
 
           if (cocoModelRef.current) {
             try {
-              const predictions: Array<{ class: string; score: number }> = await cocoModelRef.current.detect(
+              const predictions: Array<{ class: string; score: number; bbox?: number[] }> = await cocoModelRef.current.detect(
                 video,
                 20,
-                0.20
+                0.25
               );
               const prohibitedClasses = ["cell phone", "phone", "mobile", "remote", "laptop", "tablet", "book", "tv"];
               predictions.forEach((p) => {
                 const cName = p.class.toLowerCase();
-                if (cName === "person" && p.score >= 0.50) cocoPersonCount += 1;
-                else if (prohibitedClasses.some((c) => cName.includes(c)) && p.score >= 0.20) {
+                if (cName === "person" && p.score >= 0.55) {
+                  cocoPersonCount += 1;
+                } else if (prohibitedClasses.some((c) => cName.includes(c)) && p.score >= 0.30) {
                   foundProhibited.push(p);
+                  if (p.bbox && p.bbox.length === 4) {
+                    fallbackReticles.push({
+                      label: `🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`,
+                      type: "PROHIBITED",
+                      confidence: Math.round(p.score * 100) / 100,
+                      box: [
+                        Math.max(0, p.bbox[0]) / vw,
+                        Math.max(0, p.bbox[1]) / vh,
+                        Math.min(vw, p.bbox[0] + p.bbox[2]) / vw,
+                        Math.min(vh, p.bbox[1] + p.bbox[3]) / vh,
+                      ],
+                    });
+                  }
                 }
               });
             } catch (_) {}
@@ -819,6 +861,7 @@ export default function StudentExamChamberPage() {
           }
 
           setDetectedEntities(currentTags);
+          setBoundingReticles(fallbackReticles);
 
           // Enforce strikes in client fallback mode if active in chamber
           if (hasEnteredChamberRef.current) {
