@@ -56,37 +56,37 @@ export default function ExaminerDashboardPage() {
       <AmbientAuroraBackground variant="indigo-cyan" intensity="subtle" />
 
       {/* Welcome Banner with Living Mesh Glow */}
-      <section className="glass-card relative overflow-hidden rounded-3xl border border-slate-800 p-8 shadow-2xl sm:p-10 transition-all duration-300 hover:border-indigo-500/30 animate-fade-in-up">
-        <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-indigo-500/15 blur-[120px] animate-pulse-glow" />
+      <section className="glass-card relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800 p-8 shadow-xl dark:shadow-2xl sm:p-10 transition-all duration-300 hover:border-indigo-500/30 animate-fade-in-up">
+        <div className="pointer-events-none absolute right-0 top-0 h-96 w-96 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 blur-[120px] animate-pulse-glow" />
         <div className="pointer-events-none absolute left-1/3 bottom-0 h-64 w-64 rounded-full bg-purple-500/10 blur-[100px] animate-float" />
 
         <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
           <div className="space-y-3">
-            <span className="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-300 shadow-sm">
+            <span className="inline-flex items-center rounded-full border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 shadow-xs">
               <span className="flex h-2 w-2 relative mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
+              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
               {t("examiner.verifiedExaminer", "Verified Academic Examiner")}
             </span>
 
-            <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl min-h-[44px]">
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl min-h-[44px]">
               <AnimatedTypewriterText
                 text={welcomeText}
                 speed={40}
-                cursorColor="text-indigo-400"
+                cursorColor="text-indigo-600 dark:text-indigo-400"
               />
             </h1>
 
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-sm text-slate-300">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-sm text-slate-600 dark:text-slate-300">
               <span className="flex items-center gap-2 group">
-                <Building className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+                <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
                 {user?.institution || t("examiner.academicInstitution", "Academic Institution")}
               </span>
               {user?.department && (
                 <span className="flex items-center gap-2 group">
-                  <Briefcase className="h-4 w-4 text-violet-400 group-hover:scale-110 transition-transform" />
+                  <Briefcase className="h-4 w-4 text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform" />
                   {user.department}
                 </span>
               )}
@@ -103,9 +103,9 @@ export default function ExaminerDashboardPage() {
             </Link>
             <Link
               href="/examiner/exams?create=1"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-5 py-4 text-sm font-semibold text-slate-300 transition-all hover:bg-slate-800 hover:text-white hover:border-slate-600 hover:scale-105 shadow-lg group"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600 hover:scale-105 shadow-sm group"
             >
-              <FileText className="h-4 w-4 text-indigo-400 group-hover:scale-110 transition-transform" />
+              <FileText className="h-4 w-4 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
               {t("examiner.createAssessment", "Create Assessment")}
             </Link>
           </div>
@@ -153,23 +153,23 @@ export default function ExaminerDashboardPage() {
         <SpotlightCard
           glowColor="rgba(99, 102, 241, 0.2)"
           cyberCorners={true}
-          className="group flex flex-col justify-between rounded-3xl border border-slate-800 p-7 shadow-xl hover:-translate-y-1.5 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-950/40"
+          className="group flex flex-col justify-between rounded-3xl border border-slate-200/80 dark:border-slate-800 p-7 shadow-lg dark:shadow-xl hover:-translate-y-1.5 hover:border-indigo-500/50 hover:shadow-2xl hover:shadow-indigo-950/10 dark:hover:shadow-indigo-950/40"
         >
           <div className="space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-600/20 text-indigo-400 transition-all duration-300 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white shadow-md">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 transition-all duration-300 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white shadow-md">
               <PlusCircle className="h-6 w-6" />
             </div>
-            <h2 className="text-xl font-bold text-white group-hover:text-indigo-200 transition-colors">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-200 transition-colors">
               {t("examiner.createAssessmentContent", "Create assessment content")}
             </h2>
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               {t("examiner.createAssessmentDesc", "Create questions, then build an assessment with sections, timing, and marking rules.")}
             </p>
           </div>
           <div className="pt-6">
             <Link
               href="/examiner/questions/create"
-              className="inline-flex items-center gap-2 text-sm font-bold text-indigo-400 hover:text-indigo-300 group-hover:translate-x-1 transition-transform"
+              className="inline-flex items-center gap-2 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 group-hover:translate-x-1 transition-transform"
             >
               {t("examiner.createQuestionLink", "Create a question")}
               <ArrowRight className="h-4 w-4" />
@@ -180,23 +180,23 @@ export default function ExaminerDashboardPage() {
         <SpotlightCard
           glowColor="rgba(168, 85, 247, 0.2)"
           cyberCorners={true}
-          className="group flex flex-col justify-between rounded-3xl border border-slate-800 p-7 shadow-xl hover:-translate-y-1.5 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-950/40"
+          className="group flex flex-col justify-between rounded-3xl border border-slate-200/80 dark:border-slate-800 p-7 shadow-lg dark:shadow-xl hover:-translate-y-1.5 hover:border-violet-500/50 hover:shadow-2xl hover:shadow-violet-950/10 dark:hover:shadow-violet-950/40"
         >
           <div className="space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-600/20 text-violet-400 transition-all duration-300 group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white shadow-md">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-violet-500/30 bg-violet-600/20 text-violet-600 dark:text-violet-400 transition-all duration-300 group-hover:scale-110 group-hover:bg-violet-600 group-hover:text-white shadow-md">
               <FolderKanban className="h-6 w-6" />
             </div>
-            <h2 className="text-xl font-bold text-white group-hover:text-violet-200 transition-colors">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-200 transition-colors">
               {t("examiner.manageAssessments", "Manage assessments")}
             </h2>
-            <p className="text-sm leading-relaxed text-slate-400">
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               {t("examiner.manageAssessmentsDesc", "Open an assessment to manage questions, review attempts, grade answers, and view analytics.")}
             </p>
           </div>
           <div className="pt-6">
             <Link
               href="/examiner/exams"
-              className="inline-flex items-center gap-2 text-sm font-bold text-violet-400 hover:text-violet-300 group-hover:translate-x-1 transition-transform"
+              className="inline-flex items-center gap-2 text-sm font-bold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 group-hover:translate-x-1 transition-transform"
             >
               {t("examiner.openAssessmentsLink", "Open assessments")}
               <ArrowRight className="h-4 w-4" />

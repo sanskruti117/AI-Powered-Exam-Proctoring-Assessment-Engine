@@ -31,19 +31,19 @@ export function DeleteConfirmationModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="glass-card w-full max-w-md rounded-3xl border border-rose-500/30 shadow-2xl overflow-hidden p-6 space-y-6">
+      <div className="glass-card w-full max-w-md rounded-3xl border border-rose-500/30 shadow-2xl overflow-hidden p-6 space-y-6 bg-white dark:bg-slate-900">
         <div className="flex items-start gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+          <div className="h-12 w-12 rounded-2xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-xl font-bold text-white">{modalTitle}</h3>
-            <p className="text-sm text-slate-400 leading-relaxed">{modalMessage}</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">{modalTitle}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{modalMessage}</p>
           </div>
         </div>
 
         {itemName && (
-          <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 italic line-clamp-3 font-medium">
+          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-300 italic line-clamp-3 font-medium">
             &ldquo;{itemName}&rdquo;
           </div>
         )}
@@ -53,7 +53,7 @@ export function DeleteConfirmationModal({
             type="button"
             onClick={onClose}
             disabled={isDeleting}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {t("common.cancel", "Cancel")}
           </button>

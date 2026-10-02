@@ -394,11 +394,11 @@ function ExamEvaluationStudioContent() {
       {/* Workspace Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <PenTool className="h-5 w-5 text-indigo-400" />
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <PenTool className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             <span>Candidate Evaluation & Grading Studio</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             Review detailed student responses (MCQs, coding, descriptive), inspect solution keys, and modify or finalize marks.
           </p>
         </div>
@@ -408,9 +408,9 @@ function ExamEvaluationStudioContent() {
             <button
               onClick={() => handleTogglePublishResults(!exam.results_published)}
               disabled={publishingResults}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
                 exam.results_published
-                  ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700"
                   : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/25"
               }`}
             >
@@ -434,7 +434,6 @@ function ExamEvaluationStudioContent() {
             <span>{aiEvaluating ? "Evaluating with AI..." : "⚡ Auto-Evaluate All with AI"}</span>
           </button>
         </div>
-
       </div>
 
       {/* Feedback Alert */}
@@ -442,42 +441,42 @@ function ExamEvaluationStudioContent() {
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
             feedback.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-              : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+              ? "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300"
+              : "bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300"
           }`}
         >
           <div className="flex items-center gap-2.5">
             {feedback.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             ) : (
-              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0" />
+              <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0" />
             )}
-            <span className="text-sm font-medium">{feedback.msg}</span>
+            <span className="text-sm font-semibold">{feedback.msg}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70 hover:opacity-100">
+          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer">
             Dismiss
           </button>
         </div>
       )}
 
       {loading ? (
-        <div className="p-12 text-center text-slate-400">Loading candidate queue...</div>
+        <div className="p-12 text-center text-slate-600 dark:text-slate-400 font-medium">Loading candidate queue...</div>
       ) : candidates.length === 0 ? (
-        <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 space-y-3">
-          <User className="h-12 w-12 text-slate-600 mx-auto" />
-          <h3 className="text-lg font-bold text-white">No Candidate Attempts Found</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+        <div className="glass-card rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-3">
+          <User className="h-12 w-12 text-slate-400 dark:text-slate-600 mx-auto" />
+          <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">No Candidate Attempts Found</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto font-medium">
             When students take and submit this assessment, their complete answers and evaluation records will appear here.
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Candidate Queue Sidebar */}
-          <div className="glass-card rounded-3xl p-4 border border-slate-800 space-y-4 h-fit lg:sticky lg:top-4">
+          <div className="glass-card rounded-3xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-4 h-fit lg:sticky lg:top-4">
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold uppercase text-slate-400 px-1">
+              <div className="flex items-center justify-between text-xs font-bold uppercase text-slate-700 dark:text-slate-400 px-1">
                 <span>Candidates Queue</span>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+                <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30">
                   {candidates.length}
                 </span>
               </div>
@@ -490,17 +489,17 @@ function ExamEvaluationStudioContent() {
                   placeholder="Search name/email..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-[11px] font-bold">
                 <button
                   type="button"
                   onClick={() => setCandidateFilter("ALL")}
                   className={`flex-1 py-1 rounded-lg transition-all ${
-                    candidateFilter === "ALL" ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+                    candidateFilter === "ALL" ? "bg-indigo-600 text-white" : "text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   All ({candidates.length})
@@ -509,7 +508,7 @@ function ExamEvaluationStudioContent() {
                   type="button"
                   onClick={() => setCandidateFilter("PENDING")}
                   className={`flex-1 py-1 rounded-lg transition-all ${
-                    candidateFilter === "PENDING" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-white"
+                    candidateFilter === "PENDING" ? "bg-amber-600 text-white" : "text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Pending
@@ -518,7 +517,7 @@ function ExamEvaluationStudioContent() {
                   type="button"
                   onClick={() => setCandidateFilter("EVALUATED")}
                   className={`flex-1 py-1 rounded-lg transition-all ${
-                    candidateFilter === "EVALUATED" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
+                    candidateFilter === "EVALUATED" ? "bg-emerald-600 text-white" : "text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Done
@@ -529,7 +528,7 @@ function ExamEvaluationStudioContent() {
             {/* Candidates List */}
             <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
               {filteredCandidates.length === 0 ? (
-                <div className="text-center py-6 text-xs text-slate-500">No matching candidates.</div>
+                <div className="text-center py-6 text-xs text-slate-500 font-medium">No matching candidates.</div>
               ) : (
                 filteredCandidates.map((c) => {
                   const isSelected = selectedAttemptId === c.id;
@@ -539,28 +538,28 @@ function ExamEvaluationStudioContent() {
                       onClick={() => handleSelectCandidate(c)}
                       className={`p-3.5 rounded-2xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "bg-indigo-950/40 border-indigo-500 text-white shadow-lg shadow-indigo-500/10 scale-[1.01]"
-                          : "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700"
+                          ? "bg-indigo-50/80 border-indigo-500 text-slate-900 dark:bg-indigo-950/40 dark:border-indigo-500 dark:text-white shadow-md shadow-indigo-500/10 scale-[1.01]"
+                          : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1 mb-0.5">
-                        <div className="font-bold text-xs truncate text-white">{c.student_name}</div>
+                        <div className="font-bold text-xs truncate text-slate-900 dark:text-white">{c.student_name}</div>
                         <span
                           className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md border ${
                             c.status === "EVALUATED"
-                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
                               : c.status === "PENDING_EVALUATION" || c.has_pending_descriptive
-                              ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                              : "bg-slate-500/15 text-slate-400 border-slate-500/30"
+                              ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
+                              : "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/30"
                           }`}
                         >
                           {c.status.replace("_", " ")}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-400 truncate">{c.student_email}</div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2 pt-1.5 border-t border-slate-800/80">
+                      <div className="text-[11px] text-slate-600 dark:text-slate-400 truncate font-medium">{c.student_email}</div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 mt-2 pt-1.5 border-t border-slate-200 dark:border-slate-800/80 font-medium">
                         <span>Att. #{c.attempt_number}</span>
-                        <span className="font-bold text-white">
+                        <span className="font-black text-slate-900 dark:text-white">
                           {c.score !== undefined ? `${c.score} / ${c.total_marks}` : "—"}
                         </span>
                       </div>
@@ -574,38 +573,38 @@ function ExamEvaluationStudioContent() {
           {/* Grading & Response Review Workspace */}
           <div className="lg:col-span-3 space-y-6">
             {attemptLoading ? (
-              <div className="p-16 text-center text-slate-400 space-y-2">
-                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-indigo-400" />
-                <div className="text-sm font-bold text-white">Loading candidate response sheet...</div>
+              <div className="p-16 text-center text-slate-600 dark:text-slate-400 space-y-2">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-indigo-600 dark:text-indigo-400" />
+                <div className="text-sm font-bold text-slate-900 dark:text-white">Loading candidate response sheet...</div>
               </div>
             ) : !activeAttempt ? (
-              <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 text-slate-400">
+              <div className="glass-card rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 font-medium shadow-sm">
                 Please select a candidate attempt from the queue sidebar to inspect responses and grade.
               </div>
             ) : (
               <form onSubmit={handleSubmitEvaluations} className="space-y-6">
                 {/* Candidate Info Banner */}
-                <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
+                <div className="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
-                          Attempt ID: <code className="text-slate-300">{activeAttempt.attempt_id.slice(0, 8)}</code>
+                        <span className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">
+                          Attempt ID: <code className="text-slate-800 dark:text-slate-300">{activeAttempt.attempt_id.slice(0, 8)}</code>
                         </span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
                             activeAttempt.status === "EVALUATED"
-                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                              : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                              : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
                           }`}
                         >
                           {activeAttempt.status.replace("_", " ")}
                         </span>
                       </div>
-                      <h2 className="text-2xl font-extrabold text-white">{activeAttempt.student_name}</h2>
-                      <p className="text-xs text-slate-400">
+                      <h2 className="text-2xl font-black text-slate-900 dark:text-white">{activeAttempt.student_name}</h2>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                         {activeAttempt.student_email} &bull; Submitted at:{" "}
-                        <span className="text-slate-300">
+                        <span className="text-slate-800 dark:text-slate-300 font-semibold">
                           {activeAttempt.submitted_at
                             ? new Date(activeAttempt.submitted_at).toLocaleString()
                             : "In Progress"}
@@ -615,26 +614,26 @@ function ExamEvaluationStudioContent() {
 
                     {/* Live Score Counter */}
                     <div className="flex items-center gap-3 shrink-0 flex-wrap">
-                      <div className="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-                        <div className="text-[10px] text-slate-400 uppercase font-bold">Total Marks</div>
-                        <div className="text-lg font-black text-white">
-                          <span className="text-indigo-400">{liveTotalScore}</span> / {activeAttempt.total_marks}
+                      <div className="px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                        <div className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-bold">Total Marks</div>
+                        <div className="text-lg font-black text-slate-900 dark:text-white">
+                          <span className="text-indigo-600 dark:text-indigo-400">{liveTotalScore}</span> / {activeAttempt.total_marks}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-semibold">{livePercentage}%</div>
+                        <div className="text-[10px] text-slate-600 dark:text-slate-400 font-bold">{livePercentage}%</div>
                       </div>
 
-                      <div className="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-                        <div className="text-[10px] text-slate-400 uppercase font-bold">Duration</div>
-                        <div className="text-lg font-black text-emerald-400">
+                      <div className="px-4 py-2 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-center">
+                        <div className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-bold">Duration</div>
+                        <div className="text-lg font-black text-emerald-700 dark:text-emerald-400">
                           {Math.round(activeAttempt.total_time_seconds / 60)}m {activeAttempt.total_time_seconds % 60}s
                         </div>
-                        <div className="text-[10px] text-slate-500">Pacing Average</div>
+                        <div className="text-[10px] text-slate-500 font-medium">Pacing Average</div>
                       </div>
 
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer disabled:opacity-50"
+                        className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/25 transition-all hover:scale-105 cursor-pointer disabled:opacity-50"
                       >
                         <Save className="h-4 w-4" />
                         <span>{submitting ? "Saving..." : "Save & Finalize Grades"}</span>
@@ -643,14 +642,14 @@ function ExamEvaluationStudioContent() {
                   </div>
 
                   {/* Question Category Tabs */}
-                  <div className="flex items-center gap-2 border-t border-slate-800/80 pt-3 flex-wrap">
+                  <div className="flex items-center gap-2 border-t border-slate-200 dark:border-slate-800/80 pt-3 flex-wrap">
                     <button
                       type="button"
                       onClick={() => setQuestionTabFilter("ALL")}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         questionTabFilter === "ALL"
                           ? "bg-indigo-600 text-white"
-                          : "bg-slate-900 text-slate-400 hover:text-white"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent"
                       }`}
                     >
                       All Questions ({activeAttempt.answers?.length || 0})
@@ -661,7 +660,7 @@ function ExamEvaluationStudioContent() {
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         questionTabFilter === "MCQ"
                           ? "bg-indigo-600 text-white"
-                          : "bg-slate-900 text-slate-400 hover:text-white"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent"
                       }`}
                     >
                       MCQs & Objectives ({mcqCount})
@@ -672,7 +671,7 @@ function ExamEvaluationStudioContent() {
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         questionTabFilter === "DESCRIPTIVE"
                           ? "bg-indigo-600 text-white"
-                          : "bg-slate-900 text-slate-400 hover:text-white"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent"
                       }`}
                     >
                       Descriptive & Essays ({descCount})
@@ -683,7 +682,7 @@ function ExamEvaluationStudioContent() {
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                         questionTabFilter === "CODING"
                           ? "bg-indigo-600 text-white"
-                          : "bg-slate-900 text-slate-400 hover:text-white"
+                          : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-transparent"
                       }`}
                     >
                       Coding & Algorithms ({codeCount})
@@ -703,26 +702,26 @@ function ExamEvaluationStudioContent() {
                     return (
                       <div
                         key={q.question_id}
-                        className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 space-y-5 shadow-lg"
+                        className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-5 shadow-sm"
                       >
                         {/* Question Card Header */}
-                        <div className="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-2">
                           <div className="flex items-center gap-2.5 flex-wrap">
-                            <span className="text-xs font-bold text-slate-400">Q{idx + 1}.</span>
-                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-900 border border-slate-800 text-indigo-300">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-400">Q{idx + 1}.</span>
+                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-slate-800 text-indigo-800 dark:text-indigo-300">
                               {q.section_title}
                             </span>
-                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
+                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300">
                               {q.question_type.replace("_", " ")}
                             </span>
                             {q.evaluation_status === "AI_EVALUATED" && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-violet-500/20 text-violet-300 border border-violet-500/30">
-                                <Sparkles className="h-3 w-3 text-amber-300" />
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-violet-50 text-violet-800 border border-violet-200 dark:bg-violet-500/20 dark:text-violet-300 dark:border-violet-500/30">
+                                <Sparkles className="h-3 w-3 text-amber-500 dark:text-amber-300" />
                                 🤖 AI Evaluated
                               </span>
                             )}
                             {q.time_spent_seconds > 0 && (
-                              <span className="text-xs text-slate-500 flex items-center gap-1">
+                              <span className="text-xs text-slate-600 dark:text-slate-500 flex items-center gap-1 font-medium">
                                 <Clock className="h-3.5 w-3.5" />
                                 {q.time_spent_seconds}s spent
                               </span>
@@ -730,8 +729,8 @@ function ExamEvaluationStudioContent() {
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-400">Max Weightage:</span>
-                            <span className="px-2.5 py-0.5 rounded-md text-xs font-black bg-indigo-950/40 border border-indigo-500/30 text-indigo-300">
+                            <span className="text-xs font-bold text-slate-700 dark:text-slate-400">Max Weightage:</span>
+                            <span className="px-2.5 py-0.5 rounded-md text-xs font-black bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 text-indigo-800 dark:text-indigo-300">
                               {q.marks} Marks
                             </span>
                           </div>
@@ -739,10 +738,10 @@ function ExamEvaluationStudioContent() {
 
                         {/* Question Prompt */}
                         <div className="space-y-1">
-                          <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                             Question Statement
                           </div>
-                          <p className="text-sm font-semibold text-white whitespace-pre-wrap leading-relaxed">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white whitespace-pre-wrap leading-relaxed">
                             {q.question_text}
                           </p>
                         </div>
@@ -750,7 +749,7 @@ function ExamEvaluationStudioContent() {
                         {/* MCQ Options Breakdown */}
                         {isMCQ && q.options && q.options.length > 0 && (
                           <div className="space-y-2">
-                            <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                            <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                               Candidate Response vs Official Answer Key
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -761,14 +760,14 @@ function ExamEvaluationStudioContent() {
                                 const isCorrect =
                                   opt.is_correct || (q.correct_option_ids && q.correct_option_ids.includes(opt.id));
 
-                                let cardStyle = "bg-slate-900/60 border-slate-800 text-slate-300";
+                                let cardStyle = "bg-slate-50 border-slate-200 text-slate-800 dark:bg-slate-900/60 dark:border-slate-800 dark:text-slate-300";
                                 if (isCorrect && isSelected) {
                                   cardStyle =
-                                    "bg-emerald-950/40 border-emerald-500 text-white shadow-md shadow-emerald-500/10";
+                                    "bg-emerald-50 border-emerald-500 text-emerald-950 dark:bg-emerald-950/40 dark:border-emerald-500 dark:text-white shadow-sm";
                                 } else if (isCorrect && !isSelected) {
-                                  cardStyle = "bg-emerald-950/20 border-emerald-500/50 text-emerald-200 border-dashed";
+                                  cardStyle = "bg-emerald-50/50 border-emerald-400 text-emerald-900 border-dashed dark:bg-emerald-950/20 dark:border-emerald-500/50 dark:text-emerald-200";
                                 } else if (!isCorrect && isSelected) {
-                                  cardStyle = "bg-rose-950/40 border-rose-500 text-white shadow-md shadow-rose-500/10";
+                                  cardStyle = "bg-rose-50 border-rose-500 text-rose-950 dark:bg-rose-950/40 dark:border-rose-500 dark:text-white shadow-sm";
                                 }
 
                                 return (
@@ -777,7 +776,7 @@ function ExamEvaluationStudioContent() {
                                     className={`p-3.5 rounded-2xl border text-xs flex items-start justify-between gap-3 ${cardStyle}`}
                                   >
                                     <div className="flex items-start gap-2.5">
-                                      <span className="font-mono font-bold text-slate-400 uppercase">
+                                      <span className="font-mono font-bold text-slate-700 dark:text-slate-400 uppercase">
                                         {String.fromCharCode(65 + optIdx)}.
                                       </span>
                                       <span className="font-medium leading-relaxed">{opt.option_text}</span>
@@ -785,7 +784,7 @@ function ExamEvaluationStudioContent() {
 
                                     <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
                                       {isCorrect && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40">
                                           <Check className="h-3 w-3" />
                                           Correct Answer
                                         </span>
@@ -794,8 +793,8 @@ function ExamEvaluationStudioContent() {
                                         <span
                                           className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                                             isCorrect
-                                              ? "bg-emerald-500 text-black border-emerald-400"
-                                              : "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                                              ? "bg-emerald-600 text-white border-emerald-500"
+                                              : "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40"
                                           }`}
                                         >
                                           {isCorrect ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
@@ -814,22 +813,22 @@ function ExamEvaluationStudioContent() {
                         {isDescriptive && (
                           <div className="space-y-4">
                             {q.expected_answer && (
-                              <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 space-y-1.5">
-                                <div className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-500/20 space-y-1.5">
+                                <div className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
                                   <Sparkles className="h-3.5 w-3.5" />
                                   <span>Official Rubric / Reference Solution</span>
                                 </div>
-                                <p className="text-xs text-indigo-200/90 whitespace-pre-wrap leading-relaxed">
+                                <p className="text-xs text-indigo-950 dark:text-indigo-200/90 whitespace-pre-wrap leading-relaxed font-medium">
                                   {q.expected_answer}
                                 </p>
                               </div>
                             )}
 
                             <div className="space-y-1">
-                              <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                              <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                                 Candidate&apos;s Submitted Text
                               </div>
-                              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
+                              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-200 whitespace-pre-wrap leading-relaxed font-medium">
                                 {q.text_answer ? (
                                   q.text_answer
                                 ) : (
@@ -843,13 +842,13 @@ function ExamEvaluationStudioContent() {
                         {/* Coding Solution & Test Cases */}
                         {isCoding && (
                           <div className="space-y-4">
-                            <div className="flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
-                              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-white">
-                                <Code2 className="h-4 w-4 text-indigo-400" />
+                            <div className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-400 flex-wrap gap-2 font-medium">
+                              <span className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-slate-900 dark:text-white">
+                                <Code2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                                 Candidate Source Code ({q.code_language || "python"})
                               </span>
                               {q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
-                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[11px]">
+                                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30 font-bold text-[11px]">
                                   {q.test_cases_passed} / {q.total_test_cases} Test Cases Passed
                                 </span>
                               )}
@@ -861,28 +860,28 @@ function ExamEvaluationStudioContent() {
 
                             {q.test_cases && q.test_cases.length > 0 && (
                               <div className="space-y-2">
-                                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                                <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                                   Configured Test Cases ({q.test_cases.length})
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                   {q.test_cases.map((tc, tcIdx) => (
                                     <div
                                       key={tc.id}
-                                      className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] font-mono space-y-1"
+                                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[11px] font-mono space-y-1"
                                     >
-                                      <div className="flex items-center justify-between text-slate-400 font-sans font-bold">
+                                      <div className="flex items-center justify-between text-slate-700 dark:text-slate-400 font-sans font-bold">
                                         <span>
                                           Case #{tcIdx + 1} {tc.is_sample && "(Sample)"}
                                         </span>
-                                        <span className="text-indigo-400">{tc.weightage_marks} Marks</span>
+                                        <span className="text-indigo-600 dark:text-indigo-400">{tc.weightage_marks} Marks</span>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 font-sans font-bold">Input: </span>
-                                        <span className="text-slate-200">{tc.input_data}</span>
+                                        <span className="text-slate-600 dark:text-slate-500 font-sans font-bold">Input: </span>
+                                        <span className="text-slate-900 dark:text-slate-200">{tc.input_data}</span>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 font-sans font-bold">Expected: </span>
-                                        <span className="text-emerald-300">{tc.expected_output}</span>
+                                        <span className="text-slate-600 dark:text-slate-500 font-sans font-bold">Expected: </span>
+                                        <span className="text-emerald-700 dark:text-emerald-300 font-bold">{tc.expected_output}</span>
                                       </div>
                                     </div>
                                   ))}
@@ -893,11 +892,11 @@ function ExamEvaluationStudioContent() {
                         )}
 
                         {/* Grading Controls on Every Question */}
-                        <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-3">
+                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
                               <div>
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                                   Marks Awarded (0 - {q.marks}) *
                                 </label>
                                 <div className="flex items-center gap-2">
@@ -911,9 +910,9 @@ function ExamEvaluationStudioContent() {
                                     onChange={(e) =>
                                       handleMarksChange(q.question_id, q.marks, parseFloat(e.target.value))
                                     }
-                                    className="w-24 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-sm font-extrabold text-white focus:outline-none focus:border-indigo-500 text-center"
+                                    className="w-24 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 text-center shadow-sm"
                                   />
-                                  <span className="text-xs text-slate-400 font-semibold">/ {q.marks}</span>
+                                  <span className="text-xs text-slate-600 dark:text-slate-400 font-bold">/ {q.marks}</span>
                                 </div>
                               </div>
 
@@ -922,7 +921,7 @@ function ExamEvaluationStudioContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleMarksChange(q.question_id, q.marks, q.marks)}
-                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 transition-all cursor-pointer"
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-100 text-emerald-900 hover:bg-emerald-200 border border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:hover:bg-emerald-500/25 dark:border-emerald-500/30 transition-all cursor-pointer"
                                   title="Award Full Marks"
                                 >
                                   Full ({q.marks})
@@ -930,7 +929,7 @@ function ExamEvaluationStudioContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleMarksChange(q.question_id, q.marks, Math.round((q.marks / 2) * 10) / 10)}
-                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 transition-all cursor-pointer"
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25 dark:border-amber-500/30 transition-all cursor-pointer"
                                   title="Award Half Marks"
                                 >
                                   Half
@@ -938,7 +937,7 @@ function ExamEvaluationStudioContent() {
                                 <button
                                   type="button"
                                   onClick={() => handleMarksChange(q.question_id, q.marks, 0)}
-                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-500/15 text-rose-300 hover:bg-rose-500/25 border border-rose-500/30 transition-all cursor-pointer"
+                                  className="px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-rose-100 text-rose-900 hover:bg-rose-200 border border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25 dark:border-rose-500/30 transition-all cursor-pointer"
                                   title="Award Zero"
                                 >
                                   Zero (0)
@@ -947,7 +946,7 @@ function ExamEvaluationStudioContent() {
                             </div>
 
                             <div className="flex-1 sm:max-w-md">
-                              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-300 mb-1">
+                              <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                                 Examiner Feedback / Evaluation Note
                               </label>
                               <input
@@ -955,7 +954,7 @@ function ExamEvaluationStudioContent() {
                                 placeholder="e.g. Correct reasoning, missed edge case."
                                 value={currentFeedback}
                                 onChange={(e) => handleFeedbackChange(q.question_id, e.target.value)}
-                                className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                                className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 shadow-sm"
                               />
                             </div>
                           </div>
@@ -966,14 +965,14 @@ function ExamEvaluationStudioContent() {
                 </div>
 
                 {/* Bottom Submit Action Bar */}
-                <div className="glass-card rounded-3xl p-5 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl backdrop-blur-md">
+                <div className="glass-card rounded-3xl p-5 border border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl backdrop-blur-md">
                   <div className="flex items-center gap-3">
-                    <Award className="h-6 w-6 text-indigo-400 shrink-0" />
+                    <Award className="h-6 w-6 text-indigo-600 dark:text-indigo-400 shrink-0" />
                     <div>
-                      <div className="text-xs text-slate-400">Total Calculated Grade</div>
-                      <div className="text-lg font-extrabold text-white">
-                        <span className="text-indigo-400">{liveTotalScore}</span> / {activeAttempt.total_marks} marks{" "}
-                        <span className="text-xs font-bold text-slate-400">({livePercentage}%)</span>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold">Total Calculated Grade</div>
+                      <div className="text-lg font-black text-slate-900 dark:text-white">
+                        <span className="text-indigo-600 dark:text-indigo-400">{liveTotalScore}</span> / {activeAttempt.total_marks} marks{" "}
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">({livePercentage}%)</span>
                       </div>
                     </div>
                   </div>

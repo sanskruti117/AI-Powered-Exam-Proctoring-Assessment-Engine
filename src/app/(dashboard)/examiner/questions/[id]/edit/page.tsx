@@ -44,37 +44,37 @@ export default function EditQuestionPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* Top Breadcrumb */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-6">
+      <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-6">
         <div className="space-y-1">
           <Link
             href="/examiner/questions"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Question Bank</span>
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
             Edit Question
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-400">
             Modify question prompt, answer choices, scoring rubric, or diagram attachment.
           </p>
         </div>
       </div>
 
       {loading ? (
-        <div className="glass-card rounded-3xl p-16 border border-slate-800 text-center space-y-3">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400" />
-          <p className="text-sm font-medium text-slate-300">
+        <div className="glass-card rounded-3xl p-16 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm text-center space-y-3">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-600 dark:text-indigo-400" />
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             Loading question information...
           </p>
         </div>
       ) : error ? (
-        <div className="glass-card rounded-3xl p-12 border border-rose-500/30 text-center space-y-4">
-          <AlertCircle className="h-10 w-10 text-rose-400 mx-auto" />
+        <div className="glass-card rounded-3xl p-12 border border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-950/20 text-center space-y-4">
+          <AlertCircle className="h-10 w-10 text-rose-600 dark:text-rose-400 mx-auto" />
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">Error Loading Question</h3>
-            <p className="text-sm text-slate-400">{error}</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Error Loading Question</h3>
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-400">{error}</p>
           </div>
           <Link
             href="/examiner/questions"

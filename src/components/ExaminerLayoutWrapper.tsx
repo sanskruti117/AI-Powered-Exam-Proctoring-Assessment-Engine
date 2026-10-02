@@ -11,7 +11,7 @@ export async function ExaminerLayoutWrapper({ children }: ExaminerLayoutWrapperP
   const session = await getCurrentUser();
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <ExaminerHeader user={session ? { fullName: session.fullName, email: session.email, institution: session.institution, role: session.role } : null} />
       <div className="mx-auto flex max-w-[1720px] flex-col items-start gap-7 px-4 py-7 sm:px-7 lg:flex-row lg:gap-8 lg:px-8 lg:py-8">
         <ExaminerSidebar user={session ? { fullName: session.fullName, email: session.email, institution: session.institution, role: session.role } : null} />

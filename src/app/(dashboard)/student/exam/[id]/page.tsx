@@ -47,6 +47,8 @@ import {
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n/translations";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "@/lib/theme/ThemeContext";
 
 interface OptionChoice {
   id: string;
@@ -252,8 +254,14 @@ export default function StudentExamChamberPage() {
   const [isRunningDiagnostics, setIsRunningDiagnostics] = useState(false);
 
   // Coding Question Workspace States
+  const { theme: globalTheme } = useTheme();
   const [activeLang, setActiveLang] = useState<string>("python");
   const [editorTheme, setEditorTheme] = useState<"vs-dark" | "light">("vs-dark");
+
+  useEffect(() => {
+    setEditorTheme(globalTheme === "light" ? "light" : "vs-dark");
+  }, [globalTheme]);
+
   const [customStdin, setCustomStdin] = useState<string>("");
   const [activeConsoleTab, setActiveConsoleTab] = useState<"sample_tests" | "custom_input" | "submission">("sample_tests");
   const [runningCode, setRunningCode] = useState(false);
@@ -1451,8 +1459,9 @@ export default function StudentExamChamberPage() {
                 </div>
               </div>
 
-              {/* Language Selector + Sandbox vs Protocols Tab Switcher */}
+              {/* Language Selector, Theme Toggle + Sandbox vs Protocols Tab Switcher */}
               <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <ThemeToggle variant="compact" />
                 <LanguageSelector variant="compact" />
                 <div className="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1">
                   <button
@@ -1923,8 +1932,9 @@ export default function StudentExamChamberPage() {
           </div>
         </div>
 
-        {/* Countdown Timer, Language Selector & Submit CTA */}
+        {/* Countdown Timer, Theme Toggle, Language Selector & Submit CTA */}
         <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
+          <ThemeToggle variant="compact" />
           <LanguageSelector variant="compact" />
 
           <div
@@ -2174,7 +2184,7 @@ export default function StudentExamChamberPage() {
                       <Editor
                         height="450px"
                         language={getMonacoLanguage(activeLang)}
-                        theme={editorTheme}
+                        theme={editorTheme === "light" ? "vs" : "vs-dark"}
                         value={answers[currentQ.id]?.code_answer || getStarterCode(currentQ, activeLang)}
                         onChange={(val) => handleCodeAnswerChange(val || "")}
                         options={{

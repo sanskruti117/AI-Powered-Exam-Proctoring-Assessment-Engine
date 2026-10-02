@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, html.dark {
     --background: #060913;
     --foreground: #f1f5f9;
+  }
+
+  html.light {
+    --background: #f4f7fb;
+    --foreground: #0f172a;
   }
 
   body {
@@ -19,9 +24,19 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
+
+  html.light body {
+    color: #0f172a;
+    background-color: #f4f7fb;
+    background-image: 
+      radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.08), transparent 30%),
+      radial-gradient(circle at 90% 20%, rgba(6, 182, 212, 0.06), transparent 25%),
+      radial-gradient(circle at 50% 80%, rgba(99, 102, 241, 0.05), transparent 40%);
+    background-attachment: fixed;
+  }
 }
 
-/* Background Cyber Grid */
+/* Background Cyber Grid - Dark Mode (Default) */
 .bg-cyber-grid {
   background-size: 40px 40px;
   background-image: 
@@ -34,9 +49,26 @@
   background-size: 24px 24px;
 }
 
+/* Background Cyber Grid - Light Mode */
+.light .bg-cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+}
+
+.light .bg-cyber-dots {
+  background-image: radial-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
 /* Glowing text gradients */
 .text-glow {
   text-shadow: 0 0 25px rgba(99, 102, 241, 0.45);
+}
+
+.light .text-glow {
+  text-shadow: 0 0 16px rgba(99, 102, 241, 0.25);
 }
 
 .text-gradient-shimmer {
@@ -55,7 +87,23 @@
   animation: shimmer 4s linear infinite;
 }
 
-/* Premium Enterprise Glass & Card Styles */
+.light .text-gradient-shimmer {
+  background: linear-gradient(
+    90deg,
+    #0f172a 0%,
+    #4338ca 25%,
+    #6366f1 50%,
+    #4338ca 75%,
+    #0f172a 100%
+  );
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+/* Premium Enterprise Glass & Card Styles - Dark Mode */
 .glass-card {
   background: rgba(13, 20, 36, 0.7);
   backdrop-filter: blur(20px);
@@ -100,6 +148,49 @@
 
 .glass-card-interactive:hover::before {
   left: 100%;
+}
+
+/* Premium Enterprise Glass & Card Styles - Light Mode */
+.light .glass-card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+}
+
+.light .glass-card-interactive {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.05);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.light .glass-card-interactive:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.14), 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.light .glass-card-interactive::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.06),
+    transparent
+  );
+  transition: 0.6s;
+  pointer-events: none;
 }
 
 /* Button Shimmer Effect */
@@ -164,6 +255,10 @@
   pointer-events: none;
 }
 
+.light .radar-sweep {
+  background: conic-gradient(from 0deg at 50% 50%, rgba(99, 102, 241, 0.18) 0deg, transparent 60deg, transparent 360deg);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -182,6 +277,20 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* Staggered entrance animations */
@@ -268,4 +377,3 @@
 .animate-gentle-shiver {
   animation: gentleShiver 1.6s ease-in-out infinite;
 }
-

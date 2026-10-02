@@ -205,18 +205,18 @@ export default function ExamSectionManagePage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Layers className="h-5 w-5 text-indigo-400" />
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <Layers className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             <span>Question Paper & Subject Pools</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             Questions added here belong to this examination&apos;s section pool. Candidate attempts will be dynamically sampled to reach exact target marks.
           </p>
         </div>
 
         <button
           onClick={() => handleOpenCreateQuestion()}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all self-start sm:self-auto cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/25 transition-all self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span>Add Question to Pool</span>
@@ -228,19 +228,19 @@ export default function ExamSectionManagePage() {
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
             feedback.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-              : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+              ? "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300"
+              : "bg-rose-50 text-rose-900 border-rose-200 dark:bg-rose-500/10 dark:border-rose-500/30 dark:text-rose-300"
           }`}
         >
           <div className="flex items-center gap-2.5">
             {feedback.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             ) : (
-              <AlertCircle className="h-5 w-5 text-rose-400" />
+              <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400" />
             )}
-            <span className="text-sm font-medium">{feedback.msg}</span>
+            <span className="text-sm font-semibold">{feedback.msg}</span>
           </div>
-          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70">
+          <button onClick={() => setFeedback(null)} className="text-xs font-bold opacity-70 hover:opacity-100 cursor-pointer">
             Dismiss
           </button>
         </div>
@@ -256,21 +256,21 @@ export default function ExamSectionManagePage() {
             <div
               key={sec.id}
               onClick={() => setSelectedSectionId(sec.id)}
-              className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all relative overflow-hidden ${
+              className={`glass-card rounded-2xl p-5 border cursor-pointer transition-all relative overflow-hidden bg-white dark:bg-slate-900/80 shadow-sm ${
                 isSelected
-                  ? "border-indigo-500 bg-indigo-950/20 ring-1 ring-indigo-500"
-                  : "border-slate-800 hover:border-slate-700"
+                  ? "border-indigo-600 bg-indigo-50/50 dark:border-indigo-500 dark:bg-indigo-950/20 ring-2 ring-indigo-500/40"
+                  : "border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700"
               }`}
             >
-              <div className="flex items-center justify-between text-slate-400 mb-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-white truncate pr-2">
+              <div className="flex items-center justify-between text-slate-700 dark:text-slate-400 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white truncate pr-2">
                   {sec.title}
                 </span>
                 <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                     isReady
-                      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                      : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                      : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
                   }`}
                 >
                   {isReady ? "READY" : "NEEDS QUESTIONS"}
@@ -279,11 +279,11 @@ export default function ExamSectionManagePage() {
 
               <div className="flex items-end justify-between">
                 <div>
-                  <div className="text-xl font-extrabold text-white">
+                  <div className="text-xl font-extrabold text-slate-900 dark:text-white">
                     {sec.total_pool_marks}{" "}
-                    <span className="text-xs font-normal text-slate-400">/ {sec.target_marks} marks</span>
+                    <span className="text-xs font-normal text-slate-600 dark:text-slate-400">/ {sec.target_marks} marks</span>
                   </div>
-                  <div className="text-xs text-slate-500">{sec.total_pool_questions} questions in pool</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{sec.total_pool_questions} questions in pool</div>
                 </div>
 
                 <button
@@ -292,7 +292,7 @@ export default function ExamSectionManagePage() {
                     e.stopPropagation();
                     handleOpenCreateQuestion(sec.id);
                   }}
-                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-indigo-400 hover:text-white"
+                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-white"
                   title="Add Question to this section"
                 >
                   <Plus className="h-4 w-4" />
@@ -304,14 +304,14 @@ export default function ExamSectionManagePage() {
       </div>
 
       {/* Filter and Section Selector Bar */}
-      <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-4">
+      <div className="glass-card rounded-2xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
           <button
             onClick={() => setSelectedSectionId("ALL")}
             className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               selectedSectionId === "ALL"
-                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
             }`}
           >
             All Sections ({exam.total_questions})
@@ -322,8 +322,8 @@ export default function ExamSectionManagePage() {
               onClick={() => setSelectedSectionId(s.id)}
               className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedSectionId === s.id
-                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                  : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
               }`}
             >
               {s.title} ({s.total_pool_questions})
@@ -331,7 +331,7 @@ export default function ExamSectionManagePage() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-800/80">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/80">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -340,7 +340,7 @@ export default function ExamSectionManagePage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && fetchExamAndQuestions()}
-              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
 
@@ -348,7 +348,7 @@ export default function ExamSectionManagePage() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none"
+              className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
             >
               <option value="ALL">All Difficulties</option>
               <option value="EASY">Easy</option>
@@ -359,7 +359,7 @@ export default function ExamSectionManagePage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none"
+              className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white font-medium focus:outline-none"
             >
               <option value="ALL">All Types</option>
               <option value="MCQ">Single Choice (MCQ)</option>
@@ -374,15 +374,15 @@ export default function ExamSectionManagePage() {
 
       {/* Questions List */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400">Loading section questions...</div>
+        <div className="p-12 text-center text-slate-600 dark:text-slate-400 font-medium">Loading section questions...</div>
       ) : questions.length === 0 ? (
-        <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto">
+        <div className="glass-card rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-4 shadow-sm">
+          <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
             <Layers className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">No Questions in this Section Pool</h3>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">No Questions in this Section Pool</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto font-medium">
               Add questions to fulfill the section target marks. Candidates will receive a randomized subset during their exam session.
             </p>
           </div>
@@ -402,42 +402,42 @@ export default function ExamSectionManagePage() {
             return (
               <div
                 key={q.id}
-                className="glass-card rounded-2xl p-5 border border-slate-800 hover:border-slate-700 transition-all space-y-4"
+                className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-white dark:bg-slate-900/80 shadow-sm transition-all space-y-4"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/60 pb-3">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="text-xs font-bold text-slate-500">Q{idx + 1}.</span>
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-900 border border-slate-800 text-indigo-300">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-500">Q{idx + 1}.</span>
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-slate-800 text-indigo-800 dark:text-indigo-300">
                       {secObj ? secObj.title : q.subject}
                     </span>
                     <span
                       className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase border ${
                         q.difficulty === "EASY"
-                          ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                          ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
                           : q.difficulty === "MEDIUM"
-                          ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                          : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                          ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
+                          : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30"
                       }`}
                     >
                       {q.difficulty}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-slate-900 border border-slate-800 text-slate-300">
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300">
                       {q.question_type.replace("_", " ")}
                     </span>
-                    <span className="text-xs font-extrabold text-amber-400">{q.marks} Marks</span>
+                    <span className="text-xs font-extrabold text-amber-700 dark:text-amber-400">{q.marks} Marks</span>
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
                     <button
                       onClick={() => handleOpenEditQuestion(q)}
-                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                      className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                       title="Edit Question"
                     >
                       <Edit3 className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => handleDeleteQuestion(q.id)}
-                      className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400"
+                      className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400"
                       title="Delete Question"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -446,10 +446,10 @@ export default function ExamSectionManagePage() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-sm font-semibold text-white whitespace-pre-wrap">{q.question_text}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white whitespace-pre-wrap leading-relaxed">{q.question_text}</p>
 
                   {q.image_url && (
-                    <div className="p-2 rounded-xl bg-slate-950/80 border border-slate-800 max-w-sm">
+                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 max-w-sm">
                       <img
                         src={q.image_url}
                         alt="Question Reference"
@@ -465,20 +465,20 @@ export default function ExamSectionManagePage() {
                           key={opt.id || oIdx}
                           className={`p-2.5 rounded-xl border text-xs flex items-center justify-between ${
                             opt.is_correct
-                              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 font-semibold"
-                              : "bg-slate-900/60 border-slate-800 text-slate-300"
+                              ? "bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300 font-semibold"
+                              : "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300"
                           }`}
                         >
-                          <span className="truncate pr-2">{opt.option_text}</span>
-                          {opt.is_correct && <CheckCircle2 className="h-4 w-4 text-emerald-400 flex-shrink-0" />}
+                          <span className="truncate pr-2 font-medium">{opt.option_text}</span>
+                          {opt.is_correct && <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />}
                         </div>
                       ))}
                     </div>
                   )}
 
                   {q.expected_answer && (
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400">
-                      <span className="font-bold text-slate-300 block mb-0.5">Evaluation Rubric / Key:</span>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-400">
+                      <span className="font-bold text-slate-900 dark:text-slate-300 block mb-0.5">Evaluation Rubric / Key:</span>
                       <span className="line-clamp-2">{q.expected_answer}</span>
                     </div>
                   )}
@@ -491,20 +491,20 @@ export default function ExamSectionManagePage() {
 
       {/* Question Form Modal */}
       {isQuestionModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 w-full max-w-4xl max-h-[92vh] overflow-y-auto space-y-6 shadow-2xl relative bg-slate-950">
-            <div className="sticky -top-6 sm:-top-8 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 sm:p-8 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 flex items-center justify-between z-20">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 w-full max-w-4xl max-h-[92vh] overflow-y-auto space-y-6 shadow-2xl relative bg-white dark:bg-slate-950">
+            <div className="sticky -top-6 sm:-top-8 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 sm:p-8 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-20">
               <div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
                   {editingQuestion?.id ? "Edit Question" : "Create New Question in Section"}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Assigned to Exam: <span className="text-white font-semibold">{exam.title}</span>
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
+                  Assigned to Exam: <span className="text-slate-900 dark:text-white font-semibold">{exam.title}</span>
                 </p>
               </div>
               <button
                 onClick={() => setIsQuestionModalOpen(false)}
-                className="text-slate-400 hover:text-white p-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 cursor-pointer transition-colors"
+                className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 dark:hover:bg-slate-800 cursor-pointer transition-colors"
               >
                 ✕
               </button>

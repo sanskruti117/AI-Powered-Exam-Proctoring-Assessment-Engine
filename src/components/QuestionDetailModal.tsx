@@ -93,22 +93,22 @@ export function QuestionDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="glass-card w-full max-w-3xl rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="glass-card w-full max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] bg-white dark:bg-slate-900">
         {/* Modal Header */}
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <HelpCircle className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">{t("examiner.questionDetails", "Question Details")}</h2>
-              <p className="text-xs text-slate-400">ID: {question.id}</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t("examiner.questionDetails", "Question Details")}</h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400">ID: {question.id}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -120,16 +120,16 @@ export function QuestionDetailModal({
           <div className="flex flex-wrap items-center gap-3">
             {getTypeBadge(question.question_type)}
             {getDifficultyBadge(question.difficulty)}
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-200 border border-slate-700">
-              <Award className="h-3.5 w-3.5 text-indigo-400" />
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+              <Award className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
               {question.marks} {question.marks === 1 ? t("examiner.mark", "Mark") : t("examiner.marks", "Marks")}
             </span>
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700/80">
-              <BookOpen className="h-3.5 w-3.5 text-violet-400" />
+            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700/80">
+              <BookOpen className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
               {question.subject}
             </span>
             {question.created_at && (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-400 ml-auto">
+              <span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400 ml-auto font-medium">
                 <Calendar className="h-3.5 w-3.5" />
                 {new Date(question.created_at).toLocaleDateString()}
               </span>
@@ -137,11 +137,11 @@ export function QuestionDetailModal({
           </div>
 
           {/* Question Text */}
-          <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
               {t("examiner.questionStatement", "Question Statement")}
             </h3>
-            <p className="text-base sm:text-lg font-semibold text-white whitespace-pre-wrap leading-relaxed">
+            <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white whitespace-pre-wrap leading-relaxed">
               {question.question_text}
             </p>
           </div>
@@ -149,11 +149,11 @@ export function QuestionDetailModal({
           {/* Image Preview if applicable */}
           {question.image_url && (
             <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-indigo-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 {t("examiner.attachedDiagram", "Attached Diagram / Image")}
               </h3>
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-2 overflow-hidden flex items-center justify-center max-h-72">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-2 overflow-hidden flex items-center justify-center max-h-72">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={question.image_url}
@@ -167,8 +167,8 @@ export function QuestionDetailModal({
           {/* Options for MCQ / MULTI_SELECT / IMAGE */}
           {question.options && question.options.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Layers className="h-4 w-4 text-indigo-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                <Layers className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 {t("examiner.mcqOptions", "Answer Options")} ({question.options.length})
               </h3>
               <div className="space-y-2.5">
@@ -177,25 +177,25 @@ export function QuestionDetailModal({
                     key={opt.id || index}
                     className={`p-4 rounded-xl border flex items-start justify-between gap-4 transition-all ${
                       opt.is_correct
-                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-200"
-                        : "bg-slate-900/70 border-slate-800 text-slate-200"
+                        ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-800 dark:text-emerald-200"
+                        : "bg-slate-50 dark:bg-slate-900/70 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-200"
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <span
                         className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                           opt.is_correct
-                            ? "bg-emerald-500 text-slate-950"
-                            : "bg-slate-800 text-slate-400"
+                            ? "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950"
+                            : "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-400"
                         }`}
                       >
                         {String.fromCharCode(65 + index)}
                       </span>
-                      <span className="text-sm font-medium pt-0.5">{opt.option_text}</span>
+                      <span className="text-sm font-semibold pt-0.5">{opt.option_text}</span>
                     </div>
 
                     {opt.is_correct && (
-                      <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30 shrink-0">
+                      <span className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-500/20 px-2.5 py-1 rounded-full border border-emerald-500/30 shrink-0">
                         <CheckCircle className="h-3.5 w-3.5" />
                         {t("examiner.correctAnswer", "Correct Answer")}
                       </span>
@@ -209,11 +209,11 @@ export function QuestionDetailModal({
           {/* Expected Answer / Rubric for Short / Long questions */}
           {question.expected_answer && (
             <div className="space-y-2">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-violet-400" />
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 {t("examiner.expectedAnswer", "Expected Answer / Scoring Rubric")}
               </h3>
-              <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/40 text-sm text-indigo-200 whitespace-pre-wrap leading-relaxed">
+              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/40 text-sm text-indigo-950 dark:text-indigo-200 whitespace-pre-wrap leading-relaxed font-medium">
                 {question.expected_answer}
               </div>
             </div>
@@ -221,10 +221,10 @@ export function QuestionDetailModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-5 border-t border-slate-800 flex items-center justify-between bg-slate-900/40">
+        <div className="p-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/40">
           <button
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer"
+            className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             {t("common.close", "Close")}
           </button>

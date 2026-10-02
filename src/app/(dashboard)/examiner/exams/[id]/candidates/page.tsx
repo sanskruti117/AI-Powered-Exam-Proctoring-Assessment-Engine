@@ -228,23 +228,23 @@ export default function ExamCandidatesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Users className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               <span>{t("examiner.candidateRoster", "Candidate Attempts & Submissions")} ({candidates.length})</span>
             </h2>
             {exam && (
               <span
                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                   exam.results_published
-                    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                    : "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                    : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
                 }`}
               >
                 {exam.results_published ? `● ${t("examiner.scoresPublished", "Scores Published to Students")}` : `○ ${t("examiner.scoresWithheld", "Scores Withheld (Private to Examiner)")}`}
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             Real-time tracking of candidate attempt statuses, live proctoring activity, auto-scores, and manual evaluations.
           </p>
         </div>
@@ -254,10 +254,10 @@ export default function ExamCandidatesPage() {
           <button
             onClick={handleExportCSV}
             disabled={candidates.length === 0}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-700/80 hover:border-slate-600 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             title="Download Candidate Roster as CSV"
           >
-            <Download className="h-3.5 w-3.5 text-indigo-400" />
+            <Download className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>{t("common.exportCSV", "Export CSV")}</span>
           </button>
 
@@ -265,9 +265,9 @@ export default function ExamCandidatesPage() {
             <button
               onClick={() => handleTogglePublishResults(!exam.results_published)}
               disabled={publishingResults}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer ${
                 exam.results_published
-                  ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 dark:border-slate-700"
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-600/25"
               }`}
             >
@@ -289,17 +289,17 @@ export default function ExamCandidatesPage() {
               placeholder={t("common.search", "Search candidate...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
         </div>
       </div>
 
       {/* Table Card */}
-      <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/90 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
+            <thead className="bg-slate-50 dark:bg-slate-900/90 text-slate-700 dark:text-slate-400 font-extrabold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
               <tr>
                 <th className="p-4">{t("examiner.candidates", "Candidate")}</th>
                 <th className="p-4">{t("common.status", "Live Status")}</th>
@@ -309,16 +309,16 @@ export default function ExamCandidatesPage() {
                 <th className="p-4 text-right">{t("common.actions", "Actions")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-slate-600 dark:text-slate-500 font-medium">
                     {t("common.loading", "Loading candidates...")}
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                  <td colSpan={6} className="p-8 text-center text-slate-600 dark:text-slate-500 font-medium">
                     No candidate attempts found for this examination.
                   </td>
                 </tr>
@@ -328,24 +328,24 @@ export default function ExamCandidatesPage() {
                   const warningCount = c.proctor_warnings_count ?? 0;
 
                   return (
-                    <tr key={c.id} className="hover:bg-slate-900/40 transition-colors">
+                    <tr key={c.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-900/40 transition-colors">
                       <td className="p-4">
-                        <div className="font-bold text-white flex items-center gap-2">
+                        <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
                           <span>{c.student_name}</span>
                           {c.attempt_number > 1 && (
-                            <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
                               Attempt #{c.attempt_number}
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] text-slate-400">{c.student_email}</div>
+                        <div className="text-[11px] font-medium text-slate-600 dark:text-slate-400">{c.student_email}</div>
                       </td>
 
                       {/* Live Status Badge */}
                       <td className="p-4">
                         {isLiveTesting ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
                             <span>Live In-Progress</span>
                           </span>
                         ) : (
@@ -353,11 +353,11 @@ export default function ExamCandidatesPage() {
                             className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                               c.status === "EVALUATED"
                                 ? c.is_passed
-                                  ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                                  : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30"
+                                  : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30"
                                 : c.status === "PENDING_EVALUATION"
-                                ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                                : "bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
+                                ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30"
+                                : "bg-indigo-50 text-indigo-800 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30"
                             }`}
                           >
                             {c.status.replace("_", " ")}
@@ -366,13 +366,13 @@ export default function ExamCandidatesPage() {
                       </td>
 
                       {/* Timing */}
-                      <td className="p-4 text-slate-400">
+                      <td className="p-4 text-slate-700 dark:text-slate-400 font-medium">
                         <div>
-                          <span className="text-slate-500">Start: </span>
+                          <span className="text-slate-500 dark:text-slate-500 font-semibold">Start: </span>
                           {formatDate(c.started_at)}
                         </div>
                         <div>
-                          <span className="text-slate-500">Sub: </span>
+                          <span className="text-slate-500 dark:text-slate-500 font-semibold">Sub: </span>
                           {formatDate(c.submitted_at)}
                         </div>
                       </td>
@@ -381,21 +381,21 @@ export default function ExamCandidatesPage() {
                       <td className="p-4 text-center">
                         <button
                           onClick={() => setSelectedCandidate(c)}
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all border cursor-pointer ${
                             warningCount > 0
-                              ? "bg-rose-500/10 text-rose-300 border-rose-500/30 hover:bg-rose-500/20"
-                              : "bg-slate-900/80 text-emerald-400 border-emerald-500/20 hover:bg-slate-800"
+                              ? "bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/30 dark:hover:bg-rose-500/20"
+                              : "bg-slate-100 dark:bg-slate-900/80 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/20 hover:bg-slate-200 dark:hover:bg-slate-800"
                           }`}
                           title="Click to view Proctoring Incident Timeline"
                         >
                           {warningCount > 0 ? (
                             <>
-                              <ShieldAlert className="h-3.5 w-3.5 text-rose-400" />
+                              <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
                               <span>{warningCount} Strike{warningCount > 1 ? "s" : ""}</span>
                             </>
                           ) : (
                             <>
-                              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                              <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                               <span>0 Flags</span>
                             </>
                           )}
@@ -403,10 +403,10 @@ export default function ExamCandidatesPage() {
                       </td>
 
                       {/* Score */}
-                      <td className="p-4 text-right font-bold text-white">
+                      <td className="p-4 text-right font-black text-slate-900 dark:text-white">
                         {c.score !== undefined ? `${c.score} / ${c.total_marks}` : "—"}
                         {c.percentage !== undefined && (
-                          <div className="text-[10px] text-slate-400 font-normal">
+                          <div className="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">
                             {c.percentage}%
                           </div>
                         )}
@@ -418,11 +418,11 @@ export default function ExamCandidatesPage() {
                           href={`/examiner/exams/${examId}/evaluate?attempt_id=${c.id}&student_id=${c.student_id}`}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                             c.has_pending_descriptive
-                              ? "text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30"
-                              : "text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700"
+                              ? "text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 dark:text-indigo-300 dark:bg-indigo-500/15 dark:hover:bg-indigo-500/25 dark:border-indigo-500/30"
+                              : "text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700"
                           }`}
                         >
-                          <PenTool className="h-3 w-3 text-indigo-400" />
+                          <PenTool className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                           <span>{c.has_pending_descriptive ? "Grade" : "Review / Grade"}</span>
                         </Link>
                       </td>
@@ -439,32 +439,32 @@ export default function ExamCandidatesPage() {
       {/* Proctoring Incident Timeline & Evidence Inspector Modal                   */}
       {/* ========================================================================= */}
       {selectedCandidate && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-800 max-w-xl w-full space-y-5 shadow-2xl animate-scaleUp max-h-[85vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-black/60 dark:bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-card rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 max-w-xl w-full space-y-5 shadow-2xl animate-scaleUp max-h-[85vh] flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div
                   className={`h-10 w-10 rounded-xl flex items-center justify-center ${
                     (selectedCandidate.proctor_warnings_count ?? 0) > 0
-                      ? "bg-rose-500/20 text-rose-400"
-                      : "bg-emerald-500/20 text-emerald-400"
+                      ? "bg-rose-50 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"
+                      : "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400"
                   }`}
                 >
                   <Shield className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                     Proctoring Incident Timeline
                   </h3>
-                  <p className="text-xs text-slate-400">
-                    Candidate: <span className="text-white font-semibold">{selectedCandidate.student_name}</span> ({selectedCandidate.student_email})
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                    Candidate: <span className="text-slate-900 dark:text-white font-bold">{selectedCandidate.student_name}</span> ({selectedCandidate.student_email})
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedCandidate(null)}
-                className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -472,27 +472,27 @@ export default function ExamCandidatesPage() {
 
             {/* Summary Banner */}
             <div className="grid grid-cols-3 gap-2.5 text-center text-xs">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-slate-400 text-[10px] uppercase font-bold">Total Strikes</div>
-                <div className="text-lg font-black text-white">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                <div className="text-slate-600 dark:text-slate-400 text-[10px] uppercase font-bold">Total Strikes</div>
+                <div className="text-lg font-black text-slate-900 dark:text-white">
                   {selectedCandidate.proctor_warnings_count ?? 0}
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-slate-400 text-[10px] uppercase font-bold">Total Duration</div>
-                <div className="text-lg font-black text-indigo-400">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                <div className="text-slate-600 dark:text-slate-400 text-[10px] uppercase font-bold">Total Duration</div>
+                <div className="text-lg font-black text-indigo-600 dark:text-indigo-400">
                   {formatSeconds(selectedCandidate.total_time_seconds)}
                 </div>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="text-slate-400 text-[10px] uppercase font-bold">Integrity Level</div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800">
+                <div className="text-slate-600 dark:text-slate-400 text-[10px] uppercase font-bold">Integrity Level</div>
                 <div
                   className={`text-lg font-black ${
                     (selectedCandidate.proctor_warnings_count ?? 0) === 0
-                      ? "text-emerald-400"
+                      ? "text-emerald-700 dark:text-emerald-400"
                       : (selectedCandidate.proctor_warnings_count ?? 0) <= 2
-                      ? "text-amber-400"
-                      : "text-rose-400"
+                      ? "text-amber-700 dark:text-amber-400"
+                      : "text-rose-700 dark:text-rose-400"
                   }`}
                 >
                   {(selectedCandidate.proctor_warnings_count ?? 0) === 0
@@ -507,10 +507,10 @@ export default function ExamCandidatesPage() {
             {/* Incident List */}
             <div className="flex-1 overflow-y-auto space-y-3 pr-1">
               {!selectedCandidate.proctor_events || selectedCandidate.proctor_events.length === 0 ? (
-                <div className="p-8 rounded-2xl bg-slate-900/50 border border-slate-800 text-center space-y-2">
-                  <ShieldCheck className="h-8 w-8 text-emerald-400 mx-auto" />
-                  <div className="text-sm font-bold text-white">Clean Proctoring Record</div>
-                  <p className="text-xs text-slate-400">
+                <div className="p-8 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-center space-y-2">
+                  <ShieldCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                  <div className="text-sm font-extrabold text-slate-900 dark:text-white">Clean Proctoring Record</div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                     No violations, tab switches, secondary devices, or absence events were detected during this candidate&apos;s attempt.
                   </p>
                 </div>
@@ -518,10 +518,10 @@ export default function ExamCandidatesPage() {
                 selectedCandidate.proctor_events.map((ev, idx) => (
                   <div
                     key={ev.id || idx}
-                    className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1.5 text-xs hover:border-slate-700 transition-colors"
+                    className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1.5 text-xs hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 font-bold text-white">
+                      <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
                         {getEventIcon(ev.event_type)}
                         <span>{ev.event_type.replace(/_/g, " ")}</span>
                       </div>
@@ -529,21 +529,21 @@ export default function ExamCandidatesPage() {
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${
                             ev.severity === "CRITICAL"
-                              ? "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                              ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40"
                               : ev.severity === "HIGH"
-                              ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                              : "bg-slate-800 text-slate-300 border-slate-700"
+                              ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
+                              : "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                           }`}
                         >
                           {ev.severity}
                         </span>
-                        <span className="text-slate-400 font-mono text-[11px]">
+                        <span className="text-slate-500 font-mono text-[11px]">
                           {ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString() : "—"}
                         </span>
                       </div>
                     </div>
                     {ev.details && (
-                      <p className="text-slate-300 text-[11px] leading-relaxed pl-6">
+                      <p className="text-slate-700 dark:text-slate-300 text-[11px] font-medium leading-relaxed pl-6">
                         {ev.details}
                       </p>
                     )}
@@ -553,10 +553,10 @@ export default function ExamCandidatesPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="pt-2 border-t border-slate-800 flex justify-end">
+            <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end">
               <button
                 onClick={() => setSelectedCandidate(null)}
-                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-white transition-all"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white transition-all cursor-pointer"
               >
                 Close Inspector
               </button>

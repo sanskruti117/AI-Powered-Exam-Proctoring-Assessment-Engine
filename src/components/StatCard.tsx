@@ -26,7 +26,7 @@ export function StatCard({
     indigo: {
       bg: "bg-indigo-500/10",
       border: "border-indigo-500/25",
-      text: "text-indigo-400",
+      text: "text-indigo-600 dark:text-indigo-400",
       hoverBorder: "group-hover:border-indigo-500/50",
       glowBg: "group-hover:bg-indigo-600",
       shadow: "group-hover:shadow-indigo-500/15",
@@ -35,7 +35,7 @@ export function StatCard({
     emerald: {
       bg: "bg-emerald-500/10",
       border: "border-emerald-500/25",
-      text: "text-emerald-400",
+      text: "text-emerald-600 dark:text-emerald-400",
       hoverBorder: "group-hover:border-emerald-500/50",
       glowBg: "group-hover:bg-emerald-600",
       shadow: "group-hover:shadow-emerald-500/15",
@@ -44,7 +44,7 @@ export function StatCard({
     amber: {
       bg: "bg-amber-500/10",
       border: "border-amber-500/25",
-      text: "text-amber-400",
+      text: "text-amber-600 dark:text-amber-400",
       hoverBorder: "group-hover:border-amber-500/50",
       glowBg: "group-hover:bg-amber-600",
       shadow: "group-hover:shadow-amber-500/15",
@@ -53,7 +53,7 @@ export function StatCard({
     rose: {
       bg: "bg-rose-500/10",
       border: "border-rose-500/25",
-      text: "text-rose-400",
+      text: "text-rose-600 dark:text-rose-400",
       hoverBorder: "group-hover:border-rose-500/50",
       glowBg: "group-hover:bg-rose-600",
       shadow: "group-hover:shadow-rose-500/15",
@@ -62,7 +62,7 @@ export function StatCard({
     cyan: {
       bg: "bg-cyan-500/10",
       border: "border-cyan-500/25",
-      text: "text-cyan-400",
+      text: "text-cyan-600 dark:text-cyan-400",
       hoverBorder: "group-hover:border-cyan-500/50",
       glowBg: "group-hover:bg-cyan-600",
       shadow: "group-hover:shadow-cyan-500/15",
@@ -71,7 +71,7 @@ export function StatCard({
     purple: {
       bg: "bg-purple-500/10",
       border: "border-purple-500/25",
-      text: "text-purple-400",
+      text: "text-purple-600 dark:text-purple-400",
       hoverBorder: "group-hover:border-purple-500/50",
       glowBg: "group-hover:bg-purple-600",
       shadow: "group-hover:shadow-purple-500/15",
@@ -89,14 +89,14 @@ export function StatCard({
     >
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-slate-400 tracking-wide group-hover:text-slate-300 transition-colors">
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 tracking-wide group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
             {title}
           </p>
-          <p className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mt-2 group-hover:scale-[1.03] transition-transform origin-left font-mono">
+          <p className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-2 group-hover:scale-[1.03] transition-transform origin-left font-mono">
             <AnimatedCounter value={value} />
           </p>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-slate-400 mt-1.5 group-hover:text-slate-300 transition-colors">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
               {subtitle}
             </p>
           )}

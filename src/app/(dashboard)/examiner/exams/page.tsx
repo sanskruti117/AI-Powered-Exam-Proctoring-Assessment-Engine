@@ -362,16 +362,16 @@ export default function ExaminerExamsPage() {
   return (
     <div className="space-y-8 pb-16">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
             <FileSpreadsheet className="h-4 w-4" />
             <span>{t("examiner.assessmentWorkspace", "Examiner Studio")}</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
             {t("examiner.examsTitle", "Examinations & Assessments")}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             {t("examiner.examsSubtitle", "Create structured exams with subject sections, configure randomized delivery, and monitor real-time candidate leaderboards.")}
           </p>
         </div>
@@ -390,21 +390,21 @@ export default function ExaminerExamsPage() {
         <div
           className={`p-4 rounded-2xl border flex items-center justify-between gap-3 ${
             feedback.type === "success"
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
-              : "bg-rose-500/10 border-rose-500/30 text-rose-300"
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+              : "bg-rose-500/10 border-rose-500/30 text-rose-800 dark:text-rose-300"
           }`}
         >
           <div className="flex items-center gap-2.5">
             {feedback.type === "success" ? (
-              <CheckCircle2 className="h-5 w-5 text-emerald-400 flex-shrink-0" />
+              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
             ) : (
-              <AlertCircle className="h-5 w-5 text-rose-400 flex-shrink-0" />
+              <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 flex-shrink-0" />
             )}
-            <span className="text-sm font-medium">{feedback.msg}</span>
+            <span className="text-sm font-semibold">{feedback.msg}</span>
           </div>
           <button
             onClick={() => setFeedback(null)}
-            className="text-xs opacity-70 hover:opacity-100 font-bold"
+            className="text-xs opacity-70 hover:opacity-100 font-bold cursor-pointer"
           >
             Dismiss
           </button>
@@ -413,53 +413,53 @@ export default function ExaminerExamsPage() {
 
       {/* KPI Status Cards (Draft, Scheduled, Live, Closed) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.drafts", "Drafts")}</span>
-            <FileText className="h-4 w-4 text-amber-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1 bg-white dark:bg-slate-900/60 shadow-sm">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.drafts", "Drafts")}</span>
+            <FileText className="h-4 w-4 text-amber-500 dark:text-amber-400" />
           </div>
-          <div className="text-2xl font-extrabold text-amber-400">{draftExamsCount}</div>
-          <div className="text-xs text-slate-500">{t("examiner.draftsSubtitle", "In authoring / staging")}</div>
+          <div className="text-2xl font-black text-amber-600 dark:text-amber-400">{draftExamsCount}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">{t("examiner.draftsSubtitle", "In authoring / staging")}</div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.scheduled", "Scheduled")}</span>
-            <Clock className="h-4 w-4 text-indigo-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1 bg-white dark:bg-slate-900/60 shadow-sm">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.scheduled", "Scheduled")}</span>
+            <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div className="text-2xl font-extrabold text-indigo-400">{scheduledExamsCount}</div>
-          <div className="text-xs text-slate-500">{t("examiner.scheduledSubtitle", "Upcoming test windows")}</div>
+          <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">{scheduledExamsCount}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">{t("examiner.scheduledSubtitle", "Upcoming test windows")}</div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.liveNow", "Live Now")}</span>
-            <PlayCircle className="h-4 w-4 text-emerald-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1 bg-white dark:bg-slate-900/60 shadow-sm">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.liveNow", "Live Now")}</span>
+            <PlayCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-2xl font-extrabold text-emerald-400">{liveExamsCount}</div>
-          <div className="text-xs text-slate-500">{t("examiner.liveNowSubtitle", "Currently accepting attempts")}</div>
+          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{liveExamsCount}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">{t("examiner.liveNowSubtitle", "Currently accepting attempts")}</div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.closedEnded", "Closed / Ended")}</span>
-            <ShieldCheck className="h-4 w-4 text-slate-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1 bg-white dark:bg-slate-900/60 shadow-sm">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.closedEnded", "Closed / Ended")}</span>
+            <ShieldCheck className="h-4 w-4 text-slate-500 dark:text-slate-400" />
           </div>
-          <div className="text-2xl font-extrabold text-slate-300">{closedExamsCount}</div>
-          <div className="text-xs text-slate-500">{t("examiner.closedEndedSubtitle", "Completed examinations")}</div>
+          <div className="text-2xl font-black text-slate-800 dark:text-slate-300">{closedExamsCount}</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">{t("examiner.closedEndedSubtitle", "Completed examinations")}</div>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 shadow-sm">
         <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 dark:text-slate-400" />
           <input
             type="text"
             placeholder={t("examiner.searchExamsPlaceholder", "Search exams by title or topic...")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />
         </form>
 
@@ -473,10 +473,10 @@ export default function ExaminerExamsPage() {
             <button
               key={st.id}
               onClick={() => setStatusFilter(st.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 statusFilter === st.id
                   ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/20"
-                  : "bg-slate-900/60 text-slate-400 hover:text-white border border-slate-800"
+                  : "bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800"
               }`}
             >
               {st.label}
@@ -484,7 +484,7 @@ export default function ExaminerExamsPage() {
           ))}
           <button
             onClick={fetchExams}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
             title={t("common.refresh", "Refresh")}
           >
             <RefreshCw className="h-4 w-4" />
@@ -494,21 +494,21 @@ export default function ExaminerExamsPage() {
 
       {/* Exam Cards Grid */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400">{t("common.loading", "Loading examinations...")}</div>
+        <div className="p-12 text-center text-slate-600 dark:text-slate-400 font-medium">{t("common.loading", "Loading examinations...")}</div>
       ) : exams.length === 0 ? (
-        <div className="glass-card rounded-3xl p-12 text-center border border-slate-800 space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto">
+        <div className="glass-card rounded-3xl p-12 text-center border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-slate-900 shadow-sm">
+          <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
             <FileSpreadsheet className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-white">{t("examiner.noExamsFound", "No Examinations Found")}</h3>
-            <p className="text-sm text-slate-400 max-w-md mx-auto">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t("examiner.noExamsFound", "No Examinations Found")}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
               {t("examiner.noExamsSubtitle", "Create your first examination to define subject sections, populate randomized question pools, and schedule assessments.")}
             </p>
           </div>
           <button
             onClick={openCreateModal}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>{t("examiner.createNewExam", "Create Exam")}</span>
@@ -524,7 +524,7 @@ export default function ExaminerExamsPage() {
             return (
               <div
                 key={exam.id}
-                className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 hover:border-slate-700/80 transition-all space-y-6 relative overflow-hidden"
+                className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700/80 bg-white dark:bg-slate-900/70 transition-all space-y-6 relative overflow-hidden shadow-sm"
               >
                 {/* Header Row */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -534,13 +534,13 @@ export default function ExaminerExamsPage() {
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider border ${
                           exam.status === "PUBLISHED"
                             ? exam.is_active
-                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
                               : exam.is_upcoming
-                              ? "bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
-                              : "bg-slate-500/15 text-slate-300 border-slate-500/30"
+                              ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30"
+                              : "bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/30"
                             : exam.status === "DRAFT"
-                            ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
-                            : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                            : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
                         }`}
                       >
                         {exam.status === "PUBLISHED"
@@ -554,16 +554,16 @@ export default function ExaminerExamsPage() {
                           : t("examiner.closed", "CLOSED")}
                       </span>
 
-                      <span className="text-xs text-slate-400 font-medium">
+                      <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
                         {formatReadableDate(exam.created_at)}
                       </span>
                     </div>
 
-                    <h2 className="text-xl font-bold text-white tracking-tight">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                       {exam.title}
                     </h2>
                     {exam.description && (
-                      <p className="text-sm text-slate-400 line-clamp-2 max-w-3xl">
+                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 max-w-3xl">
                         {exam.description}
                       </p>
                     )}
@@ -571,25 +571,25 @@ export default function ExaminerExamsPage() {
 
                   {/* Top Stats Badges */}
                   <div className="flex items-center gap-3 flex-wrap">
-                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.duration", "Duration")}</div>
-                      <div className="text-sm font-extrabold text-white flex items-center justify-center gap-1">
-                        <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-center">
+                      <div className="text-xs text-slate-600 dark:text-slate-500 font-bold uppercase">{t("examiner.duration", "Duration")}</div>
+                      <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                         <span>{exam.duration_minutes}m</span>
                       </div>
                     </div>
 
-                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.totalMarks", "Total Marks")}</div>
-                      <div className="text-sm font-extrabold text-white flex items-center justify-center gap-1">
-                        <Award className="h-3.5 w-3.5 text-amber-400" />
+                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-center">
+                      <div className="text-xs text-slate-600 dark:text-slate-500 font-bold uppercase">{t("examiner.totalMarks", "Total Marks")}</div>
+                      <div className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1">
+                        <Award className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                         <span>{exam.total_marks}</span>
                       </div>
                     </div>
 
-                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-center">
-                      <div className="text-xs text-slate-500 font-bold uppercase">{t("examiner.submissions", "Submissions")}</div>
-                      <div className="text-sm font-extrabold text-emerald-400 flex items-center justify-center gap-1">
+                    <div className="px-3.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-center">
+                      <div className="text-xs text-slate-600 dark:text-slate-500 font-bold uppercase">{t("examiner.submissions", "Submissions")}</div>
+                      <div className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
                         <Trophy className="h-3.5 w-3.5" />
                         <span>{exam.attempts_count}</span>
                       </div>
@@ -598,8 +598,8 @@ export default function ExaminerExamsPage() {
                 </div>
 
                 {/* Subject Sections & Pool Breakdown */}
-                <div className="space-y-3 pt-2 border-t border-slate-800/60">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400">
+                <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-400">
                     <span>{t("examiner.configuredSections", "Configured Subject Sections")} ({exam.sections.length})</span>
                     <span>{t("examiner.questionPoolVsTarget", "Question Pool vs Target Marks")}</span>
                   </div>
@@ -617,23 +617,23 @@ export default function ExaminerExamsPage() {
                           key={sec.id}
                           className={`p-4 rounded-2xl border transition-all space-y-2.5 ${
                             isReady
-                              ? "bg-slate-900/70 border-slate-800"
-                              : "bg-rose-950/20 border-rose-500/30"
+                              ? "bg-slate-50 dark:bg-slate-900/70 border-slate-200 dark:border-slate-800"
+                              : "bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-500/30"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-xs font-bold text-white">
+                          <div className="flex items-center justify-between text-xs font-bold text-slate-900 dark:text-white">
                             <span className="truncate pr-2">{sec.title}</span>
-                            <span className="text-amber-400">{sec.target_marks} {t("examiner.marks", "Marks")}</span>
+                            <span className="text-amber-600 dark:text-amber-400 font-extrabold">{sec.target_marks} {t("examiner.marks", "Marks")}</span>
                           </div>
 
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-xs text-slate-400">
+                            <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
                               <span>{t("examiner.pool", "Pool")}: {sec.total_pool_questions} {t("examiner.poolQuestions", "questions")}</span>
-                              <span className={isReady ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
+                              <span className={isReady ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-rose-600 dark:text-rose-400 font-bold"}>
                                 {sec.total_pool_marks} / {sec.target_marks} {t("examiner.marks", "marks")}
                               </span>
                             </div>
-                            <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+                            <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
                               <div
                                 className={`h-full rounded-full transition-all ${
                                   isReady ? "bg-emerald-500" : "bg-rose-500"
@@ -644,7 +644,7 @@ export default function ExaminerExamsPage() {
                           </div>
 
                           {!isReady && (
-                            <div className="text-[11px] text-rose-300 flex items-center gap-1 font-medium">
+                            <div className="text-[11px] text-rose-700 dark:text-rose-300 flex items-center gap-1 font-bold">
                               <span>⚠️ {t("examiner.needsQuestionsPool", "Needs questions to form target marks")}</span>
                             </div>
                           )}
@@ -655,7 +655,7 @@ export default function ExaminerExamsPage() {
                 </div>
 
                 {/* Timing & Shuffling Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 pt-2">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-400 pt-2 font-medium">
                   <div className="flex items-center gap-4 flex-wrap">
                     <span className="flex items-center gap-1.5">
                       <Calendar className="h-3.5 w-3.5 text-slate-500" />
@@ -669,16 +669,16 @@ export default function ExaminerExamsPage() {
 
                   <div>
                     {exam.shuffle_questions && (
-                      <span className="mr-3 text-slate-400">✓ {t("examiner.shuffledQuestions", "Shuffled Questions")}</span>
+                      <span className="mr-3 text-slate-700 dark:text-slate-400">✓ {t("examiner.shuffledQuestions", "Shuffled Questions")}</span>
                     )}
                     {exam.shuffle_options && (
-                      <span className="text-slate-400">✓ {t("examiner.shuffledOptions", "Shuffled Options")}</span>
+                      <span className="text-slate-700 dark:text-slate-400">✓ {t("examiner.shuffledOptions", "Shuffled Options")}</span>
                     )}
                   </div>
                 </div>
 
                 {/* Primary Action Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800/80">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800/80">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link
                       href={`/examiner/exams/${exam.id}`}
@@ -690,25 +690,25 @@ export default function ExaminerExamsPage() {
 
                     <Link
                       href={`/examiner/exams/${exam.id}/manage`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
                     >
-                      <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                      <Layers className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span>{t("examiner.questionPaperPools", "Manage Pools")} ({exam.total_questions})</span>
                     </Link>
 
                     <Link
                       href={`/examiner/exams/${exam.id}/candidates`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
                     >
-                      <Users className="h-3.5 w-3.5 text-violet-400" />
+                      <Users className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
                       <span>{t("examiner.candidates", "Candidates")} ({exam.attempts_count})</span>
                     </Link>
 
                     <Link
                       href={`/examiner/exams/${exam.id}/evaluate`}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-all"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
                     >
-                      <PenTool className="h-3.5 w-3.5 text-violet-400" />
+                      <PenTool className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
                       <span>{t("examiner.gradingStudio", "Grading")}</span>
                     </Link>
                   </div>
@@ -716,9 +716,9 @@ export default function ExaminerExamsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => openEditModal(exam)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-indigo-500/40 transition-all"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 transition-all cursor-pointer"
                     >
-                      <Edit3 className="h-3.5 w-3.5 text-indigo-400" />
+                      <Edit3 className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                       <span>{t("examiner.editExamDetails", "Edit settings")}</span>
                     </button>
                     {exam.status === "DRAFT" && (
@@ -728,7 +728,7 @@ export default function ExaminerExamsPage() {
                         className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                           isPublishable
                             ? "text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 cursor-pointer"
-                            : "text-slate-500 bg-slate-900 border border-slate-800 opacity-60 cursor-not-allowed"
+                            : "text-slate-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed"
                         }`}
                         title={
                           isPublishable
@@ -747,9 +747,9 @@ export default function ExaminerExamsPage() {
                       <button
                         onClick={() => handleCloseExam(exam.id)}
                         disabled={actionLoading === exam.id}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-all cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer"
                       >
-                        <XCircle className="h-3.5 w-3.5 text-rose-400" />
+                        <XCircle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
                         <span>{t("examiner.closeExam", "Close Exam")}</span>
                       </button>
                     )}
@@ -758,7 +758,7 @@ export default function ExaminerExamsPage() {
                       <button
                         onClick={() => handleDeleteExam(exam.id)}
                         disabled={actionLoading === exam.id}
-                        className="p-2 rounded-xl text-slate-400 hover:text-rose-400 bg-slate-900/60 border border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
+                        className="p-2 rounded-xl text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-400 bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 hover:border-rose-500/30 transition-all cursor-pointer"
                         title={t("examiner.deleteExam", "Delete Exam")}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -775,19 +775,19 @@ export default function ExaminerExamsPage() {
       {/* Create / Edit Exam Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 w-full max-w-3xl space-y-6 my-8">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 w-full max-w-3xl space-y-6 my-8 bg-white dark:bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                   {editingExamId ? t("examiner.modalEditExamTitle", "Edit Examination") : t("examiner.modalCreateExamTitle", "Create New Examination")}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   {t("examiner.modalExamDesc", "Configure assessment timing, section weightage, and randomized delivery policies.")}
                 </p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-white p-2 rounded-xl"
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-2 rounded-xl cursor-pointer"
               >
                 ✕
               </button>
@@ -796,7 +796,7 @@ export default function ExaminerExamsPage() {
             <form onSubmit={handleSaveExam} className="space-y-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     {t("examiner.examTitleLabel", "Exam Title")} *
                   </label>
                   <input
@@ -805,12 +805,12 @@ export default function ExaminerExamsPage() {
                     placeholder="e.g. Midterm Assessment: Computer Architecture & OS"
                     value={modalTitle}
                     onChange={(e) => setModalTitle(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     {t("examiner.examDescLabel", "Description & Instructions")}
                   </label>
                   <textarea
@@ -818,14 +818,14 @@ export default function ExaminerExamsPage() {
                     placeholder="Provide exam instructions, guidelines, and reference formulas..."
                     value={modalDesc}
                     onChange={(e) => setModalDesc(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
 
                 {/* Schedule Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.startTimeLabel", "Start Window (Date & Time)")} *
                     </label>
                     <input
@@ -833,12 +833,12 @@ export default function ExaminerExamsPage() {
                       required
                       value={modalStartTime}
                       onChange={(e) => setModalStartTime(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.endTimeLabel", "End Window (Date & Time)")} *
                     </label>
                     <input
@@ -846,7 +846,7 @@ export default function ExaminerExamsPage() {
                       required
                       value={modalEndTime}
                       onChange={(e) => setModalEndTime(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -854,7 +854,7 @@ export default function ExaminerExamsPage() {
                 {/* Marks and Duration */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.durationMinutesLabel", "Duration (Mins)")} *
                     </label>
                     <input
@@ -863,12 +863,12 @@ export default function ExaminerExamsPage() {
                       min={1}
                       value={modalDuration}
                       onChange={(e) => setModalDuration(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.totalMarksLabel", "Total Marks")} *
                     </label>
                     <input
@@ -884,12 +884,12 @@ export default function ExaminerExamsPage() {
                           setModalSections([{ ...modalSections[0], target_marks: val }]);
                         }
                       }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.passingMarksLabel", "Passing Marks")} *
                     </label>
                     <input
@@ -899,12 +899,12 @@ export default function ExaminerExamsPage() {
                       max={modalTotalMarks}
                       value={modalPassingMarks}
                       onChange={(e) => setModalPassingMarks(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                       {t("examiner.maxAttemptsLabel", "Max Attempts")} *
                     </label>
                     <input
@@ -914,47 +914,47 @@ export default function ExaminerExamsPage() {
                       max={5}
                       value={modalMaxAttempts}
                       onChange={(e) => setModalMaxAttempts(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-300 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
 
                 {/* Shuffling Policies */}
                 <div className="flex items-center gap-6 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-800 dark:text-slate-300 font-medium">
                     <input
                       type="checkbox"
                       checked={modalShuffleQuestions}
                       onChange={(e) => setModalShuffleQuestions(e.target.checked)}
-                      className="h-4 w-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                     />
                     <span>{t("examiner.shuffleQuestionsLabel", "Shuffle Questions Order")}</span>
                   </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+                  <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-800 dark:text-slate-300 font-medium">
                     <input
                       type="checkbox"
                       checked={modalShuffleOptions}
                       onChange={(e) => setModalShuffleOptions(e.target.checked)}
-                      className="h-4 w-4 rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 rounded bg-slate-100 dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                     />
                     <span>{t("examiner.shuffleOptionsLabel", "Shuffle Option Choices")}</span>
                   </label>
                 </div>
 
                 {/* Subject Sections Builder */}
-                <div className="space-y-3 pt-4 border-t border-slate-800">
+                <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-bold text-white">{t("examiner.sectionsHeader", "Subject Sections & Target Marks")}</h4>
-                      <p className="text-xs text-slate-400">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{t("examiner.sectionsHeader", "Subject Sections & Target Marks")}</h4>
+                      <p className="text-xs text-slate-600 dark:text-slate-400">
                         {t("examiner.sectionsSubheader", "Define the subject hierarchy. Questions created under this exam will be mapped to these sections.")}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={handleAddSectionRow}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 cursor-pointer"
                     >
                       <Plus className="h-3.5 w-3.5" />
                       <span>{t("examiner.addSection", "Add Section")}</span>
@@ -965,9 +965,9 @@ export default function ExaminerExamsPage() {
                     {modalSections.map((sec, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-3 p-3 rounded-2xl bg-slate-900/90 border border-slate-800"
+                        className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800"
                       >
-                        <div className="h-6 w-6 rounded-full bg-slate-800 text-slate-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        <div className="h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
                           {idx + 1}
                         </div>
                         <input
@@ -981,7 +981,7 @@ export default function ExaminerExamsPage() {
                               prev.map((s, i) => (i === idx ? { ...s, title: val } : s))
                             );
                           }}
-                          className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                          className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                         />
                         <div className="flex items-center gap-1.5 w-36">
                           <input
@@ -996,15 +996,15 @@ export default function ExaminerExamsPage() {
                                 prev.map((s, i) => (i === idx ? { ...s, target_marks: val } : s))
                               );
                             }}
-                            className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+                            className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500"
                           />
-                          <span className="text-xs text-slate-400">{t("examiner.marks", "Marks")}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t("examiner.marks", "Marks")}</span>
                         </div>
                         {modalSections.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveSectionRow(idx)}
-                            className="p-2 text-slate-500 hover:text-rose-400"
+                            className="p-2 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -1013,14 +1013,14 @@ export default function ExaminerExamsPage() {
                     ))}
                   </div>
 
-                  <div className="text-xs text-right font-bold text-slate-400">
+                  <div className="text-xs text-right font-bold text-slate-700 dark:text-slate-400">
                     {t("examiner.totalSectionMarks", "Total Section Marks")}:{" "}
                     <span
                       className={
                         modalSections.reduce((acc, s) => acc + Number(s.target_marks || 0), 0) ===
                         modalTotalMarks
-                          ? "text-emerald-400"
-                          : "text-rose-400"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
                       }
                     >
                       {modalSections.reduce((acc, s) => acc + Number(s.target_marks || 0), 0)} /{" "}
@@ -1031,25 +1031,25 @@ export default function ExaminerExamsPage() {
 
                 {/* In-Modal Error Feedback Alert */}
                 {modalError && (
-                  <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2.5">
-                    <AlertCircle className="h-4 w-4 text-rose-400 flex-shrink-0" />
+                  <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs flex items-center gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-rose-600 dark:text-rose-400 flex-shrink-0" />
                     <span>{modalError}</span>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-400 hover:text-white"
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer"
                 >
                   {t("common.cancel", "Cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading === "saving"}
-                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/20 cursor-pointer"
                 >
                   {actionLoading === "saving" ? t("examiner.saving", "Saving...") : editingExamId ? t("examiner.saveExam", "Save Changes") : t("examiner.createNewExam", "Create Examination")}
                 </button>

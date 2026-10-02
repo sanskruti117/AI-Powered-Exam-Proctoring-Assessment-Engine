@@ -9,10 +9,8 @@ import {
   GraduationCap,
   Briefcase,
   Terminal,
-  Activity,
   Layers,
   CheckCircle2,
-  Lock,
 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { InteractiveProctorSimulator } from "@/components/InteractiveProctorSimulator";
@@ -47,27 +45,27 @@ export function LandingView({ session }: LandingViewProps) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-4xl mx-auto space-y-7">
               {/* Top Pill Badge with Glow */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/90 border border-indigo-500/40 text-indigo-300 text-xs sm:text-sm font-bold uppercase tracking-wider shadow-lg shadow-indigo-950/50 backdrop-blur-md animate-bounce-soft hover:border-indigo-400 transition-colors">
+              <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/90 dark:bg-slate-900/90 border border-indigo-200 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-300 text-xs sm:text-sm font-bold uppercase tracking-wider shadow-lg shadow-slate-200/50 dark:shadow-indigo-950/50 backdrop-blur-md animate-bounce-soft hover:border-indigo-400 transition-colors">
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                 </span>
-                <Sparkles className="h-4 w-4 text-indigo-400" />
+                <Sparkles className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                 <span>{t("landing.pillBadge", "Next-Gen Online Exam Integrity Engine")}</span>
               </div>
 
               {/* Main Headline with Shimmer & Typewriter Animation */}
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-tight">
                 <AnimatedTypewriterText
                   text={t("landing.heroTitle", "AI-Powered Exam Proctoring & Assessment Engine")}
                   speed={35}
                   className="text-gradient-shimmer"
-                  cursorColor="text-indigo-400"
+                  cursorColor="text-indigo-600 dark:text-indigo-400"
                 />
               </h1>
 
               {/* Subheadline */}
-              <p className="text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
                 {t(
                   "landing.heroSubtitle",
                   "Secure, automated proctoring with robust Role-Based Access Control engineered for Academic Institutions, Examiners, and Students."
@@ -108,14 +106,14 @@ export function LandingView({ session }: LandingViewProps) {
                     </Link>
                     <Link
                       href="/register/examiner"
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-base text-indigo-300 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 transition-all hover:border-indigo-500/50 hover:scale-105 shadow-lg"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl font-bold text-base text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-900/90 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 transition-all hover:border-indigo-400 dark:hover:border-indigo-500/50 hover:scale-105 shadow-md"
                     >
-                      <Briefcase className="h-5 w-5 text-indigo-400" />
+                      <Briefcase className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                       <span>{t("landing.requestExaminerAccess", "Request Examiner Access")}</span>
                     </Link>
                     <Link
                       href="/login"
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-base text-slate-300 hover:text-white hover:bg-slate-900/80 border border-slate-800 transition-colors"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-base text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900/80 border border-slate-200 dark:border-slate-800 transition-colors"
                     >
                       <span>{t("landing.signIn", "Sign In")}</span>
                     </Link>
@@ -137,14 +135,14 @@ export function LandingView({ session }: LandingViewProps) {
             {/* Interactive 3-Role Architecture Chamber Switcher */}
             <div className="mt-16 sm:mt-24">
               <div className="text-center max-w-3xl mx-auto mb-10 space-y-2">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-mono font-semibold uppercase">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-indigo-700 dark:text-indigo-400 text-xs font-mono font-semibold uppercase">
                   <Layers className="w-3.5 h-3.5" />
                   <span>Chamber Architecture</span>
                 </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                   Three Specialized Role Environments
                 </h2>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Select a chamber below to preview workflows, security controls, and feature capabilities.
                 </p>
               </div>
@@ -154,33 +152,33 @@ export function LandingView({ session }: LandingViewProps) {
 
             {/* Live Interactive Code & Proctoring Highlights */}
             <div className="mt-24 max-w-6xl mx-auto">
-              <div className="glass-card-interactive rounded-3xl p-8 sm:p-12 border border-slate-800 bg-gradient-to-br from-slate-900/90 to-slate-950/90 relative overflow-hidden">
+              <div className="glass-card-interactive rounded-3xl p-8 sm:p-12 border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-950/90 relative overflow-hidden">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                   <div className="lg:col-span-6 space-y-5">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-mono font-bold">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-bold">
                       <Terminal className="w-4 h-4" />
                       <span>BUILT-IN MONACO CODE RUNNER</span>
                     </div>
 
-                    <h3 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight">
+                    <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">
                       Real-Time Code Execution & Automatic Test Case Verification
                     </h3>
 
-                    <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                    <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
                       Evaluate candidates on Python and JavaScript algorithms with sandboxed execution, instant standard output analysis, and anti-paste protection.
                     </p>
 
                     <div className="space-y-2.5 pt-2">
-                      <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                         <span>Isolated sandbox runtime with memory & timeout constraints</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                         <span>Hidden test cases for thorough algorithm validation</span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-300">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                      <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                         <span>Real-time anti-cheat clipboard & blur event recording</span>
                       </div>
                     </div>
@@ -188,28 +186,28 @@ export function LandingView({ session }: LandingViewProps) {
 
                   <div className="lg:col-span-6">
                     {/* Mock Code Chamber Preview */}
-                    <div className="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-2xl">
-                      <div className="px-4 py-2.5 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400 font-mono">
+                    <div className="rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xl">
+                      <div className="px-4 py-2.5 bg-slate-50 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
                         <div className="flex items-center gap-2">
                           <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
                           <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
                           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                          <span className="ml-2 text-slate-300">solution.py</span>
+                          <span className="ml-2 text-slate-800 dark:text-slate-300">solution.py</span>
                         </div>
-                        <span className="text-emerald-400">● 3/3 Tests Passed</span>
+                        <span className="text-emerald-600 dark:text-emerald-400">● 3/3 Tests Passed</span>
                       </div>
-                      <div className="p-4 font-mono text-xs text-slate-300 space-y-1 bg-slate-950 leading-relaxed overflow-x-auto">
-                        <p><span className="text-purple-400">def</span> <span className="text-indigo-300">max_subarray_sum</span>(nums):</p>
+                      <div className="p-4 font-mono text-xs text-slate-800 dark:text-slate-300 space-y-1 bg-slate-50/50 dark:bg-slate-950 leading-relaxed overflow-x-auto">
+                        <p><span className="text-purple-600 dark:text-purple-400">def</span> <span className="text-indigo-600 dark:text-indigo-300">max_subarray_sum</span>(nums):</p>
                         <p className="pl-4 text-slate-500"># Kadane&apos;s Algorithm O(N)</p>
-                        <p className="pl-4">max_so_far = max_ending = nums[<span className="text-amber-300">0</span>]</p>
-                        <p className="pl-4"><span className="text-purple-400">for</span> x <span className="text-purple-400">in</span> nums[<span className="text-amber-300">1</span>:]:</p>
+                        <p className="pl-4">max_so_far = max_ending = nums[<span className="text-amber-600 dark:text-amber-300">0</span>]</p>
+                        <p className="pl-4"><span className="text-purple-600 dark:text-purple-400">for</span> x <span className="text-purple-600 dark:text-purple-400">in</span> nums[<span className="text-amber-600 dark:text-amber-300">1</span>:]:</p>
                         <p className="pl-8">max_ending = max(x, max_ending + x)</p>
                         <p className="pl-8">max_so_far = max(max_so_far, max_ending)</p>
-                        <p className="pl-4"><span className="text-purple-400">return</span> max_so_far</p>
+                        <p className="pl-4"><span className="text-purple-600 dark:text-purple-400">return</span> max_so_far</p>
                       </div>
-                      <div className="p-3 bg-slate-900/60 border-t border-slate-800 text-[11px] font-mono text-emerald-400 flex items-center justify-between">
+                      <div className="p-3 bg-slate-100/70 dark:bg-slate-900/60 border-t border-slate-200 dark:border-slate-800 text-[11px] font-mono text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
                         <span>[OUTPUT] Result: 6 (Matches Expected)</span>
-                        <span className="text-slate-400">Execution: 12ms</span>
+                        <span className="text-slate-500 dark:text-slate-400">Execution: 12ms</span>
                       </div>
                     </div>
                   </div>
@@ -221,24 +219,24 @@ export function LandingView({ session }: LandingViewProps) {
       </main>
 
       {/* Modern Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-xl py-12 text-center text-sm text-slate-400 relative z-10">
+      <footer className="border-t border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl py-12 text-center text-sm text-slate-600 dark:text-slate-400 relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 font-bold text-white">
+          <div className="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
               <Shield className="w-4 h-4" />
             </div>
-            <span>Proctor<span className="text-indigo-400">AI</span></span>
+            <span>Proctor<span className="text-indigo-600 dark:text-indigo-400">AI</span></span>
           </div>
 
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {t(
               "landing.footerText",
               "AI Exam Proctoring System © 2026. Built with Next.js, SQLite / PostgreSQL, and JWT RBAC."
             )}
           </p>
 
-          <div className="flex items-center gap-4 text-xs text-slate-400 font-mono">
-            <span className="flex items-center gap-1.5 text-emerald-400">
+          <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400 font-mono">
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               Systems Nominal
             </span>

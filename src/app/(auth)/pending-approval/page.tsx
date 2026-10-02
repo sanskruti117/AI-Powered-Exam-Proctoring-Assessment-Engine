@@ -7,6 +7,8 @@ import { Clock, Shield, RefreshCw, LogOut, CheckCircle2, Building, Mail } from "
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 export default function PendingApprovalPage() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -49,56 +51,57 @@ export default function PendingApprovalPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-16 px-4 sm:px-6 lg:px-8 bg-slate-950 text-slate-100 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-center py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 relative overflow-hidden transition-colors duration-200">
       {/* Ambient Lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-amber-500/10 blur-[140px] rounded-full pointer-events-none" />
 
-      {/* Floating Language Selector in Top Right Corner */}
-      <div className="absolute top-6 right-6 z-50">
+      {/* Floating Controls in Top Right Corner */}
+      <div className="absolute top-6 right-6 z-50 flex items-center gap-2.5">
+        <ThemeToggle />
         <LanguageSelector variant="compact" />
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-lg text-center">
-        <div className="h-16 w-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-amber-500/10">
+        <div className="h-16 w-16 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-amber-500/10">
           <Clock className="h-9 w-9 animate-pulse" />
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           {t("auth.pendingApprovalTitle", "Application Under Review")}
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-slate-600 dark:text-slate-400 font-medium">
           {t("auth.pendingApprovalSubtitle", "Your examiner account request is pending administrative verification.")}
         </p>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-lg">
-        <div className="glass-card rounded-2xl p-8 sm:p-10 border border-slate-800 shadow-2xl relative space-y-6">
+        <div className="glass-card rounded-2xl p-8 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-2xl bg-white dark:bg-slate-900/80 relative space-y-6">
           {/* User Info Snapshot */}
           {userData && (
-            <div className="p-5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-3 text-sm">
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-800">
-                <span className="text-slate-400 font-medium">Applicant:</span>
-                <span className="text-white font-bold text-base">{userData.fullName}</span>
+            <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3 text-sm">
+              <div className="flex justify-between items-center pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-600 dark:text-slate-400 font-semibold">Applicant:</span>
+                <span className="text-slate-900 dark:text-white font-bold text-base">{userData.fullName}</span>
               </div>
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-800">
-                <span className="text-slate-400 font-medium">Email:</span>
-                <span className="text-slate-200">{userData.email}</span>
+              <div className="flex justify-between items-center pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                <span className="text-slate-600 dark:text-slate-400 font-semibold">Email:</span>
+                <span className="text-slate-800 dark:text-slate-200 font-medium">{userData.email}</span>
               </div>
               {userData.institution && (
-                <div className="flex justify-between items-center pb-2.5 border-b border-slate-800">
-                  <span className="text-slate-400 font-medium">Institution:</span>
-                  <span className="text-slate-200">{userData.institution}</span>
+                <div className="flex justify-between items-center pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-slate-600 dark:text-slate-400 font-semibold">Institution:</span>
+                  <span className="text-slate-800 dark:text-slate-200 font-medium">{userData.institution}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-1">
-                <span className="text-slate-400 font-medium">Current Status:</span>
-                <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
+                <span className="text-slate-600 dark:text-slate-400 font-semibold">Current Status:</span>
+                <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
                   Pending Admin Approval
                 </span>
               </div>
             </div>
           )}
 
-          <div className="text-sm text-slate-400 leading-relaxed space-y-3">
+          <div className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed space-y-3 font-medium">
             <p>
               To maintain assessment security and academic integrity, all instructor privileges are reviewed by the institutional administrator.
             </p>
@@ -112,7 +115,7 @@ export default function PendingApprovalPage() {
             <button
               onClick={fetchSession}
               disabled={checking}
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-semibold text-base text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-50 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-base text-white bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-600/25 disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`h-5 w-5 ${checking ? "animate-spin" : ""}`} />
               <span>{checking ? "Checking Status..." : "Check Approval Status"}</span>
@@ -120,9 +123,9 @@ export default function PendingApprovalPage() {
 
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-semibold text-sm text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl font-bold text-sm text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
             >
-              <LogOut className="h-4 w-4 text-slate-400" />
+              <LogOut className="h-4 w-4 text-slate-500 dark:text-slate-400" />
               <span>{t("common.signOut", "Sign Out")}</span>
             </button>
           </div>

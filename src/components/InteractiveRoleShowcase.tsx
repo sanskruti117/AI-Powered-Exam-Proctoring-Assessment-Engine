@@ -5,15 +5,9 @@ import {
   Shield,
   UserCheck,
   GraduationCap,
-  Lock,
   CheckCircle2,
   ArrowRight,
-  Eye,
-  FileCode2,
-  Users,
-  Award,
   Sparkles,
-  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
@@ -32,7 +26,7 @@ export function InteractiveRoleShowcase() {
       icon: Shield,
       accentBorder: "border-rose-500/40",
       accentBg: "bg-rose-500/10",
-      accentText: "text-rose-400",
+      accentText: "text-rose-600 dark:text-rose-400",
       tagline: "System Authority, Examiner Vetting & Infrastructure Oversight",
       description:
         "Maintains complete supervisory control over institutional access. Every incoming examiner undergoes cryptographic vetting and administrative approval.",
@@ -58,7 +52,7 @@ export function InteractiveRoleShowcase() {
       icon: UserCheck,
       accentBorder: "border-indigo-500/40",
       accentBg: "bg-indigo-500/10",
-      accentText: "text-indigo-400",
+      accentText: "text-indigo-600 dark:text-indigo-400",
       tagline: "Exam Architecture, Question Banks & AI-Powered Auto Evaluation",
       description:
         "Build rich multi-format exams (Coding, MCQs, Subjective), monitor candidate telemetry with live incident tracking, and publish AI evaluated results.",
@@ -84,7 +78,7 @@ export function InteractiveRoleShowcase() {
       icon: GraduationCap,
       accentBorder: "border-emerald-500/40",
       accentBg: "bg-emerald-500/10",
-      accentText: "text-emerald-400",
+      accentText: "text-emerald-600 dark:text-emerald-400",
       tagline: "Distraction-Free Exam Portal with Automated Proctor Guard",
       description:
         "Instant one-click registration. Experience seamless, high-performance exam environments with full regional language support and instant results.",
@@ -128,7 +122,7 @@ export function InteractiveRoleShowcase() {
                     : role === "examiner"
                     ? "bg-indigo-600 text-white border-indigo-400 shadow-xl shadow-indigo-600/30 scale-105"
                     : "bg-emerald-600 text-white border-emerald-400 shadow-xl shadow-emerald-600/30 scale-105"
-                  : "bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-800"
+                  : "bg-white/80 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
               }`}
             >
               <TabIcon className={`w-4 h-4 ${isSelected ? "text-white" : item.accentText}`} />
@@ -137,7 +131,7 @@ export function InteractiveRoleShowcase() {
                 className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full ${
                   isSelected
                     ? "bg-white/20 text-white"
-                    : "bg-slate-800 text-slate-400"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                 }`}
               >
                 {item.badge}
@@ -148,7 +142,7 @@ export function InteractiveRoleShowcase() {
       </div>
 
       {/* Role Deep-Dive Card */}
-      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-800 relative overflow-hidden transition-all duration-500 shadow-2xl">
+      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-200/80 dark:border-slate-800 relative overflow-hidden transition-all duration-500 shadow-2xl">
         {/* Glow backdrop */}
         <div
           className={`absolute -top-32 -right-32 w-80 h-80 rounded-full blur-[120px] pointer-events-none transition-all duration-500 ${
@@ -170,7 +164,7 @@ export function InteractiveRoleShowcase() {
                 <IconComponent className="w-7 h-7" />
               </div>
               <div>
-                <h3 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
+                <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                   <span>{current.title}</span>
                   <Sparkles className={`w-5 h-5 ${current.accentText}`} />
                 </h3>
@@ -180,7 +174,7 @@ export function InteractiveRoleShowcase() {
               </div>
             </div>
 
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
               {current.description}
             </p>
 
@@ -189,7 +183,7 @@ export function InteractiveRoleShowcase() {
               {current.capabilities.map((cap, i) => (
                 <div
                   key={i}
-                  className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-200"
+                  className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-200"
                 >
                   <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${current.accentText}`} />
                   <span className="leading-snug">{cap}</span>
@@ -217,14 +211,14 @@ export function InteractiveRoleShowcase() {
 
           {/* Right Live Chamber Mock Preview */}
           <div className="lg:col-span-5">
-            <div className="rounded-2xl bg-slate-950 border border-slate-800 p-5 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 p-5 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
                   <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
                 </div>
-                <span className="font-mono text-[11px] text-slate-400">
+                <span className="font-mono text-[11px] text-slate-500 dark:text-slate-400">
                   {current.previewHeadline}
                 </span>
               </div>
@@ -234,9 +228,9 @@ export function InteractiveRoleShowcase() {
                 {current.previewStats.map((st, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded-xl bg-slate-900 border border-slate-800/80 text-center"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 text-center"
                   >
-                    <div className="text-[10px] text-slate-400 font-medium truncate">{st.label}</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">{st.label}</div>
                     <div className={`text-sm font-bold font-mono mt-1 ${current.accentText}`}>
                       {st.value}
                     </div>
@@ -245,12 +239,12 @@ export function InteractiveRoleShowcase() {
               </div>
 
               {/* Interactive Visualization inside Mock */}
-              <div className="p-4 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-200">
+              <div className="p-4 rounded-xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-800 dark:text-slate-200">
                   <span>Role Access Guard</span>
-                  <span className="text-emerald-400 font-mono">100% Enforced</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-mono">100% Enforced</span>
                 </div>
-                <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-700 ${
                       selectedRole === "admin"
@@ -261,9 +255,9 @@ export function InteractiveRoleShowcase() {
                     }`}
                   />
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1">
+                <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1">
                   <span>JWT Cookie State</span>
-                  <span className="text-indigo-300">HttpOnly Encrypted</span>
+                  <span className="text-indigo-600 dark:text-indigo-300">HttpOnly Encrypted</span>
                 </div>
               </div>
             </div>

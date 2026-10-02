@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { PWAInstallButton } from "@/components/pwa/PWAInstallButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface ExaminerHeaderProps {
   user?: {
@@ -36,47 +37,48 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-800/90 bg-[#070d1c]/95 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/90 bg-white/95 dark:bg-[#070d1c]/95 backdrop-blur-xl transition-colors duration-200">
       <div className="mx-auto flex h-[78px] max-w-[1720px] items-center justify-between px-4 sm:px-7 lg:px-8">
         <Link href={isAdmin ? "/admin" : "/examiner"} className="group flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 text-white shadow-lg shadow-indigo-600/30 transition-transform group-hover:scale-105">
             <ShieldCheck className="h-6 w-6" strokeWidth={2.3} />
           </div>
           <div className="leading-tight">
-            <p className="text-lg font-extrabold tracking-tight text-white">Proctor <span className="text-indigo-400">AI</span></p>
-            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">{t("common.platformTitle", "Assessment platform")}</p>
+            <p className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">Proctor <span className="text-indigo-600 dark:text-indigo-400">AI</span></p>
+            <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">{t("common.platformTitle", "Assessment platform")}</p>
           </div>
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* Language Selector & PWA Install Button */}
+          {/* Theme Toggle, Language Selector & PWA Install Button */}
+          <ThemeToggle variant="compact" />
           <LanguageSelector variant="compact" />
           <PWAInstallButton variant="compact" />
 
           {isAdmin && (
             <Link
               href="/admin"
-              className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-rose-500/15 px-3.5 py-2 text-xs font-bold text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition-colors"
+              className="hidden sm:inline-flex items-center gap-2 rounded-xl bg-rose-500/15 px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-300 border border-rose-500/30 hover:bg-rose-500/25 transition-colors"
             >
               {t("nav.adminPortal", "Master Admin Portal")}
             </Link>
           )}
 
-          <div className="hidden items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/75 px-3 py-2 sm:flex">
-            <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${isAdmin ? "bg-rose-500/20 text-rose-300 ring-1 ring-inset ring-rose-400/20" : "bg-indigo-500/20 text-indigo-300 ring-1 ring-inset ring-indigo-400/20"}`}>
+          <div className="hidden items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-100/80 dark:bg-slate-900/75 px-3 py-2 sm:flex">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold ${isAdmin ? "bg-rose-500/20 text-rose-600 dark:text-rose-300 ring-1 ring-inset ring-rose-400/20" : "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 ring-1 ring-inset ring-indigo-400/20"}`}>
               {name.charAt(0).toUpperCase()}
             </div>
             <div className="max-w-[180px] leading-tight">
               <div className="flex items-center gap-2">
-                <p className="truncate text-xs font-bold text-slate-100">{name}</p>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ring-1 ring-inset ${isAdmin ? "bg-rose-500/15 text-rose-300 ring-rose-400/20" : "bg-indigo-500/15 text-indigo-300 ring-indigo-400/20"}`}>
+                <p className="truncate text-xs font-bold text-slate-900 dark:text-slate-100">{name}</p>
+                <span className={`rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider ring-1 ring-inset ${isAdmin ? "bg-rose-500/15 text-rose-600 dark:text-rose-300 ring-rose-400/20" : "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 ring-indigo-400/20"}`}>
                   {isAdmin ? t("common.admin", "Admin") : t("common.examiner", "Examiner")}
                 </span>
               </div>
-              <p className="mt-1 truncate text-[10px] text-slate-400">{user?.email || user?.institution || (isAdmin ? "Platform Authority" : "Academic workspace")}</p>
+              <p className="mt-1 truncate text-[10px] text-slate-500 dark:text-slate-400">{user?.email || user?.institution || (isAdmin ? "Platform Authority" : "Academic workspace")}</p>
             </div>
           </div>
-          <button onClick={handleLogout} disabled={loggingOut} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-800 px-3.5 text-xs font-bold text-slate-200 transition-colors hover:border-rose-500/30 hover:bg-rose-500/10 hover:text-rose-300 disabled:opacity-60 sm:px-4">
+          <button onClick={handleLogout} disabled={loggingOut} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 px-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors hover:border-rose-500/30 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 disabled:opacity-60 sm:px-4">
             <LogOut className="h-4 w-4" />
             <span>{loggingOut ? t("common.signingOut", "Signing out…") : t("common.signOut", "Sign out")}</span>
           </button>
@@ -85,4 +87,3 @@ export function ExaminerHeader({ user }: ExaminerHeaderProps) {
     </header>
   );
 }
-

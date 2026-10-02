@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  GraduationCap,
   CheckCircle2,
   Camera,
   Mic,
@@ -90,7 +89,7 @@ export default function StudentDashboardPage() {
     }
   };
 
-  const liveExams = exams.filter((e) => e.is_active && (e.student_can_attempt ?? true));
+  const liveExams = exams.filter((e) => e.is_active);
   const upcomingExams = exams.filter((e) => e.is_upcoming);
   const welcomeText = `${t("student.welcome", "Welcome")}${user?.fullName ? `, ${user.fullName}` : ""}!`;
 
@@ -99,51 +98,51 @@ export default function StudentDashboardPage() {
       <AmbientAuroraBackground variant="emerald-indigo" intensity="subtle" />
 
       {/* Welcome Banner with Living Emerald Glow */}
-      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-800 relative overflow-hidden shadow-2xl transition-all duration-300 hover:border-emerald-500/30 animate-fade-in-up">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/15 blur-[120px] rounded-full pointer-events-none animate-pulse-glow" />
+      <div className="glass-card rounded-3xl p-8 sm:p-10 border border-slate-200/80 dark:border-slate-800 relative overflow-hidden shadow-xl dark:shadow-2xl transition-all duration-300 hover:border-emerald-500/30 animate-fade-in-up">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 dark:bg-emerald-500/15 blur-[120px] rounded-full pointer-events-none animate-pulse-glow" />
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none animate-float" />
 
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
-              <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm">
+              <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 shadow-xs">
                 <span className="flex h-2 w-2 relative mr-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
+                <CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-emerald-600 dark:text-emerald-400" />
                 {t("student.activeCandidate", "Active Student Candidate")}
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight min-h-[44px]">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight min-h-[44px]">
               <AnimatedTypewriterText
                 text={welcomeText}
                 speed={40}
-                cursorColor="text-emerald-400"
+                cursorColor="text-emerald-600 dark:text-emerald-400"
               />
             </h1>
 
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-slate-600 dark:text-slate-300">
               {t("student.candidateEmail", "Candidate Email")}:{" "}
-              <span className="font-semibold text-white">{user?.email || "candidate"}</span> &bull;{" "}
+              <span className="font-semibold text-slate-900 dark:text-white">{user?.email || "candidate"}</span> &bull;{" "}
               {t("student.candidateId", "Candidate ID")}:{" "}
-              <span className="font-semibold text-emerald-300 font-mono">
+              <span className="font-semibold text-emerald-700 dark:text-emerald-300 font-mono">
                 {user?.userId?.slice(0, 8) || "..."}
               </span>
             </p>
           </div>
 
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-lg hover:border-emerald-500/40 transition-colors group">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/40 transition-colors group">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <div className="font-bold text-base text-white flex items-center gap-2">
+              <div className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <span>{t("student.systemIntegrityReady", "System Integrity Ready")}</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
               </div>
-              <div className="text-slate-400 text-xs mt-0.5">
+              <div className="text-slate-500 dark:text-slate-400 text-xs mt-0.5">
                 {t("student.aiProctoringVerified", "AI Proctoring Compatibility Verified")}
               </div>
             </div>
@@ -155,7 +154,7 @@ export default function StudentDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in-up stagger-1">
         <StatCard
           title={t("student.liveAssessments", "Live Assessments")}
-          value={liveExams.length.toString()}
+          value={loading ? "..." : liveExams.length.toString()}
           subtitle={t("student.openForAttempt", "Open for attempt right now")}
           icon={PlayCircle}
           color="emerald"
@@ -163,7 +162,7 @@ export default function StudentDashboardPage() {
         />
         <StatCard
           title={t("student.scheduledTests", "Scheduled Tests")}
-          value={upcomingExams.length.toString()}
+          value={loading ? "..." : upcomingExams.length.toString()}
           subtitle={t("student.upcomingSchedule", "Upcoming examination windows")}
           icon={Calendar}
           color="indigo"
@@ -183,47 +182,47 @@ export default function StudentDashboardPage() {
       <SpotlightCard
         glowColor="rgba(16, 185, 129, 0.18)"
         cyberCorners={true}
-        className="rounded-3xl p-8 border border-slate-800 shadow-xl space-y-4 animate-fade-in-up stagger-2"
+        className="rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-lg dark:shadow-xl space-y-4 animate-fade-in-up stagger-2"
       >
-        <h3 className="text-lg font-bold text-white flex items-center gap-2.5">
-          <Camera className="h-5 w-5 text-emerald-400" />
+        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+          <Camera className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           {t("student.hardwareChecklist", "Proctoring Hardware Readiness Checklist")}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-sm">
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+          <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Camera className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-bold text-white">{t("student.webcamCheck", "Webcam Check")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <div className="font-bold text-slate-900 dark:text-white">{t("student.webcamCheck", "Webcam Check")}</div>
+              <div className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
                 <span>{t("student.faceTrackingReady", "Face Tracking Ready")}</span>
               </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+          <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Mic className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-bold text-white">{t("student.microphoneCheck", "Microphone Check")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <div className="font-bold text-slate-900 dark:text-white">{t("student.microphoneCheck", "Microphone Check")}</div>
+              <div className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
                 <span>{t("student.audioStreamReady", "VAD Audio Stream Ready")}</span>
               </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+          <div className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 flex items-center gap-3.5 hover:border-emerald-500/40 hover:-translate-y-1 transition-all group">
+            <div className="h-10 w-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
               <Monitor className="h-5 w-5" />
             </div>
             <div>
-              <div className="font-bold text-white">{t("student.browserGuard", "Browser Guard")}</div>
-              <div className="text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <div className="font-bold text-slate-900 dark:text-white">{t("student.browserGuard", "Browser Guard")}</div>
+              <div className="text-emerald-600 dark:text-emerald-400 text-xs font-semibold mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
                 <span>{t("student.fullscreenTabGuard", "Fullscreen & Tab Guard Active")}</span>
               </div>
             </div>
@@ -235,25 +234,25 @@ export default function StudentDashboardPage() {
       <SpotlightCard
         glowColor="rgba(99, 102, 241, 0.15)"
         cyberCorners={true}
-        className="rounded-3xl border border-slate-800 shadow-2xl space-y-0 animate-fade-in-up stagger-3"
+        className="rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl dark:shadow-2xl space-y-0 animate-fade-in-up stagger-3"
       >
-        <div className="p-8 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-8 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-white flex items-center gap-2.5">
-              <Calendar className="h-6 w-6 text-indigo-400" />
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+              <Calendar className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               {t("student.enrolledExams", "Your Enrolled Examinations")}
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               {t("student.enrolledExamsSubtitle", "Join active proctored sessions or view your score reports")}
             </p>
           </div>
 
           <button
             onClick={fetchSessionAndExams}
-            className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-700 transition-colors cursor-pointer"
             title="Refresh"
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-600 dark:text-indigo-400" : ""}`} />
           </button>
         </div>
 
@@ -265,14 +264,14 @@ export default function StudentDashboardPage() {
           </div>
         ) : exams.length === 0 ? (
           <div className="p-12 text-center space-y-2">
-            <FileSpreadsheet className="h-10 w-10 text-slate-600 mx-auto" />
-            <div className="text-base font-bold text-white">{t("student.noExams", "No Examinations Published Yet")}</div>
-            <div className="text-xs text-slate-400">
+            <FileSpreadsheet className="h-10 w-10 text-slate-400 dark:text-slate-600 mx-auto" />
+            <div className="text-base font-bold text-slate-900 dark:text-white">{t("student.noExams", "No Examinations Published Yet")}</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">
               {t("student.noExamsSubtitle", "When instructors publish scheduled assessments, they will appear here automatically.")}
             </div>
           </div>
         ) : (
-          <div className="divide-y divide-slate-800/60">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/60">
             {exams.map((exam) => {
               const rawAttemptsCount = exam.student_attempts_count || 0;
               const maxAttempts = exam.max_attempts || 1;
@@ -284,47 +283,47 @@ export default function StudentDashboardPage() {
               return (
                 <div
                   key={exam.id}
-                  className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-900/50 transition-all duration-200 group/row"
+                  className="p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:bg-slate-50/80 dark:hover:bg-slate-900/50 transition-all duration-200 group/row"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-lg font-bold text-white group-hover/row:text-indigo-300 transition-colors">
+                      <span className="text-lg font-bold text-slate-900 dark:text-white group-hover/row:text-indigo-600 dark:group-hover/row:text-indigo-300 transition-colors">
                         {exam.title}
                       </span>
                       
                       {/* Status Tag */}
                       {hasExhaustedAttempts ? (
                         exam.results_published ? (
-                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-purple-500/15 text-purple-300 border-purple-500/30">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-purple-50 dark:bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-500/30">
                             {t("student.completedTag", "Completed")} ({attemptsCount}/{maxAttempts} {t("student.attemptsUsed", "Attempts Used")})
                           </span>
                         ) : (
-                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-500/15 text-indigo-300 border-indigo-500/30">
+                          <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30">
                             {t("student.attemptSubmittedPending", "Attempt Submitted • Scores Pending")}
                           </span>
                         )
                       ) : hasActiveInProgress ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-amber-500/15 text-amber-300 border-amber-500/30 animate-pulse">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/30 animate-pulse">
                           {t("student.inProgressResume", "In Progress (Resume Available)")}
                         </span>
                       ) : exam.is_active ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-sm">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30 shadow-xs">
                           ● {t("student.openForAttempt", "Open for Attempt")} ({t("student.attempt", "Attempt")} {attemptsCount + 1} {t("student.of", "of")} {maxAttempts})
                         </span>
                       ) : exam.is_upcoming ? (
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-500/15 text-indigo-300 border-indigo-500/30">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-500/30">
                           {t("student.upcomingSchedule", "Upcoming Schedule")}
                         </span>
                       ) : (
-                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-slate-500/15 text-slate-400 border-slate-500/30">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border bg-slate-100 dark:bg-slate-500/15 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-500/30">
                           {t("student.closedEnded", "Closed / Ended")}
                         </span>
                       )}
                     </div>
 
-                    <p className="text-sm text-slate-300">
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
                       {t("student.instructor", "Instructor")}:{" "}
-                      <span className="text-white font-semibold">
+                      <span className="text-slate-900 dark:text-white font-semibold">
                         {exam.examiner?.full_name || "Academic Examiner"}
                       </span>{" "}
                       &bull; {t("common.duration", "Duration")}: {exam.duration_minutes} {t("common.minutes", "Mins")} &bull; {t("common.totalMarks", "Total Marks")}: {exam.total_marks}{" "}
@@ -336,12 +335,12 @@ export default function StudentDashboardPage() {
                       <span>{t("student.ends", "Ends")}: {new Date(exam.end_time).toLocaleString()}</span>
                       {exam.student_has_submitted && (
                         exam.results_published && exam.student_latest_score !== undefined && exam.student_latest_score !== null ? (
-                          <span className="text-emerald-400 font-bold">
+                          <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                             {t("student.latestScore", "Latest Score")}: {exam.student_latest_score} / {exam.total_marks}
                           </span>
                         ) : (
-                          <span className="text-indigo-300 font-semibold flex items-center gap-1">
-                            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                          <span className="text-indigo-600 dark:text-indigo-300 font-semibold flex items-center gap-1">
+                            <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                             {t("student.attemptRecordedPending", "Attempt Recorded • Scores Pending Release")}
                           </span>
                         )
@@ -354,13 +353,13 @@ export default function StudentDashboardPage() {
                     {hasExhaustedAttempts ? (
                       <Link
                         href={`/student/exam/${exam.id}/result`}
-                        className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm text-white transition-all hover:scale-105 ${
+                        className={`inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl font-bold text-sm transition-all hover:scale-105 ${
                           exam.results_published
-                            ? "bg-indigo-600 hover:bg-indigo-500 shadow-xl shadow-indigo-600/25 btn-shimmer"
-                            : "bg-slate-800 hover:bg-slate-700 border border-slate-700"
+                            ? "bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-600/25 btn-shimmer"
+                            : "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 shadow-xs"
                         }`}
                       >
-                        {exam.results_published ? <Award className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5 text-emerald-400" />}
+                        {exam.results_published ? <Award className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />}
                         <span>{exam.results_published ? t("student.viewScoreReport", "View Score Report") : t("student.viewAttemptStatus", "View Attempt Status")}</span>
                       </Link>
                     ) : hasActiveInProgress ? (
@@ -376,7 +375,7 @@ export default function StudentDashboardPage() {
                         {exam.student_has_submitted && (
                           <Link
                             href={`/student/exam/${exam.id}/result`}
-                            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 hover:scale-105 transition-all"
+                            className="inline-flex items-center gap-1.5 px-4 py-3 rounded-2xl text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:scale-105 transition-all"
                           >
                             <Award className="h-4 w-4" />
                             <span>{exam.results_published ? t("student.previousScore", "Previous Score") : t("student.previousAttempt", "Previous Attempt")}</span>
@@ -391,19 +390,19 @@ export default function StudentDashboardPage() {
                         </Link>
                       </div>
                     ) : exam.is_upcoming ? (
-                      <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-400 bg-slate-900 border border-slate-800">
+                      <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                         {t("student.scheduledNotStarted", "Scheduled Window Not Started")}
                       </div>
                     ) : exam.student_has_submitted ? (
                       <Link
                         href={`/student/exam/${exam.id}/result`}
-                        className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold text-indigo-300 hover:text-white bg-indigo-950/30 border border-indigo-500/30 hover:bg-indigo-900/40 transition-all"
+                        className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all"
                       >
                         <Award className="h-4 w-4" />
                         <span>{exam.results_published ? t("student.viewScoreReport", "View Score Report") : t("student.viewAttemptStatus", "View Attempt Status")}</span>
                       </Link>
                     ) : (
-                      <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-500 bg-slate-900 border border-slate-800">
+                      <div className="px-5 py-3 rounded-2xl text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                         {t("student.assessmentClosed", "Assessment Closed")}
                       </div>
                     )}

@@ -201,12 +201,12 @@ function StudentExamResultContent() {
                 </>
               )}
             </span>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {data.exam_title} - {isPublished ? t("result.resultReport", "Result Report") : t("result.attemptRecorded", "Attempt Recorded")}
             </h1>
-            <p className="text-xs text-slate-400">
-              {t("result.candidate", "Candidate")}: <span className="text-white font-semibold">{data.student_name}</span> &bull; {t("result.attemptId", "Attempt ID")}:{" "}
-              <code className="text-slate-300">{data.attempt_id.slice(0, 8)}</code>
+            <p className="text-xs text-slate-600 dark:text-slate-400">
+              {t("result.candidate", "Candidate")}: <span className="text-slate-900 dark:text-white font-bold">{data.student_name}</span> &bull; {t("result.attemptId", "Attempt ID")}:{" "}
+              <code className="text-slate-800 dark:text-slate-300 font-semibold">{data.attempt_id.slice(0, 8)}</code>
             </p>
           </div>
 
@@ -214,7 +214,7 @@ function StudentExamResultContent() {
             {isPublished && (
               <button
                 onClick={() => setShowCertificateModal(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/25 transition-all cursor-pointer"
               >
                 <Award className="h-4 w-4 text-amber-300" />
                 <span>{t("result.certificateAndScorecard", "Certificate & Scorecard")}</span>
@@ -223,7 +223,7 @@ function StudentExamResultContent() {
 
             <Link
               href="/student"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-300 hover:text-white bg-slate-900 border border-slate-800 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 transition-all"
             >
               <span>{t("result.backToAssessments", "Back to Assessments")}</span>
             </Link>
@@ -232,10 +232,10 @@ function StudentExamResultContent() {
 
         {/* Results Pending Publication Notice */}
         {!isPublished && (
-          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-200 text-xs flex items-center gap-3">
-            <Clock className="h-5 w-5 text-indigo-400 shrink-0" />
+          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-900 dark:text-indigo-200 text-xs flex items-center gap-3">
+            <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
             <div>
-              <span className="font-bold text-white block mb-0.5">{t("result.scoresAwaitingPublication", "Scores Awaiting Examiner Publication")}</span>
+              <span className="font-bold text-slate-900 dark:text-white block mb-0.5">{t("result.scoresAwaitingPublication", "Scores Awaiting Examiner Publication")}</span>
               {t("result.scoresAwaitingDesc", "Your exam responses have been securely submitted and recorded. Scores and answer solutions will become visible here once the examiner finalizes and publishes the results.")}
             </div>
           </div>
@@ -243,8 +243,8 @@ function StudentExamResultContent() {
 
         {/* Pending Descriptive Evaluation Notice (If published but descriptive grading is pending) */}
         {isPublished && data.has_pending_descriptive && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0" />
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div>
               <span className="font-bold block">{t("result.descriptivePendingTitle", "Descriptive Evaluation Pending")}</span>
               {t("result.descriptivePendingDesc", "Your multiple-choice questions have been auto-evaluated. Subjective answers are awaiting examiner review. Final score and rank will update once graded.")}
@@ -257,40 +257,40 @@ function StudentExamResultContent() {
       {isPublished ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
           {/* Total Score */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalScore", "Total Score")}</span>
-              <Award className="h-4 w-4 text-amber-400" />
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.totalScore", "Total Score")}</span>
+              <Award className="h-4 w-4 text-amber-500 dark:text-amber-400" />
             </div>
-            <div className="text-3xl font-black text-white">
-              {data.score} <span className="text-sm font-normal text-slate-400">/ {data.total_marks}</span>
+            <div className="text-3xl font-black text-slate-900 dark:text-white">
+              {data.score} <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">/ {data.total_marks}</span>
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">
               {t("result.auto", "Auto")}: {data.auto_graded_score} | {t("result.manual", "Manual")}: {data.manual_graded_score}
             </div>
           </div>
 
           {/* Percentage & Status */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.performanceStatus", "Performance Status")}</span>
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.performanceStatus", "Performance Status")}</span>
               {data.status === "EVALUATED" ? (
                 data.is_passed ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 ) : (
-                  <XCircle className="h-4 w-4 text-rose-400" />
+                  <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                 )
               ) : (
-                <Sparkles className="h-4 w-4 text-amber-400" />
+                <Sparkles className="h-4 w-4 text-amber-500 dark:text-amber-400" />
               )}
             </div>
             <div
-              className={`text-2xl font-extrabold ${
+              className={`text-2xl font-black ${
                 data.status === "EVALUATED"
                   ? data.is_passed
-                    ? "text-emerald-400"
-                    : "text-rose-400"
-                  : "text-amber-400"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-rose-600 dark:text-rose-400"
+                  : "text-amber-600 dark:text-amber-400"
               }`}
             >
               {data.status === "EVALUATED"
@@ -299,54 +299,54 @@ function StudentExamResultContent() {
                   : `${t("result.failed", "FAILED")} (${data.percentage}%)`
                 : `${t("result.pending", "PENDING")} (${data.percentage}%)`}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">
               {data.status === "EVALUATED" ? t("result.officialFinalized", "Official result finalized") : t("result.awaitingReview", "Awaiting examiner review")}
             </div>
           </div>
 
           {/* Total Completion Time */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalTimeTaken", "Total Time Taken")}</span>
-              <Clock className="h-4 w-4 text-indigo-400" />
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.totalTimeTaken", "Total Time Taken")}</span>
+              <Clock className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <div className="text-2xl font-extrabold text-white">
+            <div className="text-2xl font-black text-slate-900 dark:text-white">
               {formatTime(data.total_time_seconds)}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">
               {t("result.submittedAt", "Submitted at")} {data.submitted_at ? new Date(data.submitted_at).toLocaleTimeString() : "—"}
             </div>
           </div>
 
           {/* Avg Time / Question */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.avgTimePerQuestion", "Avg Time / Question")}</span>
-              <Sparkles className="h-4 w-4 text-violet-400" />
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.avgTimePerQuestion", "Avg Time / Question")}</span>
+              <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             </div>
-            <div className="text-2xl font-extrabold text-indigo-400">
+            <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
               {data.average_time_per_question}s
             </div>
-            <div className="text-xs text-slate-500">{t("result.stopwatchPacing", "Stopwatch pacing average")}</div>
+            <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">{t("result.stopwatchPacing", "Stopwatch pacing average")}</div>
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 no-print">
           {/* Submission Status */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.attemptStatus", "Attempt Status")}</span>
-              <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.attemptStatus", "Attempt Status")}</span>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
-            <div className="text-2xl font-extrabold text-emerald-400">
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
               {t("result.submitted", "Submitted")}
             </div>
-            <div className="text-xs text-slate-400">{t("result.awaitingScorePublication", "Awaiting score publication")}</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t("result.awaitingScorePublication", "Awaiting score publication")}</div>
           </div>
 
           {/* Total Time Taken */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
               <span className="text-xs font-semibold uppercase tracking-wider">{t("result.totalTimeTaken", "Total Time Taken")}</span>
               <Clock className="h-4 w-4 text-indigo-400" />
             </div>
@@ -359,23 +359,23 @@ function StudentExamResultContent() {
           </div>
 
           {/* Questions Attempted */}
-          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-semibold uppercase tracking-wider">{t("result.questionsRecorded", "Questions Recorded")}</span>
-              <Layers className="h-4 w-4 text-violet-400" />
+          <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-1.5 bg-white dark:bg-slate-900/60 shadow-sm">
+            <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+              <span className="text-xs font-bold uppercase tracking-wider">{t("result.questionsRecorded", "Questions Recorded")}</span>
+              <Layers className="h-4 w-4 text-violet-600 dark:text-violet-400" />
             </div>
-            <div className="text-2xl font-extrabold text-white">
+            <div className="text-2xl font-black text-slate-900 dark:text-white">
               {data.answers.length} {t("result.questions", "Questions")}
             </div>
-            <div className="text-xs text-slate-400">{t("result.pacing", "Pacing")}: {data.average_time_per_question}s / {t("common.question", "question")}</div>
+            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">{t("result.pacing", "Pacing")}: {data.average_time_per_question}s / {t("common.question", "question")}</div>
           </div>
         </div>
       )}
 
       {/* Question Breakdown List */}
       <div className="space-y-4 no-print">
-        <h2 className="text-lg font-bold text-white flex items-center gap-2">
-          <Layers className="h-5 w-5 text-indigo-400" />
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Layers className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
           {t("result.questionBreakdown", "Question-by-Question Breakdown")}
         </h2>
 
@@ -386,18 +386,18 @@ function StudentExamResultContent() {
             return (
               <div
                 key={q.question_id}
-                className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4"
+                className="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 bg-white dark:bg-slate-900/70 shadow-sm"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800/80 pb-3">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-500">Q{idx + 1}.</span>
-                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-slate-900 border border-slate-800 text-indigo-300">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-500">Q{idx + 1}.</span>
+                    <span className="px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-slate-800 text-indigo-700 dark:text-indigo-300">
                       {q.section_title}
                     </span>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                       {q.question_type.replace("_", " ")}
                     </span>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="text-xs text-slate-600 dark:text-slate-500 font-mono font-medium">
                       {t("result.stopwatch", "Stopwatch")}: {q.time_spent_seconds}s
                     </span>
                   </div>
@@ -408,10 +408,10 @@ function StudentExamResultContent() {
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
                             q.evaluation_status === "PENDING_REVIEW"
-                              ? "bg-amber-500/15 text-amber-300 border-amber-500/30"
+                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30"
                               : q.is_correct
-                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-                              : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                              : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
                           }`}
                         >
                           {q.evaluation_status === "PENDING_REVIEW"
@@ -421,16 +421,16 @@ function StudentExamResultContent() {
                             : t("result.incorrect", "INCORRECT")}
                         </span>
 
-                        <span className="text-xs font-extrabold text-white">
+                        <span className="text-xs font-black text-slate-900 dark:text-white">
                           {q.marks_obtained} / {q.marks} {t("common.marks", "Marks")}
                         </span>
                       </>
                     ) : (
                       <>
-                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-slate-900 text-slate-400 border-slate-800">
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-800">
                           {t("result.submitted", "SUBMITTED")}
                         </span>
-                        <span className="text-xs text-slate-400 font-medium">
+                        <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
                           {q.marks} {t("result.marksWeight", "Marks Weight")}
                         </span>
                       </>
@@ -439,7 +439,7 @@ function StudentExamResultContent() {
                 </div>
 
                 {/* Question Statement */}
-                <p className="text-sm font-semibold text-white whitespace-pre-wrap">
+                <p className="text-sm font-bold text-slate-900 dark:text-white whitespace-pre-wrap leading-relaxed">
                   {q.question_text}
                 </p>
 
@@ -452,20 +452,20 @@ function StudentExamResultContent() {
                         (q.selected_option_ids && q.selected_option_ids.includes(opt.id));
                       const isCorrect = opt.is_correct;
 
-                      let style = "bg-slate-900/60 border-slate-800 text-slate-300";
+                      let style = "bg-slate-50 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-300";
                       if (isPublished) {
                         if (isSelected && isCorrect) {
-                          style = "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-bold";
+                          style = "bg-emerald-500/15 border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-bold";
                         } else if (isSelected && !isCorrect) {
-                          style = "bg-rose-500/15 border-rose-500/40 text-rose-300 font-bold";
+                          style = "bg-rose-500/15 border-rose-500/40 text-rose-800 dark:text-rose-300 font-bold";
                         } else if (!isSelected && isCorrect) {
-                          style = "bg-emerald-500/5 border-emerald-500/20 text-emerald-400/80";
+                          style = "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400/80 font-semibold";
                         }
                       } else {
                         if (isSelected) {
-                          style = "bg-indigo-500/15 border-indigo-500/40 text-indigo-300 font-bold";
+                          style = "bg-indigo-500/15 border-indigo-500/40 text-indigo-800 dark:text-indigo-300 font-bold";
                         } else {
-                          style = "bg-slate-900/40 border-slate-800/80 text-slate-400";
+                          style = "bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-400";
                         }
                       }
 
@@ -474,9 +474,9 @@ function StudentExamResultContent() {
                           key={opt.id}
                           className={`p-3 rounded-xl border text-xs flex items-center justify-between ${style}`}
                         >
-                          <span className="truncate pr-2">{opt.option_text}</span>
+                          <span className="truncate pr-2 font-medium">{opt.option_text}</span>
                           {isSelected && (
-                            <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-black/40">
+                            <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded bg-slate-900 text-white dark:bg-black/40">
                               {t("result.yourAnswerBadge", "Your Answer")}
                             </span>
                           )}
@@ -489,18 +489,18 @@ function StudentExamResultContent() {
                 {/* Text answer for descriptive questions */}
                 {["SHORT_ANSWER", "LONG_ANSWER"].includes(q.question_type) && (
                   <div className="space-y-2">
-                    <div className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                    <div className="text-xs text-slate-700 dark:text-slate-400 font-bold uppercase tracking-wider">
                       {t("result.yourSubmittedAnswer", "Your Submitted Answer:")}
                     </div>
-                    <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-slate-200 whitespace-pre-wrap leading-relaxed font-medium">
                       {q.text_answer || (
                         <span className="text-slate-500 italic">{t("result.noAnswerSubmitted", "No answer submitted.")}</span>
                       )}
                     </div>
 
                     {isPublished && q.examiner_feedback && (
-                      <div className="p-3.5 rounded-2xl bg-violet-950/20 border border-violet-500/30 text-xs text-violet-200">
-                        <span className="font-bold text-violet-300 block mb-0.5">
+                      <div className="p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-500/30 text-xs text-violet-900 dark:text-violet-200">
+                        <span className="font-bold text-violet-700 dark:text-violet-300 block mb-0.5">
                           {t("result.examinerFeedback", "Examiner Qualitative Feedback:")}
                         </span>
                         <span>{q.examiner_feedback}</span>
@@ -513,22 +513,22 @@ function StudentExamResultContent() {
                 {q.question_type === "CODING" && (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-bold uppercase tracking-wider">
+                      <span className="text-slate-700 dark:text-slate-400 font-bold uppercase tracking-wider">
                         {t("result.submittedSourceCode", "Submitted Source Code")} ({q.code_language || "python"}):
                       </span>
                       {isPublished && q.test_cases_passed !== undefined && q.total_test_cases !== undefined && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold">
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 font-bold">
                           {q.test_cases_passed} / {q.total_test_cases} {t("result.testCasesPassed", "Test Cases Passed")}
                         </span>
                       )}
                     </div>
-                    <pre className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                    <pre className="p-4 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400 whitespace-pre-wrap overflow-x-auto leading-relaxed">
                       {q.code_answer || "// No code submitted"}
                     </pre>
 
                     {isPublished && q.examiner_feedback && (
-                      <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs text-indigo-200 font-mono">
-                        <span className="font-bold text-indigo-300 block mb-0.5 font-sans">
+                      <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-500/30 text-xs text-indigo-900 dark:text-indigo-200 font-mono">
+                        <span className="font-bold text-indigo-700 dark:text-indigo-300 block mb-0.5 font-sans">
                           {t("result.testCaseEvalSummary", "Test Case Evaluation Summary:")}
                         </span>
                         <span>{q.examiner_feedback}</span>

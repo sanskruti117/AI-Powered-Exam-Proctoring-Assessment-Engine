@@ -77,25 +77,25 @@ export function ExaminerApprovalModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-xl rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-8 overflow-hidden">
+      <div className="relative w-full max-w-xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-8 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-5">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
               <UserCheck className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                 {t("admin.examinerApplicationModalTitle", "Examiner Application")}
               </h3>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 {t("admin.examinerApplicationModalSubtitle", "Review credential verification request")}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="h-6 w-6" />
           </button>
@@ -104,43 +104,43 @@ export function ExaminerApprovalModal({
         {/* Body Content */}
         <div className="py-6 space-y-5">
           {error && (
-            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-300 text-sm flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 shrink-0 text-rose-400" />
+            <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-700 dark:text-rose-300 text-sm flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Examiner Profile Card */}
-          <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-4">
+          <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-bold text-white">{examiner.fullName}</h4>
-                <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">{examiner.fullName}</h4>
+                <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-400 mt-1">
                   <Mail className="h-4 w-4 text-slate-500" />
                   <span>{examiner.email}</span>
                 </div>
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
                 examiner.status === "PENDING"
-                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
                   : examiner.status === "ACTIVE"
-                  ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
-                  : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30"
+                  : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30"
               }`}>
                 {getStatusLabel(examiner.status)}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-800 text-sm">
-              <div className="flex items-center gap-2 text-slate-200">
-                <Building className="h-4 w-4 text-indigo-400 shrink-0" />
-                <span className="font-medium">{examiner.institution || t("admin.notSpecified", "Not specified")}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-200 dark:border-slate-800 text-sm">
+              <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <Building className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                <span className="font-semibold">{examiner.institution || t("admin.notSpecified", "Not specified")}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-200">
-                <Briefcase className="h-4 w-4 text-violet-400 shrink-0" />
-                <span className="font-medium">{examiner.department || t("admin.notSpecified", "Not specified")}</span>
+              <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                <Briefcase className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                <span className="font-semibold">{examiner.department || t("admin.notSpecified", "Not specified")}</span>
               </div>
-              <div className="flex items-center gap-2 text-slate-400 sm:col-span-2 pt-1 text-xs">
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 sm:col-span-2 pt-1 text-xs">
                 <Calendar className="h-4 w-4 text-slate-500 shrink-0" />
                 <span>{t("admin.requested", "Requested")}: {new Date(examiner.createdAt).toLocaleDateString()} at {new Date(examiner.createdAt).toLocaleTimeString()}</span>
               </div>
@@ -150,7 +150,7 @@ export function ExaminerApprovalModal({
           {/* Rejection Form */}
           {actionType === "reject" && (
             <div className="space-y-2.5 animate-fadeIn">
-              <label className="block text-sm font-semibold text-slate-200">
+              <label className="block text-sm font-semibold text-slate-800 dark:text-slate-200">
                 {t("admin.reasonForRejection", "Reason for Rejection (Required)")}
               </label>
               <textarea
@@ -158,20 +158,20 @@ export function ExaminerApprovalModal({
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder={t("admin.rejectionReasonPlaceholder", "e.g. Unverified academic affiliation, invalid department details, etc.")}
                 rows={3}
-                className="w-full px-4 py-3 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
               />
             </div>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="border-t border-slate-800 pt-5 flex items-center justify-end gap-3.5">
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-5 flex items-center justify-end gap-3.5">
           {actionType === "view" ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 {t("admin.close", "Close")}
               </button>
@@ -204,7 +204,7 @@ export function ExaminerApprovalModal({
                   setActionType("view");
                   setError(null);
                 }}
-                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 {t("admin.back", "Back")}
               </button>

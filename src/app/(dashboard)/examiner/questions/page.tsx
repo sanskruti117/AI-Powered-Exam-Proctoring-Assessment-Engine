@@ -303,16 +303,16 @@ export default function QuestionBankPage() {
   return (
     <div className="space-y-8 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-800 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-200 dark:border-slate-800 pb-6">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-400">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
             <FolderKanban className="h-4 w-4" />
             <span>{t("examiner.repositoryCurriculum", "Repository & Curriculum")}</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
             {t("examiner.questionsBankTitle", "Examiner Question Bank")}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
             {t("examiner.questionsBankSubtitle", "Author, organize, filter, and maintain your repository of assessment questions.")}
           </p>
         </div>
@@ -321,7 +321,7 @@ export default function QuestionBankPage() {
           <button
             onClick={() => batchImportRef.current?.click()}
             disabled={batchImporting}
-            className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all disabled:opacity-60 cursor-pointer"
           >
             <Upload className="h-4 w-4" />
             <span>{batchImporting ? t("examiner.extractingPdf", "Extracting PDF…") : t("examiner.importQuestionPdf", "Import Question PDF")}</span>
@@ -330,10 +330,10 @@ export default function QuestionBankPage() {
           <button
             onClick={() => fetchQuestions()}
             disabled={loading}
-            className="p-3 rounded-2xl text-slate-400 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+            className="p-3 rounded-2xl text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
             title={t("common.refresh", "Refresh")}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-400" : ""}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-indigo-500" : ""}`} />
           </button>
 
           <Link
@@ -351,21 +351,21 @@ export default function QuestionBankPage() {
         <div
           className={`p-4 rounded-2xl text-sm flex items-center justify-between animate-fadeIn ${
             notification.type === "success"
-              ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-300"
-              : "bg-rose-500/10 border border-rose-500/25 text-rose-300"
+              ? "bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-300"
+              : "bg-rose-500/10 border border-rose-500/25 text-rose-800 dark:text-rose-300"
           }`}
         >
-          <div className="flex items-center gap-2.5 font-medium">
+          <div className="flex items-center gap-2.5 font-semibold">
             {notification.type === "success" ? (
-              <CheckCircle className="h-5 w-5 text-emerald-400 shrink-0" />
+              <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
             ) : (
-              <AlertCircle className="h-5 w-5 text-rose-400 shrink-0" />
+              <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0" />
             )}
             <span>{notification.message}</span>
           </div>
           <button
             onClick={() => setNotification(null)}
-            className="text-xs font-bold uppercase tracking-wider opacity-80 hover:opacity-100"
+            className="text-xs font-bold uppercase tracking-wider opacity-80 hover:opacity-100 cursor-pointer"
           >
             {t("common.close", "Dismiss")}
           </button>
@@ -374,63 +374,63 @@ export default function QuestionBankPage() {
 
       {importedQuestions.length > 0 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
-          <div className="glass-card flex max-h-[85vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-700 p-6 shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+          <div className="glass-card flex max-h-[85vh] w-full max-w-3xl flex-col rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <h2 className="text-xl font-bold text-white">{t("examiner.reviewImportedQuestions", "Review imported questions")}</h2>
-                <p className="mt-1 text-sm text-slate-400">{t("examiner.reviewImportedDesc", "Check the extracted questions before they are saved. You can remove any item.")}</p>
+                <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t("examiner.reviewImportedQuestions", "Review imported questions")}</h2>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{t("examiner.reviewImportedDesc", "Check the extracted questions before they are saved. You can remove any item.")}</p>
               </div>
-              <button onClick={() => setImportedQuestions([])} className="text-sm font-bold text-slate-400 hover:text-white">{t("common.cancel", "Cancel")}</button>
+              <button onClick={() => setImportedQuestions([])} className="text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer">{t("common.cancel", "Cancel")}</button>
             </div>
             <div className="mt-4 flex flex-wrap gap-3">
-              <input value={importSubject} onChange={(event) => setImportSubject(event.target.value)} placeholder="Question bank name, e.g. DSA or DBMS" className="min-w-[250px] flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-white placeholder-slate-500" />
-              <span className="rounded-xl bg-slate-900 px-3 py-2 text-sm text-slate-300">{importedQuestions.length} {t("examiner.questionsInPool", "questions")}</span>
+              <input value={importSubject} onChange={(event) => setImportSubject(event.target.value)} placeholder="Question bank name, e.g. DSA or DBMS" className="min-w-[250px] flex-1 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" />
+              <span className="rounded-xl bg-slate-100 dark:bg-slate-900 px-3 py-2 text-sm font-bold text-slate-800 dark:text-slate-300">{importedQuestions.length} {t("examiner.questionsInPool", "questions")}</span>
             </div>
             <div className="mt-4 min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               {importedQuestions.map((question, index) => (
-                <div key={`${question.question_text}-${index}`} className="rounded-xl border border-slate-800 bg-slate-900/60 p-4">
+                <div key={`${question.question_text}-${index}`} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 p-4">
                   <div className="flex justify-between gap-3">
-                    <p className="font-semibold text-white">{index + 1}. {question.question_text}</p>
-                    <button onClick={() => setImportedQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="shrink-0 text-xs font-bold text-rose-400 hover:text-rose-300">{t("common.delete", "Remove")}</button>
+                    <p className="font-bold text-slate-900 dark:text-white">{index + 1}. {question.question_text}</p>
+                    <button onClick={() => setImportedQuestions((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="shrink-0 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 cursor-pointer">{t("common.delete", "Remove")}</button>
                   </div>
-                  <p className="mt-2 text-xs font-bold text-indigo-300">{question.question_type.replace("_", " ")} · {question.difficulty} · {question.marks} {question.marks === 1 ? t("examiner.mark", "mark") : t("examiner.marks", "marks")}</p>
-                  {question.options?.length ? <p className="mt-2 text-xs text-slate-400">{question.options.length} {t("examiner.optionsCount", "options extracted")}</p> : null}
+                  <p className="mt-2 text-xs font-bold text-indigo-700 dark:text-indigo-300">{question.question_type.replace("_", " ")} · {question.difficulty} · {question.marks} {question.marks === 1 ? t("examiner.mark", "mark") : t("examiner.marks", "marks")}</p>
+                  {question.options?.length ? <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 font-medium">{question.options.length} {t("examiner.optionsCount", "options extracted")}</p> : null}
                 </div>
               ))}
             </div>
-            <div className="mt-5 flex justify-end gap-3 border-t border-slate-800 pt-4">
-              <button onClick={() => setImportedQuestions([])} className="rounded-xl px-4 py-2 text-sm font-bold text-slate-400 hover:text-white">{t("common.cancel", "Cancel")}</button>
-              <button onClick={confirmBatchImport} disabled={!importSubject.trim() || !importedQuestions.length || committingImport} className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white disabled:opacity-50">{committingImport ? t("examiner.saving", "Saving...") : t("examiner.approveAndAdd", "Approve & add questions")}</button>
+            <div className="mt-5 flex justify-end gap-3 border-t border-slate-200 dark:border-slate-800 pt-4">
+              <button onClick={() => setImportedQuestions([])} className="rounded-xl px-4 py-2 text-sm font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer">{t("common.cancel", "Cancel")}</button>
+              <button onClick={confirmBatchImport} disabled={!importSubject.trim() || !importedQuestions.length || committingImport} className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-bold text-white disabled:opacity-50 cursor-pointer">{committingImport ? t("examiner.saving", "Saving...") : t("examiner.approveAndAdd", "Approve & add questions")}</button>
             </div>
           </div>
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-4 shadow-xl">
+      <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 space-y-4 shadow-sm bg-white dark:bg-slate-900">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
           {/* Search Box */}
           <div className="relative flex-1">
-            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder={t("examiner.searchQuestionsPlaceholder", "Search question statement, subject, or keywords...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
           </div>
 
           {/* View Mode Toggle */}
           <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
-            <div className="flex items-center rounded-xl bg-slate-900 p-1 border border-slate-800">
+            <div className="flex items-center rounded-xl bg-slate-100 dark:bg-slate-900 p-1 border border-slate-200 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setViewMode("grid")}
                 className={`p-2 rounded-lg transition-colors cursor-pointer ${
                   viewMode === "grid"
                     ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 }`}
                 title="Grid View"
               >
@@ -442,7 +442,7 @@ export default function QuestionBankPage() {
                 className={`p-2 rounded-lg transition-colors cursor-pointer ${
                   viewMode === "table"
                     ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:text-white"
+                    : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                 }`}
                 title="Table View"
               >
@@ -453,9 +453,9 @@ export default function QuestionBankPage() {
         </div>
 
         {/* Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-800/80 text-xs">
-          <div className="flex items-center gap-1.5 text-slate-400 font-bold uppercase tracking-wider">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-400" />
+        <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-slate-200 dark:border-slate-800/80 text-xs">
+          <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-400 font-bold uppercase tracking-wider">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
             <span>{t("examiner.filters", "Filters:")}</span>
           </div>
 
@@ -463,7 +463,7 @@ export default function QuestionBankPage() {
           <select
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-200 font-medium focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
             <option value="ALL">{t("examiner.allSubjects", "All Subjects")}</option>
             {subjects.map((sub) => (
@@ -477,7 +477,7 @@ export default function QuestionBankPage() {
           <select
             value={selectedDifficulty}
             onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-200 font-medium focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
             <option value="ALL">{t("examiner.allDifficulties", "All Difficulties")}</option>
             <option value="EASY">{t("examiner.difficultyEasy", "Easy")}</option>
@@ -489,7 +489,7 @@ export default function QuestionBankPage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 text-slate-200 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-slate-900 dark:text-slate-200 font-medium focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
             <option value="ALL">{t("examiner.allFormats", "All Formats")}</option>
             <option value="MCQ">{t("examiner.formatMcq", "Single Choice (MCQ)")}</option>
@@ -510,7 +510,7 @@ export default function QuestionBankPage() {
                 setSelectedType("ALL");
                 setSearchTerm("");
               }}
-              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 ml-auto"
+              className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 ml-auto cursor-pointer"
             >
               {t("common.refresh", "Reset Filters")}
             </button>
@@ -520,34 +520,34 @@ export default function QuestionBankPage() {
 
       {selectedQuestionIds.length > 0 && (
         <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4">
-          <span className="text-sm font-bold text-white">{selectedQuestionIds.length} {t("examiner.selectedQuestions", "questions selected")}</span>
-          <select value={targetAssessmentId} onChange={(event) => { setTargetAssessmentId(event.target.value); setTargetSectionId(""); }} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white">
+          <span className="text-sm font-bold text-slate-900 dark:text-white">{selectedQuestionIds.length} {t("examiner.selectedQuestions", "questions selected")}</span>
+          <select value={targetAssessmentId} onChange={(event) => { setTargetAssessmentId(event.target.value); setTargetSectionId(""); }} className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-white">
             <option value="">{t("examiner.selectAssessment", "Choose assessment…")}</option>{assessments.map((assessment) => <option key={assessment.id} value={assessment.id}>{assessment.title}</option>)}
           </select>
-          <select value={targetSectionId} onChange={(event) => setTargetSectionId(event.target.value)} disabled={!targetAssessmentId} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-white disabled:opacity-50">
+          <select value={targetSectionId} onChange={(event) => setTargetSectionId(event.target.value)} disabled={!targetAssessmentId} className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs text-slate-900 dark:text-white disabled:opacity-50">
             <option value="">{t("examiner.selectSection", "Choose section…")}</option>{assessments.find((assessment) => assessment.id === targetAssessmentId)?.sections.map((section) => <option key={section.id} value={section.id}>{section.title}</option>)}
           </select>
-          <button onClick={addQuestionsToAssessment} disabled={!targetAssessmentId || !targetSectionId || movingQuestions} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50">{movingQuestions ? t("examiner.saving", "Adding…") : t("examiner.addToAssessment", "Add to assessment")}</button>
-          <button onClick={() => setSelectedQuestionIds([])} className="text-xs font-bold text-slate-400 hover:text-white">{t("common.cancel", "Clear selection")}</button>
+          <button onClick={addQuestionsToAssessment} disabled={!targetAssessmentId || !targetSectionId || movingQuestions} className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white disabled:opacity-50 cursor-pointer">{movingQuestions ? t("examiner.saving", "Adding…") : t("examiner.addToAssessment", "Add to assessment")}</button>
+          <button onClick={() => setSelectedQuestionIds([])} className="text-xs font-bold text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white cursor-pointer">{t("common.cancel", "Clear selection")}</button>
         </section>
       )}
 
       {/* Content Area */}
       {loading ? (
-        <div className="glass-card rounded-3xl p-16 border border-slate-800 text-center space-y-3">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-400" />
-          <p className="text-sm font-medium text-slate-300">
+        <div className="glass-card rounded-3xl p-16 border border-slate-200 dark:border-slate-800 text-center space-y-3 bg-white dark:bg-slate-900 shadow-sm">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto text-indigo-600 dark:text-indigo-400" />
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
             {t("common.loading", "Loading Question Bank repository...")}
           </p>
         </div>
       ) : questions.length === 0 ? (
-        <div className="glass-card rounded-3xl p-16 border border-slate-800 text-center space-y-4 shadow-xl">
-          <div className="h-16 w-16 rounded-3xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto">
+        <div className="glass-card rounded-3xl p-16 border border-slate-200 dark:border-slate-800 text-center space-y-4 shadow-sm bg-white dark:bg-slate-900">
+          <div className="h-16 w-16 rounded-3xl bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
             <HelpCircle className="h-8 w-8" />
           </div>
           <div className="space-y-1 max-w-md mx-auto">
-            <h3 className="text-lg font-bold text-white">{t("examiner.noQuestionsTitle", "No Questions Found")}</h3>
-            <p className="text-sm text-slate-400">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t("examiner.noQuestionsTitle", "No Questions Found")}</h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {searchTerm || selectedSubject !== "ALL" || selectedDifficulty !== "ALL" || selectedType !== "ALL"
                 ? t("examiner.noQuestionsFound", "No questions match your current search and filter combination.")
                 : t("examiner.noQuestionsDesc", "Your Question Bank is currently empty. Start building questions for your examinations.")}
@@ -567,44 +567,44 @@ export default function QuestionBankPage() {
           {questions.map((question) => (
             <div
               key={question.id}
-              className="glass-card rounded-3xl border border-slate-800 p-6 shadow-xl transition-all hover:border-indigo-500/60 flex flex-col justify-between group space-y-5"
+              className="glass-card rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-md transition-all hover:border-indigo-500/60 bg-white dark:bg-slate-900 flex flex-col justify-between group space-y-5"
             >
               <div className="space-y-3.5">
                 {/* Header Badges */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={selectedQuestionIds.includes(question.id)} onChange={(event) => setSelectedQuestionIds((current) => event.target.checked ? [...current, question.id] : current.filter((id) => id !== question.id))} className="h-4 w-4 rounded border-slate-600 bg-slate-900 text-indigo-600" aria-label={`Select ${question.question_text}`} />
+                    <input type="checkbox" checked={selectedQuestionIds.includes(question.id)} onChange={(event) => setSelectedQuestionIds((current) => event.target.checked ? [...current, question.id] : current.filter((id) => id !== question.id))} className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-indigo-600" aria-label={`Select ${question.question_text}`} />
                     {getTypeBadge(question.question_type)}
                     {getDifficultyBadge(question.difficulty)}
                   </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-300 bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/80">
-                    <Award className="h-3.5 w-3.5 text-indigo-400" />
+                  <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-800 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700/80">
+                    <Award className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                     {question.marks} {question.marks === 1 ? t("examiner.mark", "Mark") : t("examiner.marks", "Marks")}
                   </span>
                 </div>
 
                 {/* Question Text */}
-                <h3 className="text-base font-semibold text-white line-clamp-3 leading-relaxed">
+                <h3 className="text-base font-bold text-slate-900 dark:text-white line-clamp-3 leading-relaxed">
                   {question.question_text}
                 </h3>
 
                 {/* Subject and Media Tags */}
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 pt-1">
-                  <span className="flex items-center gap-1.5 text-indigo-300 font-medium bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-900/40">
-                    <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400 pt-1 font-medium">
+                  <span className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300 font-semibold bg-indigo-50 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-900/40">
+                    <BookOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                     {question.subject}
                   </span>
 
                   {question.image_url && (
-                    <span className="flex items-center gap-1 text-violet-300 bg-violet-950/40 px-2.5 py-1 rounded-lg border border-violet-900/40">
-                      <ImageIcon className="h-3.5 w-3.5 text-violet-400" />
+                    <span className="flex items-center gap-1 text-violet-700 dark:text-violet-300 bg-violet-50 dark:bg-violet-950/40 px-2.5 py-1 rounded-lg border border-violet-200 dark:border-violet-900/40 font-semibold">
+                      <ImageIcon className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400" />
                       {t("examiner.attachedDiagram", "Has Diagram")}
                     </span>
                   )}
 
                   {question.options && question.options.length > 0 && (
-                    <span className="flex items-center gap-1 text-slate-400">
-                      <Layers className="h-3.5 w-3.5" />
+                    <span className="flex items-center gap-1 text-slate-700 dark:text-slate-400">
+                      <Layers className="h-3.5 w-3.5 text-slate-500" />
                       {question.options.length} {t("examiner.optionsCount", "Options")}
                     </span>
                   )}
@@ -612,8 +612,8 @@ export default function QuestionBankPage() {
               </div>
 
               {/* Card Footer Actions */}
-              <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs">
-                <span className="text-slate-500">
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                <span className="text-slate-600 dark:text-slate-500 font-medium">
                   {question.created_at
                     ? new Date(question.created_at).toLocaleDateString()
                     : "Recent"}
@@ -625,7 +625,7 @@ export default function QuestionBankPage() {
                       setSelectedQuestion(question);
                       setIsDetailModalOpen(true);
                     }}
-                    className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                     title={t("examiner.previewQuestion", "View Details")}
                   >
                     <Eye className="h-4 w-4" />
@@ -633,7 +633,7 @@ export default function QuestionBankPage() {
 
                   <Link
                     href={`/examiner/questions/${question.id}/edit`}
-                    className="p-2 rounded-xl text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-indigo-700 hover:text-white dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
                     title={t("examiner.editQuestion", "Edit Question")}
                   >
                     <Edit className="h-4 w-4" />
@@ -644,7 +644,7 @@ export default function QuestionBankPage() {
                       setQuestionToDelete(question);
                       setIsDeleteModalOpen(true);
                     }}
-                    className="p-2 rounded-xl text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
                     title={t("examiner.deleteQuestion", "Delete Question")}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -656,10 +656,10 @@ export default function QuestionBankPage() {
         </div>
       ) : (
         /* TABLE VIEW */
-        <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
+        <div className="glass-card rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm bg-white dark:bg-slate-900">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-200">
-              <thead className="bg-slate-900/80 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-sm text-slate-800 dark:text-slate-200">
+              <thead className="bg-slate-100 dark:bg-slate-900/80 text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                 <tr>
                   <th className="px-6 py-4">{t("examiner.questionStatement", "Question Statement")}</th>
                   <th className="px-6 py-4">{t("examiner.filterSubject", "Subject")}</th>
@@ -670,29 +670,29 @@ export default function QuestionBankPage() {
                   <th className="px-6 py-4 text-right">{t("common.actions", "Actions")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                 {questions.map((question) => (
-                  <tr key={question.id} className="hover:bg-slate-900/50 transition-colors">
+                  <tr key={question.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
                     <td className="px-6 py-4 max-w-md">
-                      <div className="font-semibold text-white line-clamp-2">
+                      <div className="font-bold text-slate-900 dark:text-white line-clamp-2">
                         {question.question_text}
                       </div>
                       {question.image_url && (
-                        <div className="flex items-center gap-1 text-xs text-indigo-400 mt-1">
+                        <div className="flex items-center gap-1 text-xs text-indigo-700 dark:text-indigo-400 mt-1 font-semibold">
                           <ImageIcon className="h-3.5 w-3.5" />
                           <span>{t("examiner.attachedDiagram", "Attached image")}</span>
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 font-medium text-slate-300">
+                    <td className="px-6 py-4 font-semibold text-slate-800 dark:text-slate-300">
                       {question.subject}
                     </td>
                     <td className="px-6 py-4">{getTypeBadge(question.question_type)}</td>
                     <td className="px-6 py-4">{getDifficultyBadge(question.difficulty)}</td>
-                    <td className="px-6 py-4 font-bold text-white">
+                    <td className="px-6 py-4 font-black text-slate-900 dark:text-white">
                       {question.marks}
                     </td>
-                    <td className="px-6 py-4 text-xs text-slate-400">
+                    <td className="px-6 py-4 text-xs text-slate-600 dark:text-slate-400 font-medium">
                       {question.created_at
                         ? new Date(question.created_at).toLocaleDateString()
                         : "—"}
@@ -704,7 +704,7 @@ export default function QuestionBankPage() {
                             setSelectedQuestion(question);
                             setIsDetailModalOpen(true);
                           }}
-                          className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                           title={t("examiner.previewQuestion", "View Details")}
                         >
                           <Eye className="h-4 w-4" />
@@ -712,7 +712,7 @@ export default function QuestionBankPage() {
 
                         <Link
                           href={`/examiner/questions/${question.id}/edit`}
-                          className="p-2 rounded-xl text-indigo-400 hover:text-white bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-indigo-700 hover:text-white dark:text-indigo-400 bg-indigo-500/10 hover:bg-indigo-600 border border-indigo-500/20 transition-colors cursor-pointer"
                           title={t("examiner.editQuestion", "Edit Question")}
                         >
                           <Edit className="h-4 w-4" />
@@ -723,7 +723,7 @@ export default function QuestionBankPage() {
                             setQuestionToDelete(question);
                             setIsDeleteModalOpen(true);
                           }}
-                          className="p-2 rounded-xl text-rose-400 hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-200 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-colors cursor-pointer"
                           title={t("examiner.deleteQuestion", "Delete Question")}
                         >
                           <Trash2 className="h-4 w-4" />

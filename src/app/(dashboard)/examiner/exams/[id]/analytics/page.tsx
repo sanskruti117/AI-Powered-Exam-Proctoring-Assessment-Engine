@@ -142,18 +142,18 @@ export default function ExamAnalyticsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-emerald-400" />
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             <span>{t("examiner.cohortAnalytics", "Cohort Performance Analytics")}</span>
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">
             {t("examiner.cohortSubtitle", "Statistical evaluation of candidate cohort mastery, section distributions, and item diagnostics.")}
           </p>
         </div>
 
         <button
           onClick={fetchAnalytics}
-          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white self-start sm:self-auto"
+          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white self-start sm:self-auto cursor-pointer"
           title="Refresh Analytics"
         >
           <RefreshCw className="h-3.5 w-3.5" />
@@ -163,86 +163,86 @@ export default function ExamAnalyticsPage() {
       {/* Top 4 KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Pass Rate */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.passRate", "Pass Rate")}</span>
-            <TrendingUp className="h-4 w-4 text-emerald-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-1.5">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.passRate", "Pass Rate")}</span>
+            <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <div className="text-2xl font-extrabold text-emerald-400">
+          <div className="text-2xl font-black text-emerald-700 dark:text-emerald-400">
             {data.pass_rate_percentage}%
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">
             Fail Rate: {data.fail_rate_percentage}% ({data.total_attempts} total attempts)
           </div>
         </div>
 
         {/* Average Score */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.averageScore", "Average Score")}</span>
-            <Award className="h-4 w-4 text-indigo-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-1.5">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.averageScore", "Average Score")}</span>
+            <Award className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
           </div>
-          <div className="text-2xl font-extrabold text-white">
-            {data.average_score} <span className="text-xs font-normal text-slate-400">{t("examiner.marks", "marks")}</span>
+          <div className="text-2xl font-black text-slate-900 dark:text-white">
+            {data.average_score} <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">{t("examiner.marks", "marks")}</span>
           </div>
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">
             Median: {data.median_score} | High: {data.highest_score} | Low: {data.lowest_score}
           </div>
         </div>
 
         {/* Avg Completion Time */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.avgCompletionTime", "Avg Completion Time")}</span>
-            <Clock className="h-4 w-4 text-amber-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-1.5">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.avgCompletionTime", "Avg Completion Time")}</span>
+            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           </div>
-          <div className="text-2xl font-extrabold text-amber-400">
+          <div className="text-2xl font-black text-amber-700 dark:text-amber-400">
             {formatTime(data.average_completion_time_seconds)}
           </div>
-          <div className="text-xs text-slate-500">Per candidate full session duration</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">Per candidate full session duration</div>
         </div>
 
         {/* Avg Time per Question */}
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-1.5">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-xs font-semibold uppercase tracking-wider">{t("examiner.avgTimePerQuestion", "Avg Time / Question")}</span>
-            <Sparkles className="h-4 w-4 text-violet-400" />
+        <div className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-1.5">
+          <div className="flex items-center justify-between text-slate-700 dark:text-slate-400">
+            <span className="text-xs font-bold uppercase tracking-wider">{t("examiner.avgTimePerQuestion", "Avg Time / Question")}</span>
+            <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           </div>
-          <div className="text-2xl font-extrabold text-violet-400">
+          <div className="text-2xl font-black text-violet-700 dark:text-violet-400">
             {data.average_time_per_question_seconds}s
           </div>
-          <div className="text-xs text-slate-500">Cumulative stopwatch benchmark</div>
+          <div className="text-xs text-slate-600 dark:text-slate-500 font-medium">Cumulative stopwatch benchmark</div>
         </div>
       </div>
 
       {/* Difficulty & Section Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Difficulty Breakdown */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div className="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">{t("examiner.difficultyPacing", "Difficulty Pacing & Accuracy")}</h3>
-            <span className="text-xs text-slate-400">{t("examiner.cohortAccuracy", "Cohort Accuracy %")}</span>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t("examiner.difficultyPacing", "Difficulty Pacing & Accuracy")}</h3>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t("examiner.cohortAccuracy", "Cohort Accuracy %")}</span>
           </div>
 
           <div className="space-y-3">
             {data.difficulty_breakdown.map((item) => (
-              <div key={item.difficulty} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
+              <div key={item.difficulty} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span
                     className={
                       item.difficulty === "EASY"
-                        ? "text-emerald-400"
+                        ? "text-emerald-700 dark:text-emerald-400 font-extrabold"
                         : item.difficulty === "MEDIUM"
-                        ? "text-amber-400"
-                        : "text-rose-400"
+                        ? "text-amber-700 dark:text-amber-400 font-extrabold"
+                        : "text-rose-700 dark:text-rose-400 font-extrabold"
                     }
                   >
                     {item.difficulty} ({item.total_questions} {t("student.totalQuestions", "questions")})
                   </span>
-                  <span className="text-white font-extrabold">{item.average_accuracy}% {t("examiner.accuracy", "Accuracy")}</span>
+                  <span className="text-slate-900 dark:text-white font-black">{item.average_accuracy}% {t("examiner.accuracy", "Accuracy")}</span>
                 </div>
 
-                <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-950 overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all ${
                       item.difficulty === "EASY"
@@ -260,23 +260,23 @@ export default function ExamAnalyticsPage() {
         </div>
 
         {/* Section Mastery Breakdown */}
-        <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4">
+        <div className="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white">{t("examiner.subjectSectionMastery", "Subject Section Mastery")}</h3>
-            <span className="text-xs text-slate-400">{t("examiner.targetVsCohort", "Target Marks vs Cohort Avg")}</span>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">{t("examiner.subjectSectionMastery", "Subject Section Mastery")}</h3>
+            <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{t("examiner.targetVsCohort", "Target Marks vs Cohort Avg")}</span>
           </div>
 
           <div className="space-y-3">
             {data.section_breakdown.map((sec) => (
-              <div key={sec.section_title} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-white">
+              <div key={sec.section_title} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-900 dark:text-white">
                   <span>{sec.section_title}</span>
-                  <span className="text-indigo-400">
+                  <span className="text-indigo-700 dark:text-indigo-400 font-extrabold">
                     {sec.average_score} / {sec.target_marks} {t("examiner.marks", "Marks")} Avg
                   </span>
                 </div>
 
-                <div className="w-full h-2 rounded-full bg-slate-950 overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-950 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-indigo-500 transition-all"
                     style={{
@@ -294,11 +294,11 @@ export default function ExamAnalyticsPage() {
       </div>
 
       {/* Question-by-Question Deep Dive Table */}
-      <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-6">
+      <div className="glass-card rounded-3xl p-6 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h3 className="text-lg font-bold text-white">Question Cohort Diagnostics</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Question Cohort Diagnostics</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
               Granular accuracy rate, candidate attempts, and cumulative stopwatch duration per question.
             </p>
           </div>
@@ -309,14 +309,14 @@ export default function ExamAnalyticsPage() {
               placeholder={t("common.search", "Search questions...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
+              className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/80 border-b border-slate-800 text-slate-400 uppercase font-bold tracking-wider">
+            <thead className="bg-slate-50 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 uppercase font-extrabold tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Question Statement</th>
                 <th className="py-3.5 px-4 text-center">Section</th>
@@ -327,23 +327,23 @@ export default function ExamAnalyticsPage() {
                 <th className="py-3.5 px-4 text-right">Avg Score</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {filteredQuestions.map((q) => {
                 const accColor =
                   q.accuracy_percentage >= 70
-                    ? "text-emerald-400"
+                    ? "text-emerald-700 dark:text-emerald-400"
                     : q.accuracy_percentage >= 40
-                    ? "text-amber-400"
-                    : "text-rose-400";
+                    ? "text-amber-700 dark:text-amber-400"
+                    : "text-rose-700 dark:text-rose-400";
 
                 return (
-                  <tr key={q.question_id} className="hover:bg-slate-900/50 transition-colors">
+                  <tr key={q.question_id} className="hover:bg-slate-50/80 dark:hover:bg-slate-900/50 transition-colors">
                     <td className="py-3.5 px-4 max-w-md">
-                      <div className="font-semibold text-white truncate">{q.question_text}</div>
-                      <div className="text-[11px] text-slate-500">{q.question_type.replace("_", " ")}</div>
+                      <div className="font-semibold text-slate-900 dark:text-white truncate">{q.question_text}</div>
+                      <div className="text-[11px] text-slate-600 dark:text-slate-500 font-medium">{q.question_type.replace("_", " ")}</div>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-bold text-slate-300">
+                    <td className="py-3.5 px-4 text-center font-bold text-slate-800 dark:text-slate-300">
                       {q.section_title}
                     </td>
 
@@ -351,31 +351,31 @@ export default function ExamAnalyticsPage() {
                       <span
                         className={`px-2 py-0.5 rounded-md text-[11px] font-bold uppercase border ${
                           q.difficulty === "EASY"
-                            ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-300 dark:border-emerald-500/20"
                             : q.difficulty === "MEDIUM"
-                            ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                            : "bg-rose-500/10 text-rose-300 border-rose-500/20"
+                            ? "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/20"
+                            : "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-500/10 dark:text-rose-300 dark:border-rose-500/20"
                         }`}
                       >
                         {q.difficulty}
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center text-slate-300 font-medium">
+                    <td className="py-3.5 px-4 text-center text-slate-800 dark:text-slate-300 font-semibold">
                       {q.total_attempts}
                     </td>
 
-                    <td className={`py-3.5 px-4 text-center font-extrabold ${accColor}`}>
+                    <td className={`py-3.5 px-4 text-center font-black ${accColor}`}>
                       {q.accuracy_percentage}%
                     </td>
 
                     <td className="py-3.5 px-4 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-indigo-300 font-bold">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-slate-900 border border-indigo-200 dark:border-slate-800 text-indigo-800 dark:text-indigo-300 font-bold">
                         {q.average_time_spent_seconds}s
                       </span>
                     </td>
 
-                    <td className="py-3.5 px-4 text-right font-extrabold text-white">
+                    <td className="py-3.5 px-4 text-right font-black text-slate-900 dark:text-white">
                       {q.average_marks_obtained} / {q.marks}
                     </td>
                   </tr>

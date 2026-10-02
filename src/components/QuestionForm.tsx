@@ -633,22 +633,22 @@ export function QuestionForm({
       )}
 
       {/* 1. Question Modality & Metadata */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-        <div className="border-b border-slate-800 pb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-indigo-400" />
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-6 shadow-sm dark:shadow-xl">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             Question Type & Classification
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mt-1">
             Choose the examination format and taxonomy for this question.
           </p>
         </div>
 
         {/* Question Type Tabs */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 mb-3 flex items-center justify-between">
             <span>Select Question Format *</span>
-            <span className="text-[11px] font-semibold text-indigo-400">
+            <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
               Active: {questionType.replace("_", " ")}
             </span>
           </label>
@@ -672,25 +672,25 @@ export function QuestionForm({
                   onClick={() => setQuestionType(item.type)}
                   className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between gap-2 ${
                     isSelected
-                      ? "bg-indigo-600/25 border-indigo-500 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-indigo-500"
-                      : "bg-slate-900/90 border-slate-800 text-slate-300 hover:bg-slate-800/80 hover:border-slate-700"
+                      ? "bg-indigo-50 border-indigo-600 text-indigo-950 dark:bg-indigo-600/25 dark:border-indigo-500 dark:text-white shadow-md ring-1 ring-indigo-500"
+                      : "bg-slate-50 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div
                       className={`h-7 w-7 rounded-lg flex items-center justify-center ${
-                        isSelected ? "bg-indigo-500 text-white" : "bg-slate-800 text-slate-400"
+                        isSelected ? "bg-indigo-600 text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400"
                       }`}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
                     {isSelected && (
-                      <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                      <span className="h-2 w-2 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse" />
                     )}
                   </div>
                   <div>
-                    <div className="font-bold text-sm text-white">{item.label}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">{item.sub}</div>
+                    <div className="font-bold text-sm text-slate-900 dark:text-white">{item.label}</div>
+                    <div className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">{item.sub}</div>
                   </div>
                 </button>
               );
@@ -702,7 +702,7 @@ export function QuestionForm({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
           {/* Subject Field */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
               Subject / Course *
             </label>
             <input
@@ -711,7 +711,7 @@ export function QuestionForm({
               placeholder="e.g. Data Structures & Algorithms"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
             />
 
             {/* Quick Suggestions */}
@@ -721,7 +721,7 @@ export function QuestionForm({
                   key={s}
                   type="button"
                   onClick={() => setSubject(s)}
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800/80 hover:bg-indigo-900/40 text-slate-400 hover:text-indigo-300 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800/80 dark:hover:bg-indigo-900/40 text-slate-700 hover:text-indigo-700 dark:text-slate-400 dark:hover:text-indigo-300 transition-colors font-medium"
                 >
                   +{s.split(" ")[0]}
                 </button>
@@ -731,7 +731,7 @@ export function QuestionForm({
 
           {/* Difficulty Field */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
               Difficulty Level
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -743,11 +743,11 @@ export function QuestionForm({
                   className={`py-3 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all cursor-pointer ${
                     difficulty === lvl
                       ? lvl === "EASY"
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                        ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40"
                         : lvl === "MEDIUM"
-                        ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                        : "bg-rose-500/20 text-rose-300 border-rose-500/40"
-                      : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+                        ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40"
+                        : "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-500/40"
+                      : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   {lvl}
@@ -758,7 +758,7 @@ export function QuestionForm({
 
           {/* Marks Allocated */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 flex items-center justify-between">
               <span>Marks Allocated *</span>
               <span className="text-slate-500 font-normal text-[11px]">Min: 1</span>
             </label>
@@ -770,7 +770,7 @@ export function QuestionForm({
                 required
                 value={marks}
                 onChange={(e) => setMarks(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-mono"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">
                 PTS
@@ -781,13 +781,13 @@ export function QuestionForm({
       </div>
 
       {/* 2. Question Statement & Content */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-        <div className="border-b border-slate-800 pb-4">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <HelpCircle className="h-5 w-5 text-indigo-400" />
+      <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-6 shadow-sm dark:shadow-xl">
+        <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             {questionType === "CODING" ? "Problem Description & Specifications" : "Question Statement"}
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mt-1">
             {questionType === "CODING"
               ? "Detail the algorithm task, input parameters, expected returns, and mathematical constraints."
               : "Formulate the core problem statement clearly."}
@@ -796,7 +796,7 @@ export function QuestionForm({
 
         {/* Statement Textarea */}
         <div className="space-y-2">
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
             {questionType === "CODING" ? "Problem Statement / Task Overview *" : "Question Text *"}
           </label>
           <textarea
@@ -809,7 +809,7 @@ export function QuestionForm({
             }
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
-            className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed font-sans"
+            className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed font-sans"
           />
         </div>
 
@@ -817,7 +817,7 @@ export function QuestionForm({
         {questionType === "CODING" && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-2">
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                 Input Format
               </label>
               <textarea
@@ -825,12 +825,12 @@ export function QuestionForm({
                 placeholder="e.g. First line contains integer N, followed by N space-separated integers."
                 value={inputFormat}
                 onChange={(e) => setInputFormat(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                 Output Format
               </label>
               <textarea
@@ -838,12 +838,12 @@ export function QuestionForm({
                 placeholder="e.g. Print two space-separated indices."
                 value={outputFormat}
                 onChange={(e) => setOutputFormat(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                 Constraints
               </label>
               <textarea
@@ -851,7 +851,7 @@ export function QuestionForm({
                 placeholder="e.g. 1 <= N <= 10^5, -10^9 <= nums[i] <= 10^9"
                 value={constraints}
                 onChange={(e) => setConstraints(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
               />
             </div>
           </div>
@@ -860,13 +860,13 @@ export function QuestionForm({
         {/* Image Upload for IMAGE question or optional diagram */}
         {canAttachImage && questionType !== "CODING" && (
           <div className="space-y-3 pt-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-indigo-400" />
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 flex items-center gap-2">
+              <ImageIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               Diagram / Image Attachment {questionType === "IMAGE" && "*"}
             </label>
 
             {imageUrl ? (
-              <div className="relative rounded-2xl border border-slate-700 bg-slate-900/80 p-4 flex flex-col items-center gap-3">
+              <div className="relative rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex flex-col items-center gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imageUrl}
@@ -876,7 +876,7 @@ export function QuestionForm({
                 <button
                   type="button"
                   onClick={() => setImageUrl("")}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-400 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-rose-700 dark:text-rose-400 bg-rose-100 hover:bg-rose-200 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 border border-rose-300 dark:border-rose-500/30 transition-colors"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   Remove Image
@@ -885,7 +885,7 @@ export function QuestionForm({
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-700 hover:border-indigo-500/60 rounded-2xl p-8 text-center bg-slate-900/40 hover:bg-slate-900 transition-all cursor-pointer group"
+                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500/60 rounded-2xl p-8 text-center bg-slate-50 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-900 transition-all cursor-pointer group"
               >
                 <input
                   ref={fileInputRef}
@@ -894,17 +894,17 @@ export function QuestionForm({
                   onChange={handleImageUpload}
                   className="hidden"
                 />
-                <div className="h-12 w-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
+                <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-600/20 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform">
                   {uploadingImage ? (
                     <RefreshCw className="h-6 w-6 animate-spin" />
                   ) : (
                     <Upload className="h-6 w-6" />
                   )}
                 </div>
-                <p className="text-sm font-semibold text-white">
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">
                   {uploadingImage ? "Uploading diagram..." : "Click or Drag to Upload Diagram"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Supports PNG, JPG, WEBP, GIF, SVG (up to 10MB)
                 </p>
               </div>
@@ -917,14 +917,14 @@ export function QuestionForm({
       {questionType === "CODING" && (
         <>
           {/* Test Cases Manager */}
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-            <div className="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-6 shadow-sm dark:shadow-xl">
+            <div className="border-b border-slate-200 dark:border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Terminal className="h-5 w-5 text-indigo-400" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Terminal className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                   Test Case Suite ({testCases.length})
                 </h2>
-                <p className="text-xs text-slate-400 mt-1">
+                <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mt-1">
                   Provide sample test cases (visible to student) and hidden test cases (for grading & edge cases).
                 </p>
               </div>
@@ -932,7 +932,7 @@ export function QuestionForm({
                 <button
                   type="button"
                   onClick={() => handleAddTestCase(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/30 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Sample Test Case
@@ -940,7 +940,7 @@ export function QuestionForm({
                 <button
                   type="button"
                   onClick={() => handleAddTestCase(false)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 border border-indigo-300 dark:border-indigo-500/30 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Hidden Test Case
@@ -954,20 +954,20 @@ export function QuestionForm({
                   key={idx}
                   className={`p-4 rounded-2xl border transition-all ${
                     tc.is_sample
-                      ? "bg-slate-900/90 border-emerald-500/30"
-                      : "bg-slate-950/80 border-slate-800"
+                      ? "bg-slate-50 dark:bg-slate-900/90 border-emerald-300 dark:border-emerald-500/30"
+                      : "bg-slate-50 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800"
                   }`}
                 >
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800/80 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-white">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
                         Test Case #{idx + 1}
                       </span>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                           tc.is_sample
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                            : "bg-indigo-500/20 text-indigo-300 border border-indigo-500/30"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/30"
+                            : "bg-indigo-50 text-indigo-800 border border-indigo-300 dark:bg-indigo-500/20 dark:text-indigo-300 dark:border-indigo-500/30"
                         }`}
                       >
                         {tc.is_sample ? "Sample (Visible)" : "Hidden (Grading)"}
@@ -975,14 +975,14 @@ export function QuestionForm({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-400 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={tc.is_sample}
                           onChange={(e) =>
                             handleTestCaseChange(idx, "is_sample", e.target.checked)
                           }
-                          className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
                         />
                         <span>Is Sample</span>
                       </label>
@@ -990,7 +990,7 @@ export function QuestionForm({
                       <button
                         type="button"
                         onClick={() => handleRemoveTestCase(idx)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                         title="Remove Test Case"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1000,7 +1000,7 @@ export function QuestionForm({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                         Input (stdin)
                       </label>
                       <textarea
@@ -1010,12 +1010,12 @@ export function QuestionForm({
                           handleTestCaseChange(idx, "input_data", e.target.value)
                         }
                         placeholder="e.g. 4\n2 7 11 15\n9"
-                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white font-mono placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                         Expected Output (stdout) *
                       </label>
                       <textarea
@@ -1026,14 +1026,14 @@ export function QuestionForm({
                           handleTestCaseChange(idx, "expected_output", e.target.value)
                         }
                         placeholder="e.g. 0 1"
-                        className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white font-mono placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
 
                   {tc.is_sample && (
                     <div className="mt-3">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 mb-1">
                         Explanation (Optional)
                       </label>
                       <input
@@ -1043,7 +1043,7 @@ export function QuestionForm({
                           handleTestCaseChange(idx, "explanation", e.target.value)
                         }
                         placeholder="e.g. nums[0] + nums[1] == 9, so return [0, 1]"
-                        className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   )}
@@ -1053,20 +1053,20 @@ export function QuestionForm({
           </div>
 
           {/* Languages & Starter Boilerplate Templates */}
-          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-            <div className="border-b border-slate-800 pb-4">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <Code2 className="h-5 w-5 text-indigo-400" />
+          <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-6 shadow-sm dark:shadow-xl">
+            <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Code2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 Language Settings & Starter Code Templates
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mt-1">
                 Configure which programming languages candidates can choose from, and provide boilerplate starter code.
               </p>
             </div>
 
             {/* Allowed Languages Checkboxes */}
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 mb-2">
                 Allowed Languages *
               </label>
               <div className="flex flex-wrap gap-3">
@@ -1082,10 +1082,10 @@ export function QuestionForm({
                       key={lang.id}
                       type="button"
                       onClick={() => toggleAllowedLanguage(lang.id)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${
+                      className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 cursor-pointer ${
                         isChecked
                           ? "bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20"
-                          : "bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700"
+                          : "bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700"
                       }`}
                     >
                       {isChecked && <Check className="h-3.5 w-3.5" />}
@@ -1099,8 +1099,8 @@ export function QuestionForm({
             {/* Execution Limits */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-indigo-400" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                   Time Limit per Test Case (Seconds)
                 </label>
                 <input
@@ -1110,13 +1110,13 @@ export function QuestionForm({
                   max="10"
                   value={timeLimitSeconds}
                   onChange={(e) => setTimeLimitSeconds(parseFloat(e.target.value) || 2.0)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white font-mono"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <Cpu className="h-3.5 w-3.5 text-indigo-400" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400 flex items-center gap-1.5">
+                  <Cpu className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                   Memory Limit (MB)
                 </label>
                 <input
@@ -1126,7 +1126,7 @@ export function QuestionForm({
                   max="1024"
                   value={memoryLimitMb}
                   onChange={(e) => setMemoryLimitMb(parseInt(e.target.value) || 256)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700/80 text-xs text-white font-mono"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-xs text-slate-900 dark:text-white font-mono"
                 />
               </div>
             </div>
@@ -1134,19 +1134,19 @@ export function QuestionForm({
             {/* Boilerplate Editor */}
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                   Starter Code Boilerplate
                 </label>
-                <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-300 dark:border-slate-800">
                   {allowedLanguages.map((lang) => (
                     <button
                       key={lang}
                       type="button"
                       onClick={() => setActiveCodeLangTab(lang)}
-                      className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all ${
+                      className={`px-3 py-1 rounded-lg text-xs font-bold capitalize transition-all cursor-pointer ${
                         activeCodeLangTab === lang
                           ? "bg-indigo-600 text-white shadow-sm"
-                          : "text-slate-400 hover:text-white"
+                          : "text-slate-700 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
                       }`}
                     >
                       {lang}
@@ -1164,14 +1164,14 @@ export function QuestionForm({
                     [activeCodeLangTab]: e.target.value,
                   }))
                 }
-                className="w-full p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-emerald-400 font-mono focus:outline-none focus:border-indigo-500 leading-relaxed"
+                className="w-full p-4 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-xs text-emerald-400 font-mono focus:outline-none focus:border-indigo-500 leading-relaxed"
               />
             </div>
 
             {/* Live Test Run Box */}
-            <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3">
+            <div className="p-4 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-700 dark:border-slate-800/80 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-300 dark:text-slate-400 flex items-center gap-2">
                   <Play className="h-3.5 w-3.5 text-indigo-400" />
                   Live Test Run (Verify Starter Code / Solution)
                 </span>
@@ -1196,14 +1196,14 @@ export function QuestionForm({
                     placeholder="Enter input (e.g. 7 1 8 12 4 6 15 20 10)"
                     value={testRunCustomInput}
                     onChange={(e) => setTestRunCustomInput(e.target.value)}
-                    className="w-full p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                    className="w-full p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Execution Output & Logs
                   </label>
-                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 min-h-[76px] flex flex-col justify-center overflow-x-auto">
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-300 min-h-[76px] flex flex-col justify-center overflow-x-auto">
                     {testRunResult ? (
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-1">
@@ -1229,7 +1229,7 @@ export function QuestionForm({
                         )}
                       </div>
                     ) : (
-                      <span className="text-slate-600 italic">Click Run to test execution output...</span>
+                      <span className="text-slate-400 italic">Click Run to test execution output...</span>
                     )}
                   </div>
                 </div>
@@ -1241,13 +1241,13 @@ export function QuestionForm({
 
       {/* 4. MCQ / Descriptive Answer Options */}
       {questionType !== "CODING" && (
-        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6 shadow-xl">
-          <div className="border-b border-slate-800 pb-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <Layers className="h-5 w-5 text-indigo-400" />
+        <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-6 shadow-sm dark:shadow-xl">
+          <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Layers className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               Answer Evaluation & Options
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-400 mt-1">
               Configure candidate answer options or provide reference rubrics.
             </p>
           </div>
@@ -1258,13 +1258,13 @@ export function QuestionForm({
             questionType === "IMAGE") && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                   Options & Correct Answer Selection
                 </span>
                 <button
                   type="button"
                   onClick={handleAddOption}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-500/30 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-700 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 px-3 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-500/30 transition-colors cursor-pointer"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   Add Option
@@ -1281,8 +1281,8 @@ export function QuestionForm({
                       key={index}
                       className={`p-3.5 rounded-2xl border flex items-center gap-3 transition-all ${
                         isSelected
-                          ? "bg-indigo-950/30 border-indigo-500/50"
-                          : "bg-slate-900/90 border-slate-800"
+                          ? "bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-500/50"
+                          : "bg-slate-50 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800"
                       }`}
                     >
                       {/* Correct Selector (Radio for MCQ, Checkbox for MULTI_SELECT) */}
@@ -1296,8 +1296,8 @@ export function QuestionForm({
                         title={isSelected ? "Marked as correct" : "Click to mark as correct"}
                         className={`h-9 w-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 transition-all cursor-pointer ${
                           isSelected
-                            ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/25"
-                            : "bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white"
+                            ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/25"
+                            : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         {isSelected ? <Check className="h-4 w-4 stroke-[3]" /> : labelLetter}
@@ -1310,14 +1310,14 @@ export function QuestionForm({
                         placeholder={`Option ${labelLetter} text...`}
                         value={option.option_text}
                         onChange={(e) => handleOptionTextChange(index, e.target.value)}
-                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                        className="flex-1 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-950/60 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
                       />
 
                       {/* Remove Option Button */}
                       <button
                         type="button"
                         onClick={() => handleRemoveOption(index)}
-                        className="p-2.5 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        className="p-2.5 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors cursor-pointer"
                         title="Remove option"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1335,7 +1335,7 @@ export function QuestionForm({
           {/* Short Answer Field */}
           {questionType === "SHORT_ANSWER" && (
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                 Expected Answer / Key Phrase *
               </label>
               <input
@@ -1344,7 +1344,7 @@ export function QuestionForm({
                 placeholder="e.g. O(log n) or Depth-First Search"
                 value={expectedAnswer}
                 onChange={(e) => setExpectedAnswer(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
               />
               <p className="text-xs text-slate-500">
                 This will be used for automated pattern matching or reference grading.
@@ -1355,7 +1355,7 @@ export function QuestionForm({
           {/* Long Answer / Essay Rubric */}
           {questionType === "LONG_ANSWER" && (
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-400">
                 Scoring Rubric / Model Answer / Key Points *
               </label>
               <textarea
@@ -1364,7 +1364,7 @@ export function QuestionForm({
                 placeholder="Detail key conceptual points, edge cases, and grading breakdown..."
                 value={expectedAnswer}
                 onChange={(e) => setExpectedAnswer(e.target.value)}
-                className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-700/80 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
+                className="w-full p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700/80 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
               />
               <p className="text-xs text-slate-500">
                 Used by examiners during manual assessment or for AI candidate evaluation.
@@ -1380,7 +1380,7 @@ export function QuestionForm({
           type="button"
           onClick={() => router.push("/examiner/questions")}
           disabled={submitting}
-          className="px-6 py-3.5 rounded-2xl text-sm font-semibold text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 transition-colors cursor-pointer"
+          className="px-6 py-3.5 rounded-2xl text-sm font-semibold text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 transition-colors cursor-pointer"
         >
           Cancel
         </button>

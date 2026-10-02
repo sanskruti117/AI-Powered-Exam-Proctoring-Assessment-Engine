@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Download, Check, Sparkles, X, Share } from "lucide-react";
+import { Download, Check, Sparkles, X } from "lucide-react";
 import { useLanguage } from "@/lib/i18n/LanguageContext";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -75,23 +75,23 @@ export function PWAInstallButton({ className = "", variant = "default" }: PWAIns
   if (isStandalone) {
     if (variant === "compact") {
       return (
-        <div
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 text-xs font-semibold ${className}`}
+        <span
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 text-xs font-semibold ${className}`}
           title="App is already installed and operating in Standalone Mode"
         >
           <Check className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Installed</span>
-        </div>
+        </span>
       );
     }
     return (
-      <div
-        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-950/40 border border-emerald-800/40 text-emerald-400 text-xs font-semibold ${className}`}
+      <span
+        className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 text-xs font-semibold ${className}`}
         title="App is already installed"
       >
         <Check className="h-4 w-4" />
         <span>Installed</span>
-      </div>
+      </span>
     );
   }
 
@@ -101,10 +101,10 @@ export function PWAInstallButton({ className = "", variant = "default" }: PWAIns
         <button
           type="button"
           onClick={handleInstall}
-          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-600/15 border border-indigo-500/40 text-xs font-semibold text-indigo-300 hover:text-white hover:bg-indigo-600/30 hover:border-indigo-400 transition-all shadow-sm group ${className}`}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-600/15 border border-indigo-200 dark:border-indigo-500/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white hover:bg-indigo-100 dark:hover:bg-indigo-600/30 hover:border-indigo-300 dark:hover:border-indigo-400 transition-all shadow-xs group ${className}`}
           title="Install AI Proctor App"
         >
-          <Download className="h-3.5 w-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
+          <Download className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform" />
           <span>{t("pwa.install", "Install App")}</span>
         </button>
       )}
@@ -113,12 +113,12 @@ export function PWAInstallButton({ className = "", variant = "default" }: PWAIns
         <button
           type="button"
           onClick={handleInstall}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600/15 border border-indigo-500/40 text-sm font-semibold text-indigo-300 hover:text-white hover:bg-indigo-600/30 hover:border-indigo-400 transition-all shadow-sm group ${className}`}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-600/15 border border-indigo-200 dark:border-indigo-500/40 text-sm font-semibold text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-white hover:bg-indigo-100 dark:hover:bg-indigo-600/30 hover:border-indigo-300 dark:hover:border-indigo-400 transition-all shadow-xs group ${className}`}
           title="Install AI Proctor App"
         >
-          <div className="h-6 w-6 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:text-indigo-300 group-hover:scale-110 transition-transform">
+          <span className="h-6 w-6 rounded-lg bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
             <Download className="h-3.5 w-3.5" />
-          </div>
+          </span>
           <span>{t("pwa.installApp", "Install App")}</span>
         </button>
       )}
@@ -137,29 +137,29 @@ export function PWAInstallButton({ className = "", variant = "default" }: PWAIns
       {/* Manual / iOS Instructions Modal */}
       {showIOSModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-sm w-full p-6 text-slate-100 shadow-2xl relative">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl max-w-sm w-full p-6 text-slate-800 dark:text-slate-100 shadow-2xl relative">
             <button
               onClick={() => setShowIOSModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-600/20 border border-indigo-200 dark:border-indigo-500/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4">
               <Sparkles className="w-6 h-6" />
             </div>
 
-            <h3 className="text-lg font-bold text-white mb-2">Install AI Proctor</h3>
-            <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Install AI Proctor</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
               Install the app directly to your home screen or desktop for a fullscreen, low-latency examination environment.
             </p>
 
-            <div className="space-y-3 bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 text-xs">
+            <div className="space-y-3 bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
               <div className="flex items-start gap-2.5">
                 <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0">
                   1
                 </span>
-                <p className="text-slate-300">
+                <p className="text-slate-700 dark:text-slate-300">
                   {isIOS
                     ? "Tap the Share icon in Safari (bottom navigation bar)."
                     : "Open your browser menu (three dots in top-right)."}
@@ -169,8 +169,8 @@ export function PWAInstallButton({ className = "", variant = "default" }: PWAIns
                 <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0">
                   2
                 </span>
-                <p className="text-slate-300">
-                  Select <strong className="text-white">&quot;Add to Home Screen&quot;</strong> or <strong className="text-white">&quot;Install App&quot;</strong>.
+                <p className="text-slate-700 dark:text-slate-300">
+                  Select <strong className="text-slate-900 dark:text-white">&quot;Add to Home Screen&quot;</strong> or <strong className="text-slate-900 dark:text-white">&quot;Install App&quot;</strong>.
                 </p>
               </div>
             </div>

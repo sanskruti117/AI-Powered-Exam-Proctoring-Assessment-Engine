@@ -1,5 +1,5 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from typing import Optional, List
+from fastapi import APIRouter, Depends, HTTPException, Request, Query, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from backend.database import get_db
@@ -10,6 +10,9 @@ from backend.crud import (
     approve_examiner,
     reject_examiner,
     get_user_by_id,
+    get_exams,
+    get_questions,
+    get_distinct_subjects,
 )
 from backend.routers.auth import get_current_user_payload
 
@@ -66,6 +69,103 @@ def list_examiners(
         "success": True,
         "stats": stats,
         "examiners": examiners_data,
+    }
+
+
+@router.get("/stats")
+def get_admin_dashboard_stats(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    require_admin(request)
+    stats = get_system_stats(db)
+    return {
+        "success": True,
+        "stats": stats,
+    }
+
+
+@router.get("/exams")
+def list_all_exams_admin(
+    request: Request,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    require_admin(request)
+    exams = get_exams(db, examiner_id=None, status=status, search=search)
+    stats = get_system_stats(db)
+    return {
+        "success": True,
+        "total": len(exams),
+        "exams": exams,
+        "stats": stats,
+    }
+
+
+@router.get("/questions")
+def list_all_questions_admin(
+    request: Request,
+    subject: Optional[str] = None,
+    difficulty: Optional[str] = None,
+    question_type: Optional[str] = None,
+    search: Optional[str] = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    require_admin(request)
+    skip = (page - 1) * page_size
+    questions_objs, total = get_questions(
+        db=db,
+        examiner_id=None,
+        subject=subject,
+        difficulty=difficulty,
+        question_type=question_type,
+        search=search,
+        skip=skip,
+        limit=page_size,
+    )
+    subjects = get_distinct_subjects(db, examiner_id=None)
+    stats = get_system_stats(db)
+
+    # Serialize questions
+    questions_data = []
+    for q in questions_objs:
+        options_data = []
+        if q.options:
+            for opt in q.options:
+                options_data.append({
+                    "id": opt.id,
+                    "option_text": opt.option_text,
+                    "is_correct": opt.is_correct,
+                    "order": opt.order,
+                })
+
+        questions_data.append({
+            "id": q.id,
+            "exam_id": q.exam_id,
+            "section_id": q.section_id,
+            "examiner_id": q.examiner_id,
+            "question_text": q.question_text,
+            "subject": q.subject,
+            "difficulty": q.difficulty,
+            "question_type": q.question_type,
+            "marks": q.marks,
+            "expected_answer": q.expected_answer,
+            "image_url": q.image_url,
+            "options": options_data,
+            "created_at": q.created_at.isoformat() if q.created_at else None,
+        })
+
+    return {
+        "success": True,
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "questions": questions_data,
+        "subjects": subjects,
+        "stats": stats,
     }
 
 

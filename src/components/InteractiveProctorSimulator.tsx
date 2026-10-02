@@ -112,14 +112,14 @@ export function InteractiveProctorSimulator() {
 
   return (
     <div
-      className={`w-full max-w-5xl mx-auto rounded-3xl bg-slate-900/90 border backdrop-blur-2xl shadow-2xl transition-all duration-500 overflow-hidden relative group ${
+      className={`w-full max-w-5xl mx-auto rounded-3xl bg-white/90 dark:bg-slate-900/90 border backdrop-blur-2xl shadow-2xl transition-all duration-500 overflow-hidden relative group ${
         isAnomaly
-          ? "border-rose-500/60 shadow-rose-950/60 animate-hazard-pulse"
-          : "border-indigo-500/30 shadow-indigo-950/60"
+          ? "border-rose-500/60 shadow-rose-950/30 dark:shadow-rose-950/60 animate-hazard-pulse"
+          : "border-indigo-500/30 shadow-indigo-950/20 dark:shadow-indigo-950/60"
       }`}
     >
       {/* Top Header Bar */}
-      <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/70 flex flex-wrap items-center justify-between gap-4">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/70 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span
@@ -133,35 +133,35 @@ export function InteractiveProctorSimulator() {
               }`}
             />
           </div>
-          <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
-            <span className="text-indigo-400 font-bold">AI_PROCTOR_CORE</span>
-            <span className="text-slate-600">|</span>
-            <span className="text-emerald-400">FPS: 30.0</span>
-            <span className="text-slate-600">|</span>
-            <span className="text-slate-400">LATENCY: 32ms</span>
+          <div className="flex items-center gap-2 font-mono text-xs text-slate-600 dark:text-slate-300">
+            <span className="text-indigo-600 dark:text-indigo-400 font-bold">AI_PROCTOR_CORE</span>
+            <span className="text-slate-400 dark:text-slate-600">|</span>
+            <span className="text-emerald-600 dark:text-emerald-400">FPS: 30.0</span>
+            <span className="text-slate-400 dark:text-slate-600">|</span>
+            <span className="text-slate-500 dark:text-slate-400">LATENCY: 32ms</span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
           {/* Integrity Score Badge */}
-          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700">
-            <Activity className="w-4 h-4 text-indigo-400 animate-pulse" />
-            <span className="text-xs text-slate-400 font-medium">Integrity:</span>
+          <div className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <Activity className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Integrity:</span>
             <span
               className={`text-xs font-bold font-mono ${
                 integrityScore > 90
-                  ? "text-emerald-400"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : integrityScore > 75
-                  ? "text-amber-400"
-                  : "text-rose-400"
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-rose-600 dark:text-rose-400"
               }`}
             >
               {integrityScore.toFixed(1)}%
             </span>
           </div>
 
-          <div className="hidden sm:flex items-center gap-1.5 text-xs text-indigo-300 font-mono">
-            <Radio className="w-3.5 h-3.5 animate-pulse text-indigo-400" />
+          <div className="hidden sm:flex items-center gap-1.5 text-xs text-indigo-600 dark:text-indigo-300 font-mono">
+            <Radio className="w-3.5 h-3.5 animate-pulse text-indigo-500 dark:text-indigo-400" />
             <span>LIVE INTERACTIVE SIMULATOR</span>
           </div>
         </div>
@@ -169,7 +169,7 @@ export function InteractiveProctorSimulator() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-0">
         {/* Left Viewport: Simulated AI Vision Camera */}
-        <div className="lg:col-span-7 p-6 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col justify-between relative bg-slate-950/60 overflow-hidden">
+        <div className="lg:col-span-7 p-6 border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between relative bg-slate-100/50 dark:bg-slate-950/60 overflow-hidden">
           {/* Ambient Scanner & Grid */}
           <div className="absolute inset-0 bg-cyber-grid opacity-30 pointer-events-none" />
           <div className="scanline absolute inset-0 pointer-events-none" />
@@ -258,7 +258,7 @@ export function InteractiveProctorSimulator() {
             )}
 
             {/* Live Camera Bottom HUD Overlay */}
-            <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[11px] font-mono text-slate-400 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
+            <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-[11px] font-mono text-slate-300 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800">
               <div className="flex items-center gap-2">
                 <Eye className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Gaze Angle: 0.2° pitch, -0.4° yaw</span>
@@ -272,8 +272,8 @@ export function InteractiveProctorSimulator() {
 
           {/* Interactive Trigger Buttons */}
           <div className="mt-5 space-y-2">
-            <div className="text-xs font-semibold text-slate-300 flex items-center gap-2">
-              <Zap className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+              <Zap className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               <span>Interactive Controls (Click to Test Real-Time AI Detection):</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -283,10 +283,10 @@ export function InteractiveProctorSimulator() {
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                   activeSim === "normal"
                     ? "bg-emerald-600 text-white border-emerald-400 shadow-md shadow-emerald-600/30"
-                    : "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-800"
+                    : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-300" />
                 Normal State
               </button>
 
@@ -296,10 +296,10 @@ export function InteractiveProctorSimulator() {
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                   activeSim === "phone"
                     ? "bg-amber-600 text-white border-amber-400 shadow-md shadow-amber-600/30"
-                    : "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-amber-500/40 hover:bg-slate-800"
+                    : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-amber-500/40 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <Smartphone className="w-3.5 h-3.5 text-amber-300" />
+                <Smartphone className="w-3.5 h-3.5 text-amber-600 dark:text-amber-300" />
                 Mobile Device
               </button>
 
@@ -309,10 +309,10 @@ export function InteractiveProctorSimulator() {
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                   activeSim === "multiface"
                     ? "bg-rose-600 text-white border-rose-400 shadow-md shadow-rose-600/30"
-                    : "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-rose-500/40 hover:bg-slate-800"
+                    : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-rose-500/40 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <Users className="w-3.5 h-3.5 text-rose-300" />
+                <Users className="w-3.5 h-3.5 text-rose-600 dark:text-rose-300" />
                 Multiple Faces
               </button>
 
@@ -322,10 +322,10 @@ export function InteractiveProctorSimulator() {
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                   activeSim === "tabswitch"
                     ? "bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-600/30"
-                    : "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-purple-500/40 hover:bg-slate-800"
+                    : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-purple-500/40 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <Maximize2 className="w-3.5 h-3.5 text-purple-300" />
+                <Maximize2 className="w-3.5 h-3.5 text-purple-600 dark:text-purple-300" />
                 Tab Switch
               </button>
 
@@ -335,17 +335,17 @@ export function InteractiveProctorSimulator() {
                 className={`flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
                   activeSim === "audio"
                     ? "bg-cyan-600 text-white border-cyan-400 shadow-md shadow-cyan-600/30"
-                    : "bg-slate-900/90 text-slate-300 border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800"
+                    : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-cyan-500/40 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
               >
-                <Volume2 className="w-3.5 h-3.5 text-cyan-300" />
+                <Volume2 className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-300" />
                 Noise Spike
               </button>
 
               <button
                 type="button"
                 onClick={() => triggerSim("normal")}
-                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/20 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-600/20 transition-colors cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Reset Core
@@ -355,14 +355,14 @@ export function InteractiveProctorSimulator() {
         </div>
 
         {/* Right Telemetry & Event Stream */}
-        <div className="lg:col-span-5 p-6 flex flex-col justify-between bg-slate-950/40">
+        <div className="lg:col-span-5 p-6 flex flex-col justify-between bg-slate-50/70 dark:bg-slate-950/40">
           <div>
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
-              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                <Shield className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                 Real-Time Telemetry Log
               </h4>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-500/30">
                 AUDIT READY
               </span>
             </div>
@@ -374,12 +374,12 @@ export function InteractiveProctorSimulator() {
                   key={log.id}
                   className={`p-3 rounded-xl border text-xs transition-all animate-in fade-in slide-in-from-top-2 duration-300 ${
                     log.severity === "safe"
-                      ? "bg-emerald-950/30 border-emerald-800/40 text-emerald-200"
+                      ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/40 text-emerald-800 dark:text-emerald-200"
                       : log.severity === "high"
-                      ? "bg-rose-950/40 border-rose-800/50 text-rose-200 animate-pulse"
+                      ? "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800/50 text-rose-800 dark:text-rose-200 animate-pulse"
                       : log.severity === "medium"
-                      ? "bg-purple-950/40 border-purple-800/50 text-purple-200"
-                      : "bg-amber-950/40 border-amber-800/50 text-amber-200"
+                      ? "bg-purple-50 dark:bg-purple-950/40 border-purple-200 dark:border-purple-800/50 text-purple-800 dark:text-purple-200"
+                      : "bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/50 text-amber-800 dark:text-amber-200"
                   }`}
                 >
                   <div className="flex items-center justify-between font-mono text-[10px] mb-1 opacity-80">
@@ -393,10 +393,10 @@ export function InteractiveProctorSimulator() {
           </div>
 
           {/* Bottom Security Assurance & Circular Trust Gauge */}
-          <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div>
-              <span className="block font-medium text-slate-300">Automated AI Evidence Snapshots</span>
-              <span className="font-mono text-indigo-400 font-semibold text-[11px]">100% Cryptographic Audit</span>
+              <span className="block font-medium text-slate-800 dark:text-slate-300">Automated AI Evidence Snapshots</span>
+              <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold text-[11px]">100% Cryptographic Audit</span>
             </div>
             <div className="shrink-0">
               <CircularGauge
