@@ -239,6 +239,30 @@ def health_check():
     return {"status": "ok", "orm": "sqlalchemy", "version": "2.0.0"}
 
 
+@app.get("/api/debug/db")
+def debug_db():
+    from backend.database import clean_db_url, SessionLocal
+    from sqlalchemy import text
+    try:
+        db = SessionLocal()
+        result = db.execute(text("SELECT 1;")).scalar()
+        tables = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
+        db.close()
+        return {
+            "status": "connected",
+            "test_query": result,
+            "tables": [t[0] for t in tables],
+            "url_masked": clean_db_url[:15] + "..." + clean_db_url[-20:] if len(clean_db_url) > 35 else "short"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "trace": traceback.format_exc()
+        }
+
+
 if __name__ == "__main__":
     import uvicorn
 
