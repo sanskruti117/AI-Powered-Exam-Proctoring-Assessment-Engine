@@ -127,9 +127,6 @@ class RefreshToken(Base):
     user = relationship("User", back_populates="refresh_tokens")
 
 
-Index("ix_refresh_tokens_user_id", RefreshToken.user_id)
-
-
 class Exam(Base):
     __tablename__ = "exams"
 
@@ -257,8 +254,6 @@ class QuestionBank(Base):
     student_answers = relationship("StudentAnswer", back_populates="question", cascade="all, delete-orphan")
 
 
-Index("ix_question_bank_examiner_id", QuestionBank.examiner_id)
-Index("ix_question_bank_subject", QuestionBank.subject)
 Index("ix_question_bank_difficulty", QuestionBank.difficulty)
 Index("ix_question_bank_question_type", QuestionBank.question_type)
 Index("ix_question_bank_exam_section", QuestionBank.exam_id, QuestionBank.section_id)
@@ -287,9 +282,6 @@ class Option(Base):
 
     # Relationships
     question = relationship("QuestionBank", back_populates="options")
-
-
-Index("ix_options_question_id", Option.question_id)
 
 
 class TestCase(Base):
@@ -464,8 +456,4 @@ class ProctorEvent(Base):
     # Relationships
     attempt = relationship("ExamAttempt", back_populates="proctor_events")
     student = relationship("User", back_populates="proctor_events")
-
-
-Index("ix_proctor_events_attempt", ProctorEvent.attempt_id)
-Index("ix_proctor_events_student", ProctorEvent.student_id)
 
