@@ -10,6 +10,8 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localho
 
 # Clean PostgreSQL connection string for SQLAlchemy
 clean_db_url = DATABASE_URL
+if clean_db_url.startswith("postgres://"):
+    clean_db_url = clean_db_url.replace("postgres://", "postgresql://", 1)
 if "?schema=" in clean_db_url:
     clean_db_url = clean_db_url.split("?schema=")[0]
 

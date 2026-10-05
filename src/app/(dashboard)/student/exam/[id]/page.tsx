@@ -215,10 +215,16 @@ export default function StudentExamChamberPage() {
   const activeQuestionStartTimeRef = useRef<number>(Date.now());
   const cocoModelRef = useRef<any>(null);
   const blazeFaceModelRef = useRef<any>(null);
+  const scriptLoadsRef = useRef<Map<string, Promise<void>>>(new Map());
   const isAiLoopRunningRef = useRef<boolean>(false);
   const consecutivePhoneSlotsRef = useRef<number>(0);
   const consecutiveMultiPersonSlotsRef = useRef<number>(0);
   const consecutiveNoPersonSlotsRef = useRef<number>(0);
+  const consecutiveGazeSlotsRef = useRef<number>(0);
+  const consecutiveAudioSlotsRef = useRef<number>(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioAnalyserRef = useRef<AnalyserNode | null>(null);
+  const audioDataArrayRef = useRef<Uint8Array | null>(null);
   const lastStrikeTimestampRef = useRef<number>(0);
   const strikesCountRef = useRef<number>(0);
   const hasEnteredChamberRef = useRef<boolean>(false);
@@ -231,6 +237,7 @@ export default function StudentExamChamberPage() {
   useEffect(() => {
     hasEnteredChamberRef.current = hasEnteredChamber;
   }, [hasEnteredChamber]);
+
 
   // Ensure webcam stream is reliably attached whenever chamber view transitions
   useEffect(() => {
@@ -328,14 +335,47 @@ export default function StudentExamChamberPage() {
   const initWebcam = async () => {
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
-          audio: false,
-        });
+        let stream: MediaStream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+            audio: true,
+          });
+        } catch {
+          // Fallback to video-only if microphone is denied or unavailable
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+            audio: false,
+          });
+        }
+
         mediaStreamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play().catch(() => {});
+        }
+
+        // Initialize Web Audio API Analyser for Voice & Ambient Sound Monitoring
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0 && typeof window !== "undefined") {
+          try {
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContextClass) {
+              const audioCtx = new AudioContextClass();
+              if (audioCtx.state === "suspended") {
+                audioCtx.resume().catch(() => {});
+              }
+              const source = audioCtx.createMediaStreamSource(stream);
+              const analyser = audioCtx.createAnalyser();
+              analyser.fftSize = 256;
+              source.connect(analyser);
+              audioContextRef.current = audioCtx;
+              audioAnalyserRef.current = analyser;
+              audioDataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+            }
+          } catch (audioErr) {
+            console.warn("Audio analyser initialization note:", audioErr);
+          }
         }
       }
     } catch (err) {
@@ -343,25 +383,49 @@ export default function StudentExamChamberPage() {
     }
   };
 
+
   // Helper to dynamically load external CDN scripts with fallbacks
   const loadScriptWithFallback = async (urls: string[]): Promise<void> => {
     let lastError = null;
     for (const url of urls) {
-      if (document.querySelector(`script[src="${url}"]`)) {
-        return;
-      }
       try {
-        await new Promise<void>((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = url;
-          script.async = true;
-          script.crossOrigin = "anonymous";
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
-          document.body.appendChild(script);
-        });
+        let loadPromise = scriptLoadsRef.current.get(url);
+        if (!loadPromise) {
+          let existingScript = document.querySelector<HTMLScriptElement>(`script[src="${url}"]`);
+          if (existingScript?.dataset.loadState === "failed") {
+            existingScript.remove();
+            existingScript = null;
+          }
+          loadPromise = new Promise<void>((resolve, reject) => {
+            const script = existingScript || document.createElement("script");
+            const onLoad = () => {
+              script.dataset.loadState = "loaded";
+              resolve();
+            };
+            const onError = () => {
+              script.dataset.loadState = "failed";
+              reject(new Error(`Failed to load script: ${url}`));
+            };
+
+            if (script.dataset.loadState === "loaded") {
+              resolve();
+            } else {
+              script.addEventListener("load", onLoad, { once: true });
+              script.addEventListener("error", onError, { once: true });
+              if (!existingScript) {
+                script.src = url;
+                script.async = true;
+                script.crossOrigin = "anonymous";
+                document.body.appendChild(script);
+              }
+            }
+          });
+          scriptLoadsRef.current.set(url, loadPromise);
+        }
+        await loadPromise;
         return;
       } catch (err) {
+        scriptLoadsRef.current.delete(url);
         lastError = err;
         console.warn(`Script load attempt failed for ${url}, trying alternative mirror...`);
       }
@@ -668,7 +732,65 @@ export default function StudentExamChamberPage() {
     }
   }, [hasEnteredChamber, entranceTab]);
 
-  // Continuous AI Vision Slot Monitoring Loop (every 1.2s)
+  // Keyboard & Clipboard Security Listeners (Blocked shortcuts, copy, paste, devtools)
+  useEffect(() => {
+    if (!hasEnteredChamber) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!hasEnteredChamberRef.current) return;
+
+      // Prevent and flag DevTools (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+      if (
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i" || e.key === "J" || e.key === "j" || e.key === "C" || e.key === "c")) ||
+        (e.ctrlKey && (e.key === "U" || e.key === "u"))
+      ) {
+        e.preventDefault();
+        triggerStrikeViolation(
+          "DEVTOOLS_ATTEMPT",
+          "Developer Tools Access Attempted",
+          "Attempted to inspect page elements or open developer console."
+        );
+        return;
+      }
+
+      // Prevent and flag PrintScreen
+      if (e.key === "PrintScreen" || e.key === "Snapshot") {
+        e.preventDefault();
+        triggerStrikeViolation(
+          "SCREENSHOT_ATTEMPT",
+          "Screenshot Attempted",
+          "Screen capture attempt intercepted by Proctoring Guard."
+        );
+        return;
+      }
+
+      // Prevent copy / paste shortcuts inside question view (allowed inside code editor if desired)
+      if (e.ctrlKey && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V" || e.key === "a" || e.key === "A")) {
+        const activeTag = (document.activeElement?.tagName || "").toLowerCase();
+        const isEditable = activeTag === "textarea" || activeTag === "input" || document.activeElement?.classList.contains("monaco-editor");
+        if (!isEditable && (e.key === "c" || e.key === "C" || e.key === "v" || e.key === "V")) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      if (hasEnteredChamberRef.current) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("contextmenu", handleContextMenu);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("contextmenu", handleContextMenu);
+    };
+  }, [hasEnteredChamber, triggerStrikeViolation]);
+
+  // Continuous AI Vision & Audio Slot Monitoring Loop (every 1.1s)
   useEffect(() => {
     const interval = setInterval(async () => {
       if (!videoRef.current || isAiLoopRunningRef.current) return;
@@ -700,12 +822,12 @@ export default function StudentExamChamberPage() {
         }
 
         const frameBase64 = canvas.toDataURL("image/jpeg", 0.65);
-        let handledViaServer = false;
+        let serverVisionData: any = null;
 
-        // 1. Try Backend Ultra-Accurate OpenCV YuNet + YOLO Neural Detector
+        // 1. Query Backend OpenCV YuNet + Deep Vision Endpoint
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 1200);
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
 
           const res = await fetch(`/api/exams/${examId}/proctor-vision`, {
             method: "POST",
@@ -718,95 +840,77 @@ export default function StudentExamChamberPage() {
           if (res.ok) {
             const data = await res.json();
             if (data && data.success) {
-              handledViaServer = true;
-              setDetectedEntities(data.hud_tags || []);
-              setBoundingReticles(data.bounding_boxes || []);
-
-              // Enforce strikes only when inside active exam chamber
-              if (hasEnteredChamberRef.current) {
-                // Rule 1: Prohibited Device (Phone, tablet, laptop, book)
-                if (data.prohibited_items && data.prohibited_items.length > 0) {
-                  consecutivePhoneSlotsRef.current += 1;
-                  if (consecutivePhoneSlotsRef.current >= 2) {
-                    consecutivePhoneSlotsRef.current = 0;
-                    const item = data.prohibited_items[0].class;
-                    const confPct = Math.round(data.prohibited_items[0].confidence * 100);
-                    triggerStrikeViolation(
-                      "PROHIBITED_DEVICE",
-                      `Secondary Device Detected (${item.toUpperCase()})`,
-                      `AI Vision identified unauthorized item: "${item}" (Confidence: ${confPct}%) in front of camera.`
-                    );
-                  }
-                } else {
-                  consecutivePhoneSlotsRef.current = 0;
-                }
-
-                // Rule 2: Multiple Persons in Chamber
-                if (data.multiple_persons) {
-                  consecutiveMultiPersonSlotsRef.current += 1;
-                  if (consecutiveMultiPersonSlotsRef.current >= 2) {
-                    consecutiveMultiPersonSlotsRef.current = 0;
-                    const pCount = Math.max(data.face_count, data.person_count);
-                    triggerStrikeViolation(
-                      "MULTIPLE_PERSONS",
-                      "Multiple Persons Detected",
-                      `AI Vision identified ${pCount} individuals simultaneously in camera stream. Only 1 candidate is permitted.`
-                    );
-                  }
-                } else {
-                  consecutiveMultiPersonSlotsRef.current = 0;
-                }
-
-                // Rule 3: Candidate Absent (No Face in Camera Frame)
-                if (!data.candidate_present) {
-                  consecutiveNoPersonSlotsRef.current += 1;
-                  if (consecutiveNoPersonSlotsRef.current >= 3) {
-                    consecutiveNoPersonSlotsRef.current = 0;
-                    triggerStrikeViolation(
-                      "CANDIDATE_ABSENT",
-                      "Candidate Absent from Frame",
-                      "No human face or candidate detected in front of the camera stream. Please remain centered in camera view."
-                    );
-                  }
-                } else {
-                  consecutiveNoPersonSlotsRef.current = 0;
-                }
-              }
+              serverVisionData = data;
             }
           }
-        } catch (serverErr) {
-          // If server call deferred or aborted, smoothly fall back to local client detector
-        }
+        } catch (_) {}
 
-        // 2. Fallback to Local Client-Side Detector if Server was Offline
-        if (!handledViaServer) {
-          let faceCount = 0;
-          let cocoPersonCount = 0;
-          const foundProhibited: Array<{ class: string; score: number }> = [];
-          const fallbackReticles: any[] = [];
+        // 2. Client-Side Neural Model Detection (BlazeFace + COCO-SSD)
+        let faceCount = serverVisionData?.face_count || 0;
+        let cocoPersonCount = 0;
+        let isClientGazeDeviated = serverVisionData?.gaze_deviated || false;
+        let clientGazeDirection = serverVisionData?.gaze_direction || "CENTERED";
 
-          if (blazeFaceModelRef.current) {
-            try {
-              const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
-              const validFaces: any[] = [];
-              if (faces && Array.isArray(faces)) {
-                faces.forEach((f: any) => {
-                  const prob = Array.isArray(f.probability)
-                    ? f.probability[0]
-                    : typeof f.probability === "number"
-                    ? f.probability
-                    : 0;
-                  const start = f.topLeft;
-                  const end = f.bottomRight;
-                  if (start && end) {
-                    const fw = end[0] - start[0];
-                    const fh = end[1] - start[1];
-                    // Strict threshold: probability >= 0.90 and minimum size (10% of frame)
-                    // Discards ceiling beams, lights, and wall texture false positives
-                    if (prob >= 0.90 && fw >= vw * 0.10 && fh >= vh * 0.10) {
-                      validFaces.push(f);
-                      fallbackReticles.push({
-                        label: "Face",
+        const foundProhibited: Array<{ class: string; score: number }> = (serverVisionData?.prohibited_items || []).map(
+          (item: any) => ({
+            class: item.class,
+            score: item.confidence,
+          })
+        );
+        const activeReticles: any[] = [...(serverVisionData?.bounding_boxes || [])];
+
+        // MediaPipe BlazeFace detection
+        if (blazeFaceModelRef.current) {
+          try {
+            const faces = await blazeFaceModelRef.current.estimateFaces(video, false);
+            const validFaces: any[] = [];
+            if (faces && Array.isArray(faces)) {
+              faces.forEach((f: any) => {
+                const prob = Array.isArray(f.probability)
+                  ? f.probability[0]
+                  : typeof f.probability === "number"
+                  ? f.probability
+                  : 0;
+                const start = f.topLeft;
+                const end = f.bottomRight;
+                if (start && end) {
+                  const fw = end[0] - start[0];
+                  const fh = end[1] - start[1];
+                  if (prob >= 0.70 && fw >= vw * 0.06 && fh >= vh * 0.06) {
+                    validFaces.push(f);
+
+                    // Compute Gaze & Head-Pose from landmarks if available
+                    if (f.landmarks && f.landmarks.length >= 4) {
+                      const re = f.landmarks[0];
+                      const le = f.landmarks[1];
+                      const nose = f.landmarks[2];
+                      const mouth = f.landmarks[3];
+                      const eyeMidX = (re[0] + le[0]) / 2;
+                      const eyeMidY = (re[1] + le[1]) / 2;
+                      const yaw = (nose[0] - eyeMidX) / Math.max(fw * 0.4, 1);
+                      const pitch = (nose[1] - eyeMidY) / Math.max(mouth[1] - eyeMidY, 1) - 0.55;
+
+                      if (yaw < -0.25) {
+                        isClientGazeDeviated = true;
+                        clientGazeDirection = "LEFT";
+                      } else if (yaw > 0.25) {
+                        isClientGazeDeviated = true;
+                        clientGazeDirection = "RIGHT";
+                      } else if (pitch > 0.35) {
+                        isClientGazeDeviated = true;
+                        clientGazeDirection = "DOWN";
+                      } else if (pitch < -0.35) {
+                        isClientGazeDeviated = true;
+                        clientGazeDirection = "UP";
+                      } else {
+                        isClientGazeDeviated = false;
+                        clientGazeDirection = "CENTERED";
+                      }
+                    }
+
+                    if (activeReticles.length === 0) {
+                      activeReticles.push({
+                        label: isClientGazeDeviated ? `Face (${clientGazeDirection})` : "Candidate Face",
                         type: "FACE",
                         confidence: Math.round(prob * 100) / 100,
                         box: [
@@ -818,105 +922,170 @@ export default function StudentExamChamberPage() {
                       });
                     }
                   }
-                });
-              }
-              faceCount = validFaces.length;
-            } catch (_) {}
-          }
-
-          if (cocoModelRef.current) {
-            try {
-              const predictions: Array<{ class: string; score: number; bbox?: number[] }> = await cocoModelRef.current.detect(
-                video,
-                20,
-                0.25
-              );
-              const prohibitedClasses = ["cell phone", "phone", "mobile", "remote", "laptop", "tablet", "book", "tv"];
-              predictions.forEach((p) => {
-                const cName = p.class.toLowerCase();
-                if (cName === "person" && p.score >= 0.55) {
-                  cocoPersonCount += 1;
-                } else if (prohibitedClasses.some((c) => cName.includes(c)) && p.score >= 0.30) {
-                  foundProhibited.push(p);
-                  if (p.bbox && p.bbox.length === 4) {
-                    fallbackReticles.push({
-                      label: `🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`,
-                      type: "PROHIBITED",
-                      confidence: Math.round(p.score * 100) / 100,
-                      box: [
-                        Math.max(0, p.bbox[0]) / vw,
-                        Math.max(0, p.bbox[1]) / vh,
-                        Math.min(vw, p.bbox[0] + p.bbox[2]) / vw,
-                        Math.min(vh, p.bbox[1] + p.bbox[3]) / vh,
-                      ],
-                    });
-                  }
                 }
               });
-            } catch (_) {}
-          }
+            }
+            faceCount = Math.max(validFaces.length, faceCount);
+          } catch (_) {}
+        }
 
-          const currentTags: string[] = [];
-          if (foundProhibited.length > 0) {
-            foundProhibited.forEach((p) => currentTags.push(`🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`));
-          }
-          if (faceCount === 0) {
-            currentTags.push("⚠️ No Candidate Detected");
-          } else if (faceCount > 1 || (faceCount >= 1 && cocoPersonCount > 1)) {
-            currentTags.push(`🚨 ${Math.max(faceCount, cocoPersonCount)} Persons Detected`);
+        // COCO-SSD Object & Prohibited Device detection
+        if (cocoModelRef.current) {
+          try {
+            const predictions: Array<{ class: string; score: number; bbox?: number[] }> = await cocoModelRef.current.detect(
+              video,
+              20,
+              0.22
+            );
+            const prohibitedClasses = ["cell phone", "phone", "mobile", "remote", "laptop", "tablet", "book", "tv"];
+            predictions.forEach((p) => {
+              const cName = p.class.toLowerCase();
+              if (cName === "person" && p.score >= 0.35) {
+                cocoPersonCount += 1;
+              } else if (prohibitedClasses.some((c) => cName.includes(c)) && p.score >= 0.20) {
+                if (!foundProhibited.some((item) => item.class.toLowerCase() === cName)) {
+                  foundProhibited.push(p);
+                }
+                if (p.bbox && p.bbox.length === 4) {
+                  activeReticles.push({
+                    label: `🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`,
+                    type: "PROHIBITED",
+                    confidence: Math.round(p.score * 100) / 100,
+                    box: [
+                      Math.max(0, p.bbox[0]) / vw,
+                      Math.max(0, p.bbox[1]) / vh,
+                      Math.min(vw, p.bbox[0] + p.bbox[2]) / vw,
+                      Math.min(vh, p.bbox[1] + p.bbox[3]) / vh,
+                    ],
+                  });
+                }
+              }
+            });
+          } catch (_) {}
+        }
+
+        // 3. Audio RMS Level & Speech Anomaly Check
+        let isAudioAnomaly = false;
+        if (audioAnalyserRef.current && audioDataArrayRef.current) {
+          try {
+            audioAnalyserRef.current.getByteFrequencyData(audioDataArrayRef.current as any);
+            let sum = 0;
+            for (let i = 0; i < audioDataArrayRef.current.length; i++) {
+              sum += audioDataArrayRef.current[i];
+            }
+            const avgVolume = sum / audioDataArrayRef.current.length;
+            if (avgVolume > 38) {
+              isAudioAnomaly = true;
+            }
+          } catch (_) {}
+        }
+
+        const personCount = Math.max(cocoPersonCount, serverVisionData?.person_count || 0);
+        const candidatePresent = faceCount > 0 || personCount > 0;
+        const currentTags: string[] = [];
+
+        if (foundProhibited.length > 0) {
+          foundProhibited.forEach((p) => currentTags.push(`🚨 ${p.class.toUpperCase()} (${Math.round(p.score * 100)}%)`));
+        }
+
+        if (!candidatePresent) {
+          currentTags.push("⚠️ No Candidate Detected");
+        } else if (faceCount > 1 || personCount > 1) {
+          currentTags.push(`🚨 ${Math.max(faceCount, personCount)} Persons Detected`);
+        } else {
+          currentTags.push("🟢 Candidate In Frame");
+          if (isClientGazeDeviated) {
+            currentTags.push(`👀 Gaze Away (${clientGazeDirection})`);
           } else {
-            currentTags.push("🟢 Candidate In Frame");
+            currentTags.push("🟢 Gaze Centered");
+          }
+        }
+
+        if (isAudioAnomaly) {
+          currentTags.push("🔊 Speech / Noise Spike");
+        }
+
+        setDetectedEntities(currentTags);
+        setBoundingReticles(activeReticles);
+
+        // 4. Enforce Violations & Strikes inside active exam chamber
+        if (hasEnteredChamberRef.current) {
+          // Rule A: Prohibited Device
+          if (foundProhibited.length > 0) {
+            consecutivePhoneSlotsRef.current += 1;
+            if (consecutivePhoneSlotsRef.current >= 2) {
+              consecutivePhoneSlotsRef.current = 0;
+              const item = foundProhibited[0].class;
+              const confPct = Math.round(foundProhibited[0].score * 100);
+              triggerStrikeViolation(
+                "PROHIBITED_DEVICE",
+                `Secondary Device Detected (${item.toUpperCase()})`,
+                `AI Vision identified unauthorized item: "${item}" (Confidence: ${confPct}%) in front of camera.`
+              );
+            }
+          } else {
+            consecutivePhoneSlotsRef.current = 0;
           }
 
-          setDetectedEntities(currentTags);
-          setBoundingReticles(fallbackReticles);
-
-          // Enforce strikes in client fallback mode if active in chamber
-          if (hasEnteredChamberRef.current) {
-            if (foundProhibited.length > 0) {
-              consecutivePhoneSlotsRef.current += 1;
-              if (consecutivePhoneSlotsRef.current >= 2) {
-                consecutivePhoneSlotsRef.current = 0;
-                const item = foundProhibited[0].class;
-                const confPct = Math.round(foundProhibited[0].score * 100);
-                triggerStrikeViolation(
-                  "PROHIBITED_DEVICE",
-                  `Secondary Device Detected (${item.toUpperCase()})`,
-                  `AI Vision identified unauthorized item: "${item}" (Confidence: ${confPct}%) in front of camera.`
-                );
-              }
-            } else {
-              consecutivePhoneSlotsRef.current = 0;
-            }
-
-            if (faceCount > 1 || (faceCount >= 1 && cocoPersonCount > 1)) {
-              consecutiveMultiPersonSlotsRef.current += 1;
-              if (consecutiveMultiPersonSlotsRef.current >= 2) {
-                consecutiveMultiPersonSlotsRef.current = 0;
-                const pCount = Math.max(faceCount, cocoPersonCount);
-                triggerStrikeViolation(
-                  "MULTIPLE_PERSONS",
-                  "Multiple Persons Detected",
-                  `AI Vision identified ${pCount} individuals simultaneously in camera stream.`
-                );
-              }
-            } else {
+          // Rule B: Multiple Persons
+          if (faceCount > 1 || personCount > 1) {
+            consecutiveMultiPersonSlotsRef.current += 1;
+            if (consecutiveMultiPersonSlotsRef.current >= 2) {
               consecutiveMultiPersonSlotsRef.current = 0;
+              const pCount = Math.max(faceCount, personCount);
+              triggerStrikeViolation(
+                "MULTIPLE_PERSONS",
+                "Multiple Persons Detected",
+                `AI Vision identified ${pCount} individuals simultaneously in camera stream.`
+              );
             }
+          } else {
+            consecutiveMultiPersonSlotsRef.current = 0;
+          }
 
-            if (faceCount === 0) {
-              consecutiveNoPersonSlotsRef.current += 1;
-              if (consecutiveNoPersonSlotsRef.current >= 3) {
-                consecutiveNoPersonSlotsRef.current = 0;
-                triggerStrikeViolation(
-                  "CANDIDATE_ABSENT",
-                  "Candidate Absent from Frame",
-                  "No human face or candidate detected in front of the camera stream. Please remain centered in camera view."
-                );
-              }
-            } else {
+          // Rule C: Candidate Absent
+          if (!candidatePresent) {
+            consecutiveNoPersonSlotsRef.current += 1;
+            if (consecutiveNoPersonSlotsRef.current >= 3) {
               consecutiveNoPersonSlotsRef.current = 0;
+              triggerStrikeViolation(
+                "CANDIDATE_ABSENT",
+                "Candidate Absent from Frame",
+                "No human face or candidate detected in front of the camera stream. Please remain centered in camera view."
+              );
             }
+          } else {
+            consecutiveNoPersonSlotsRef.current = 0;
+          }
+
+          // Rule D: Gaze Deviation / Prolonged Looking Away
+          if (candidatePresent && isClientGazeDeviated) {
+            consecutiveGazeSlotsRef.current += 1;
+            if (consecutiveGazeSlotsRef.current >= 4) {
+              consecutiveGazeSlotsRef.current = 0;
+              triggerStrikeViolation(
+                "GAZE_DEVIATION",
+                "Prolonged Gaze Deviation",
+                `Candidate looking away (${clientGazeDirection}) from the exam screen for a continuous period.`
+              );
+            }
+          } else {
+            consecutiveGazeSlotsRef.current = 0;
+          }
+
+          // Rule E: Voice / Audio Anomaly
+          if (isAudioAnomaly) {
+            consecutiveAudioSlotsRef.current += 1;
+            if (consecutiveAudioSlotsRef.current >= 3) {
+              consecutiveAudioSlotsRef.current = 0;
+              triggerStrikeViolation(
+                "AUDIO_ANOMALY",
+                "Audio / Speech Anomaly Detected",
+                "Continuous background speech or conversation detected during examination session."
+              );
+            }
+          } else {
+            consecutiveAudioSlotsRef.current = 0;
           }
         }
 
@@ -924,10 +1093,11 @@ export default function StudentExamChamberPage() {
       } catch (err) {
         isAiLoopRunningRef.current = false;
       }
-    }, 1200);
+    }, 1100);
 
     return () => clearInterval(interval);
   }, [examId, triggerStrikeViolation]);
+
 
   const sendHeartbeat = async () => {
     if (!attemptId || questions.length === 0) return;

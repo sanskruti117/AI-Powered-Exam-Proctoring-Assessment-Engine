@@ -27,6 +27,7 @@ from backend.schemas import (
     CodeSubmitTestResponse,
     ProctorVisionFrameRequest,
     ProctorVisionFrameResponse,
+    ProctorEventCreateRequest,
 )
 from backend.services.proctor_vision import analyze_proctor_frame
 from backend.crud import (
@@ -554,16 +555,28 @@ def get_exam_result(
 
 
 @router.post("/{id}/proctor-event")
-def log_proctor_event(
+async def log_proctor_event(
     id: str,
     request: Request,
-    event_type: str = Query(...),
-    severity: str = Query(default="MEDIUM"),
+    event_type: Optional[str] = Query(default=None),
+    severity: Optional[str] = Query(default=None),
     details: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
 ):
     user = require_student(request)
     student_id = user.get("userId")
+
+    # Read body if JSON was provided
+    body_data = {}
+    try:
+        if request.headers.get("content-type", "").startswith("application/json"):
+            body_data = await request.json()
+    except Exception:
+        pass
+
+    final_event_type = body_data.get("event_type") or event_type or "PROCTOR_INCIDENT"
+    final_severity = (body_data.get("severity") or severity or "MEDIUM").upper()
+    final_details = body_data.get("details") or details
 
     attempt = (
         db.query(ExamAttempt)
@@ -576,13 +589,14 @@ def log_proctor_event(
     pe = ProctorEvent(
         attempt_id=attempt.id,
         student_id=student_id,
-        event_type=event_type,
-        severity=severity.upper(),
-        details=details,
+        event_type=final_event_type,
+        severity=final_severity,
+        details=final_details,
     )
     db.add(pe)
     db.commit()
     return {"success": True}
+
 
 
 @router.post("/{id}/proctor-vision", response_model=ProctorVisionFrameResponse)

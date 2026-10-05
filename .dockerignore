@@ -1,0 +1,36 @@
+# Version control
+.git
+.gitignore
+
+# Frontend files not needed in backend container
+node_modules
+.next
+src
+public
+tailwind.config.ts
+tsconfig.json
+package.json
+package-lock.json
+next.config.mjs
+postcss.config.mjs
+
+# Python environment & cache
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.db
+*.sqlite3
+
+# Local environment & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary/Scratch files
+scratch
+.tmp

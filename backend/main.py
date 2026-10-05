@@ -31,9 +31,18 @@ app = FastAPI(
 )
 
 # Configure CORS
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+default_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+origins = list(set(default_origins + allowed_origins))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -193,6 +202,11 @@ from fastapi.responses import RedirectResponse
 @app.get("/database", include_in_schema=False)
 def redirect_to_studio():
     return RedirectResponse(url="/db-studio")
+
+
+@app.get("/")
+def root():
+    return {"message": "Exam Proctoring API is online", "docs": "/docs", "health": "/api/health"}
 
 
 @app.get("/api/health")

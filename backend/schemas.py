@@ -799,6 +799,12 @@ class ProctorVisionFrameRequest(BaseModel):
     frame_base64: str = Field(description="Base64 encoded JPEG/PNG frame from student camera")
 
 
+class ProctorEventCreateRequest(BaseModel):
+    event_type: str
+    severity: str = "MEDIUM"  # LOW, MEDIUM, HIGH, CRITICAL
+    details: Optional[str] = None
+
+
 class ProctorBoundingBoxItem(BaseModel):
     label: str
     type: str = "FACE"  # FACE, PROHIBITED, PERSON
@@ -808,11 +814,18 @@ class ProctorBoundingBoxItem(BaseModel):
 
 class ProctorVisionFrameResponse(BaseModel):
     success: bool = True
+    face_detector_available: bool = False
+    object_detector_available: bool = False
     candidate_present: bool = True
     face_count: int = 1
     person_count: int = 1
     multiple_persons: bool = False
+    gaze_deviated: bool = False
+    gaze_direction: str = "CENTERED"  # CENTERED, LEFT, RIGHT, DOWN, UP
+    yaw_ratio: float = 0.0
+    pitch_ratio: float = 0.0
     prohibited_items: List[Dict[str, Any]] = Field(default_factory=list)
     hud_tags: List[str] = Field(default_factory=list)
     bounding_boxes: List[ProctorBoundingBoxItem] = Field(default_factory=list)
+
 

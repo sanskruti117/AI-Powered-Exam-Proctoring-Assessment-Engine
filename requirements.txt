@@ -10,3 +10,9 @@ google-genai
 requests
 python-multipart
 sqladmin
+ultralytics
+pillow
+psycopg2-binary
+opencv-python-headless
+passlib
+websockets

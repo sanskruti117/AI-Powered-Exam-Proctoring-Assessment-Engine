@@ -20,6 +20,7 @@ logger = logging.getLogger("proctor_vision")
 # Global cached models
 _yolo_model = None
 _face_cascade = None
+_yunet_detector = None
 
 
 def get_face_cascades():
@@ -55,13 +56,16 @@ def get_face_cascades():
 
 def get_yunet_detector(width: int, height: int):
     """Initializes OpenCV YuNet Deep Learning Face Detector for instant, accurate face tracking."""
+    global _yunet_detector
     try:
         import cv2
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         model_path = os.path.join(base_dir, "models", "yunet.onnx")
-        if os.path.exists(model_path):
-            detector = cv2.FaceDetectorYN.create(model_path, "", (width, height), 0.55, 0.3, 5000)
-            return detector
+        if os.path.exists(model_path) and _yunet_detector is None:
+            _yunet_detector = cv2.FaceDetectorYN.create(model_path, "", (width, height), 0.75, 0.3, 5000)
+        if _yunet_detector is not None:
+            _yunet_detector.setInputSize((width, height))
+            return _yunet_detector
     except Exception as e:
         logger.warning(f"YuNet init warning: {e}")
     return None
@@ -96,8 +100,9 @@ def decode_image_to_numpy(data_uri_or_base64: str) -> Optional[Any]:
             nparr = np.frombuffer(image_bytes, np.uint8)
             img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             if img_bgr is not None:
-                img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-                return img_rgb
+                # OpenCV YuNet, Haar and Ultralytics all expect OpenCV's BGR
+                # channel order. Returning RGB silently degrades their results.
+                return img_bgr
         except Exception:
             pass
 
@@ -137,11 +142,18 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
     prohibited_items: List[Dict[str, Any]] = []
     bounding_boxes: List[Dict[str, Any]] = []
 
-    # 1. OpenCV YuNet Deep Neural Network Face Detection
+    face_detector_available = False
+    gaze_deviated = False
+    gaze_direction = "CENTERED"
+    primary_yaw_ratio = 0.0
+    primary_pitch_ratio = 0.0
+
+    # 1. OpenCV YuNet deep neural network face detection & Gaze/Head-Pose Estimation
     try:
         import cv2
         yunet = get_yunet_detector(width, height)
         if yunet is not None:
+            face_detector_available = True
             yunet.setInputSize((width, height))
             retval, faces = yunet.detect(img_np)
             if faces is not None:
@@ -149,11 +161,54 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
                 for f in faces:
                     x, y, w, h = int(f[0]), int(f[1]), int(f[2]), int(f[3])
                     conf = float(f[14]) if len(f) > 14 else 0.95
-                    # Strict validation: confidence >= 0.70 and minimum face width/height >= 10% of frame
-                    if conf >= 0.70 and w >= (width * 0.10) and h >= (height * 0.10):
+                    aspect_ratio = w / max(h, 1)
+
+                    # Basic sanity check (face must be reasonably sized and shaped)
+                    if (
+                        conf >= 0.45
+                        and w >= (width * 0.04)
+                        and h >= (height * 0.04)
+                        and 0.35 <= aspect_ratio <= 2.2
+                    ):
                         valid_faces.append(f)
+
+                        # Extract Gaze & Head-Pose from 5 Facial Landmarks (Right eye, Left eye, Nose tip, Mouth right, Mouth left)
+                        if len(f) >= 14:
+                            landmarks = f[4:14].reshape(5, 2)
+                            re, le, nose, mr, ml = landmarks
+                            eye_mid_x = float((re[0] + le[0]) / 2.0)
+                            eye_mid_y = float((re[1] + le[1]) / 2.0)
+                            mouth_mid_y = float((mr[1] + ml[1]) / 2.0)
+
+                            # Horizontal Yaw Ratio: Offset of nose from eye midpoint
+                            yaw = (float(nose[0]) - eye_mid_x) / max(w * 0.4, 1.0)
+                            # Vertical Pitch Ratio: Relative position of nose between eyes and mouth
+                            vertical_span = max(mouth_mid_y - eye_mid_y, 1.0)
+                            pitch = (float(nose[1]) - eye_mid_y) / vertical_span - 0.55
+
+                            primary_yaw_ratio = round(yaw, 3)
+                            primary_pitch_ratio = round(pitch, 3)
+
+                            # Check gaze direction
+                            if yaw < -0.25:
+                                gaze_direction = "LEFT"
+                                gaze_deviated = True
+                            elif yaw > 0.25:
+                                gaze_direction = "RIGHT"
+                                gaze_deviated = True
+                            elif pitch > 0.35:
+                                gaze_direction = "DOWN"
+                                gaze_deviated = True
+                            elif pitch < -0.35:
+                                gaze_direction = "UP"
+                                gaze_deviated = True
+                            else:
+                                gaze_direction = "CENTERED"
+                                gaze_deviated = False
+
+                        gaze_label = f"Face ({gaze_direction})" if gaze_direction != "CENTERED" else "Candidate Face"
                         bounding_boxes.append({
-                            "label": "Face",
+                            "label": gaze_label,
                             "type": "FACE",
                             "confidence": round(conf, 2),
                             "box": [
@@ -164,11 +219,36 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
                             ],
                         })
                 face_count = len(valid_faces)
+        else:
+            cascades = get_face_cascades()
+            if cascades:
+                face_detector_available = True
+                gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+                cascade_face_count = 0
+                for cascade in cascades:
+                    faces = cascade.detectMultiScale(
+                        gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30)
+                    )
+                    cascade_face_count = max(cascade_face_count, len(faces))
+                    for x, y, w, h in faces:
+                        bounding_boxes.append({
+                            "label": "Candidate Face",
+                            "type": "FACE",
+                            "confidence": 0.65,
+                            "box": [
+                                round(max(0, x) / width, 4),
+                                round(max(0, y) / height, 4),
+                                round(min(width, x + w) / width, 4),
+                                round(min(height, y + h) / height, 4),
+                            ],
+                        })
+                face_count = cascade_face_count
     except Exception as e:
         logger.warning(f"YuNet face detection warning: {e}")
 
     # 2. Ultralytics YOLOv8 Object & Device Detection
     yolo = get_yolo_model()
+    object_detector_available = yolo is not None
     if yolo is not None:
         try:
             results = yolo.predict(source=img_np, conf=0.18, verbose=False)
@@ -189,7 +269,7 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
 
                     # Person detection
                     if cls_name == "person":
-                        if conf >= 0.45:
+                        if conf >= 0.40:
                             person_count += 1
                             bounding_boxes.append({
                                 "label": "Person",
@@ -198,7 +278,7 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
                                 "box": norm_box,
                             })
                     # Prohibited devices & materials
-                    elif cls_name in ("cell phone", "phone", "remote", "laptop", "tv", "book"):
+                    elif cls_name in ("cell phone", "phone", "remote", "laptop", "tv", "book", "tablet"):
                         if conf >= 0.20:
                             prohibited_items.append({
                                 "class": cls_name,
@@ -215,8 +295,8 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
             logger.warning(f"YOLO inference warning: {yolo_err}")
 
     # Biological Ground Truth Candidate Presence Logic:
-    candidate_present = face_count >= 1
-    multiple_persons = (face_count > 1) or (face_count >= 1 and person_count > 1)
+    candidate_present = (face_count >= 1) or (person_count >= 1)
+    multiple_persons = (face_count > 1) or (person_count > 1)
 
     hud_tags: List[str] = []
 
@@ -224,7 +304,7 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
     for item in prohibited_items:
         hud_tags.append(f"🚨 {item['class'].upper()} ({int(item['confidence'] * 100)}%)")
 
-    # Person presence tags
+    # Candidate presence & gaze tags
     if not candidate_present:
         hud_tags.append("⚠️ No Candidate Detected")
     elif multiple_persons:
@@ -232,14 +312,25 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
         hud_tags.append(f"🚨 {count} Persons Detected")
     else:
         hud_tags.append("🟢 Candidate In Frame")
+        if gaze_deviated:
+            hud_tags.append(f"👀 Gaze Away ({gaze_direction})")
+        else:
+            hud_tags.append("🟢 Gaze Centered")
 
     return {
-        "success": True,
+        "success": face_detector_available or object_detector_available,
+        "face_detector_available": face_detector_available,
+        "object_detector_available": object_detector_available,
         "candidate_present": candidate_present,
         "face_count": face_count,
         "person_count": person_count,
         "multiple_persons": multiple_persons,
+        "gaze_deviated": gaze_deviated,
+        "gaze_direction": gaze_direction,
+        "yaw_ratio": primary_yaw_ratio,
+        "pitch_ratio": primary_pitch_ratio,
         "prohibited_items": prohibited_items,
         "hud_tags": hud_tags,
         "bounding_boxes": bounding_boxes,
     }
+
