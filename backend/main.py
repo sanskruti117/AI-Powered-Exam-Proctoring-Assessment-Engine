@@ -2,11 +2,13 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from backend.database import Base, engine
+import backend.models  # Crucial: registers all SQLAlchemy models on Base.metadata
 from backend.routers.auth import router as auth_router
 from backend.routers.admin import router as admin_router
 from backend.routers.questions import router as questions_router
 from backend.routers.exams import router as exams_router
-from backend.database import Base, engine
+from backend.seed import seed_database
 
 from sqlalchemy import text
 
@@ -16,8 +18,9 @@ try:
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
         conn.commit()
+    seed_database()
 except Exception as e:
-    print(f"[INFO] Database connection / auto-migration deferred at startup: {e}")
+    print(f"[INFO] Database connection / auto-migration / seed deferred at startup: {e}")
 
 
 # Ensure upload directory exists
