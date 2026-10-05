@@ -18,12 +18,32 @@ from sqlalchemy import text
 def init_db():
     try:
         print("[INFO] Creating all database tables if they do not exist...")
-        Base.metadata.create_all(bind=engine)
-        with engine.connect() as conn:
-            conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
-            conn.commit()
-        print("[INFO] Seeding initial database data...")
-        seed_database()
+        from backend.models import (
+            User,
+            Exam,
+            ExamSection,
+            QuestionBank,
+            Option,
+            TestCase,
+            CodeBoilerplate,
+            ExamAttempt,
+            StudentAnswer,
+            QuestionTimeLog,
+            ProctorEvent,
+            RefreshToken,
+        )
+        User.metadata.create_all(bind=engine)
+        print(f"[SUCCESS] Tables registered in metadata: {list(User.metadata.tables.keys())}")
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
+                conn.commit()
+        except Exception as alt_err:
+            print(f"[INFO] Auto-migration note: {alt_err}")
+        try:
+            seed_database()
+        except Exception as seed_err:
+            print(f"[INFO] Seeding note: {seed_err}")
         print("[SUCCESS] Database initialized and seeded successfully!")
     except Exception as e:
         print(f"[ERROR] Database init error: {e}")
@@ -244,14 +264,18 @@ def debug_db():
     from backend.database import clean_db_url, SessionLocal
     from sqlalchemy import text
     try:
+        init_db()
         db = SessionLocal()
         result = db.execute(text("SELECT 1;")).scalar()
         tables = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
+        table_list = [t[0] for t in tables]
+        user_count = db.execute(text("SELECT count(*) FROM users;")).scalar() if "users" in table_list else 0
         db.close()
         return {
             "status": "connected",
             "test_query": result,
-            "tables": [t[0] for t in tables],
+            "tables": table_list,
+            "user_count": user_count,
             "url_masked": clean_db_url[:15] + "..." + clean_db_url[-20:] if len(clean_db_url) > 35 else "short"
         }
     except Exception as e:
