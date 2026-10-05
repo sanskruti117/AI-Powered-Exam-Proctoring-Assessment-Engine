@@ -1,6 +1,7 @@
 import os
 import io
 import re
+import gc
 import base64
 import logging
 from typing import Dict, Any, List, Optional
@@ -14,6 +15,15 @@ try:
     from PIL import Image
 except ImportError:
     Image = None
+
+try:
+    import torch
+    # Set PyTorch to 1 thread to avoid memory fragmentation on limited compute
+    torch.set_num_threads(1)
+    if hasattr(torch, "set_num_interop_threads"):
+        torch.set_num_interop_threads(1)
+except ImportError:
+    torch = None
 
 logger = logging.getLogger("proctor_vision")
 
@@ -77,7 +87,7 @@ def get_yolo_model():
     if _yolo_model is None:
         try:
             from ultralytics import YOLO
-            # Use yolov8n (nano ~6MB) for sub-15ms inference
+            # Use yolov8n (nano ~6MB)
             _yolo_model = YOLO("yolov8n.pt")
             logger.info("Ultralytics YOLOv8n initialized successfully.")
         except Exception as e:
@@ -251,7 +261,15 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
     object_detector_available = yolo is not None
     if yolo is not None:
         try:
-            results = yolo.predict(source=img_np, conf=0.18, verbose=False)
+            # Resize frame for YOLO inference if large to reduce tensor allocation
+            inference_img = img_np
+            if width > 640 or height > 640:
+                import cv2
+                scale = min(640.0 / width, 640.0 / height)
+                new_w, new_h = int(width * scale), int(height * scale)
+                inference_img = cv2.resize(img_np, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+            results = yolo.predict(source=inference_img, conf=0.18, verbose=False, imgsz=640)
             if results and len(results) > 0:
                 boxes = results[0].boxes
                 for box in boxes:
@@ -260,11 +278,15 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
                     conf = float(box.conf[0])
                     coords = box.xyxy[0].tolist()  # [x1, y1, x2, y2]
 
+                    # Scale normalized coordinates back to original frame
+                    curr_w = inference_img.shape[1]
+                    curr_h = inference_img.shape[0]
+
                     norm_box = [
-                        round(coords[0] / width, 4),
-                        round(coords[1] / height, 4),
-                        round(coords[2] / width, 4),
-                        round(coords[3] / height, 4),
+                        round(coords[0] / curr_w, 4),
+                        round(coords[1] / curr_h, 4),
+                        round(coords[2] / curr_w, 4),
+                        round(coords[3] / curr_h, 4),
                     ]
 
                     # Person detection
@@ -291,6 +313,7 @@ def analyze_proctor_frame(frame_base64: str) -> Dict[str, Any]:
                                 "confidence": round(conf, 2),
                                 "box": norm_box,
                             })
+            del results
         except Exception as yolo_err:
             logger.warning(f"YOLO inference warning: {yolo_err}")
 

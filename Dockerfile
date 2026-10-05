@@ -1,9 +1,12 @@
 # Base image
 FROM python:3.11-slim
 
-# Set environment variables
+# Set environment variables for minimal memory usage and instant reclamation
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    MALLOC_TRIM_THRESHOLD_=100000 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
     PORT=8000
 
 # Install system dependencies required for OpenCV, PostgreSQL, and media processing
