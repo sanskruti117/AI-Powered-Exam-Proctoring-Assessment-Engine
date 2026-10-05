@@ -16,6 +16,7 @@ from sqlalchemy import text
 
 
 def init_db():
+    details = {}
     try:
         print("[INFO] Creating all database tables if they do not exist...")
         from backend.models import (
@@ -33,21 +34,34 @@ def init_db():
             RefreshToken,
         )
         User.metadata.create_all(bind=engine)
-        print(f"[SUCCESS] Tables registered in metadata: {list(User.metadata.tables.keys())}")
+        registered_tables = list(User.metadata.tables.keys())
+        details["registered_tables"] = registered_tables
+        print(f"[SUCCESS] Tables registered in metadata: {registered_tables}")
+        
         try:
             with engine.connect() as conn:
                 conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
                 conn.commit()
+            details["migration"] = "ok"
         except Exception as alt_err:
+            details["migration_error"] = str(alt_err)
             print(f"[INFO] Auto-migration note: {alt_err}")
+            
         try:
             seed_database()
+            details["seed"] = "ok"
         except Exception as seed_err:
+            details["seed_error"] = str(seed_err)
             print(f"[INFO] Seeding note: {seed_err}")
+            
+        details["status"] = "success"
         print("[SUCCESS] Database initialized and seeded successfully!")
+        return details
     except Exception as e:
-        print(f"[ERROR] Database init error: {e}")
+        err_msg = str(e)
+        print(f"[ERROR] Database init error: {err_msg}")
         traceback.print_exc()
+        return {"status": "error", "error": err_msg, "trace": traceback.format_exc()}
 
 
 # Initialize database schema at import time
@@ -260,11 +274,12 @@ def health_check():
 
 
 @app.get("/api/debug/db")
+@app.get("/api/init-database")
 def debug_db():
     from backend.database import clean_db_url, SessionLocal
     from sqlalchemy import text
     try:
-        init_db()
+        init_result = init_db()
         db = SessionLocal()
         result = db.execute(text("SELECT 1;")).scalar()
         tables = db.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public';")).fetchall()
@@ -273,6 +288,7 @@ def debug_db():
         db.close()
         return {
             "status": "connected",
+            "init_result": init_result,
             "test_query": result,
             "tables": table_list,
             "user_count": user_count,
