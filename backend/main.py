@@ -1,5 +1,7 @@
 import os
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from backend.database import Base, engine
@@ -12,16 +14,24 @@ from backend.seed import seed_database
 
 from sqlalchemy import text
 
-# Initialize database schema metadata safely
-try:
-    Base.metadata.create_all(bind=engine)
-    with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
-        conn.commit()
-    seed_database()
-except Exception as e:
-    print(f"[INFO] Database connection / auto-migration / seed deferred at startup: {e}")
 
+def init_db():
+    try:
+        print("[INFO] Creating all database tables if they do not exist...")
+        Base.metadata.create_all(bind=engine)
+        with engine.connect() as conn:
+            conn.execute(text("ALTER TABLE exams ADD COLUMN IF NOT EXISTS results_published BOOLEAN DEFAULT FALSE NOT NULL;"))
+            conn.commit()
+        print("[INFO] Seeding initial database data...")
+        seed_database()
+        print("[SUCCESS] Database initialized and seeded successfully!")
+    except Exception as e:
+        print(f"[ERROR] Database init error: {e}")
+        traceback.print_exc()
+
+
+# Initialize database schema at import time
+init_db()
 
 # Ensure upload directory exists
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "uploads")
@@ -32,6 +42,18 @@ app = FastAPI(
     version="2.0.0",
     description="Backend API powered by FastAPI, SQLAlchemy ORM and Alembic",
 )
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "error": str(exc), "type": type(exc).__name__}
+    )
 
 # Configure CORS
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "")
